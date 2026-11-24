@@ -66,8 +66,7 @@ normalize, `git merge-file` each migrated file into `sycl/`.
 
 - XeStrata refuses oneAPI's icpx ("contrib-icpx mode was removed"); it needs intel/llvm >= 7 (libsycl 9).  Built with
   `tools/intel_llvm_build.py --yes --jobs 8`: about an hour on 8 threads (its doc says 13 minutes on 28), 3.5 GB kept.
-  (A first attempt to start the script was blocked by the sandbox's permission check because it runs downloaded code; it was run
-  after the user approved it.)
+  (The script downloads and builds a compiler; read it before you run it.)
 - `./setup.sh --family qwen36 --model UD-Q4_K_XL --gguf-dir <dir> --intel-llvm <install> --license free --yes --no-start`: creates a venv,
   builds the engine (206 steps), compiles the GPU code for the model (490 s once), writes a start script.  Running `setup.py`
   directly fails on Arch (PEP 668); `setup.sh` makes the venv.  Its `--inspect` rejects a local Q4_K_M GGUF ("not

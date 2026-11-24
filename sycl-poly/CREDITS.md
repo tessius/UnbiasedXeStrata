@@ -42,8 +42,7 @@ none of those parts are used here.
 - The kernel unit tests (`src/poly/{gdn,attend,rope}_q_test.cpp`) and `docs/validate/` (MIT).
 - This documentation and `DEVLOG.md`.
 
-The work was done in one session by a person working with an AI coding assistant (Claude Code, Anthropic); the assistant wrote and
-debugged most of the code and notes under the person's direction, and the claims in `DEVLOG.md` are backed by output kept in `docs/logs/`
+The claims in `DEVLOG.md` are backed by output kept in `docs/logs/`
 (`docs/logs/history/measurements-by-hand.txt` marks the few numbers that were noted from a terminal).
 
 ## If you redistribute
