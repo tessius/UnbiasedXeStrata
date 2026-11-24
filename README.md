@@ -1,4 +1,4 @@
-# Unbiased XeStrata
+# UnbiasedXeStrata
 
 **[UnbiasedStrata](https://github.com/robertkarl/UnbiasedStrata) with Intel GPU support**, taken from
 [XeStrata](https://github.com/MistVVK/XeStrata).  Runs UnbiasedStrata's `strata-poly` engine on Intel Arc GPUs through SYCL.
