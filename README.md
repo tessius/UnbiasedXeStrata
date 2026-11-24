@@ -1,266 +1,76 @@
-## Credits and license
+# Unbiased XeStrata
 
-The engines are PolyStrata's, by VecSzn and contributors, built on [Strata](https://github.com/Niko1221/Strata) by
-Niko1221. The front end is built from [llama.cpp / ggml](https://github.com/ggml-org/llama.cpp)'s server, common and
-mtmd code. Qwen3.8-Flash-Next and Qwen3.6-35B-A3B are by the Qwen team; the IQ3_XXS GSQ-RCO file is
-[ISTA-DASLab](https://huggingface.co/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF)'s, the Qwen3.6 files are
-[Unsloth](https://huggingface.co/unsloth)'s. Upstream's full credits: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md#credits).
-MIT License ([LICENSE](LICENSE)); some parts and every model have their own licenses
-([which ones](docs/HOW_IT_WORKS.md#license)).
+**[UnbiasedStrata](https://github.com/robertkarl/UnbiasedStrata) with Intel GPU support**, taken from
+[XeStrata](https://github.com/MistVVK/XeStrata).  Runs UnbiasedStrata's `strata-poly` engine on Intel Arc GPUs through SYCL.
 
-# UnbiasedStrata 2 - note from a human.
+> **Experimental.**  Written and tested on one machine on **2026-11-23**: an Intel Arc Pro B60 (24 GB), one model (Qwen3.6-35B-A3B,
+> Unsloth `UD-Q4_K_XL`).  Other models, other Intel GPUs, multi-GPU and CUDA graphs are untested.
+> The original UnbiasedStrata README (NVIDIA/CUDA build) is kept, unchanged, as [`README.upstream.md`](README.upstream.md).
+> Not affiliated with or endorsed by the authors of UnbiasedStrata, XeStrata, Strata, llama.cpp or Intel.
 
+| Qwen3.6-35B-A3B on an Arc Pro B60, all experts in VRAM | |
+|---|---|
+| Prefill | ~447 tok/s (2,700-token prompt) |
+| Decode | 49-93 tok/s depending on the answer's length and whether the draft head is on |
+| Correctness | exact on retrieval at 2.7k tokens and on counting 1..200; kernel unit tests against CPU references pass |
 
-Issues with Strata / PolyStrata:
+Everything Intel-specific is in [`sycl-poly/`](sycl-poly/).  **No existing UnbiasedStrata file was changed** except moving this
+README to `README.upstream.md`.  Build and run: [`sycl-poly/README.md`](sycl-poly/README.md).
 
-* piping instructions from markdown into agent == bad idea
-* replacing components at build-time or runtime isn't great
-* desired: clone; submodule init; make; situation
+## Why this exists, and what we found (2026-11-23)
 
-UnbiasedStrata aims to be the suckless (dwm) variant of Strata.
+**The starting point.**  UnbiasedStrata already contains a `sycl/` directory: a community Intel port (Strata PR #423) that
+its own plan lists as "kept, unbuilt".  It ports only the `strata` engine (Qwen3.8-Flash-Next).  It had not been built or run against this tree
+(its plan says so),
+and the models people run on a 24 GB card (Qwen3.6 and similar) go through `strata-poly`, which it does not cover.  XeStrata has
+Intel support, but it is a separate rewrite with its own runtime; 46 of its 52 kernel headers differ from UnbiasedStrata's, so it
+cannot be dropped in.
 
-It's been vetted in a few ways:
-* agents went through and verified kernels to the difference between CPU/GPU within llama.cpp
-* full a run of Qwen 3.8 Flash Next over Bob-bench wide test set with a high score.
+**What we tried first: refresh the old `sycl/` port.**  Following its own maintenance procedure (migrate the old and the new
+tree with Intel's dpct, then 3-way merge) gave **698 conflicting hunks in 46 files**, on top of a merge base that turned out to be
+Strata v0.1.39, not the documented 0.1.40.2.  It could not be validated either: the engine it ports needs model weights that were
+not available.  **Conclusion: not worth it.**  We dropped it (nothing from that attempt is in the tree).
 
+**What we did instead: migrate `strata-poly` from scratch.**  dpct over `src/poly` and the few Strata kernels it calls, then by-hand fixes to
+what dpct got wrong; a real SYCL implementation of the prompt-path matrix product (`Mmq`) built on XeStrata's tiles; an ahead-of-time
+build for Battlemage so it starts in seconds.  Prefill went from 178 tok/s (stub `Mmq`) to ~447.
 
-This wouldn't exist without llama.cpp.
+**The bug that mattered.**  The first working build gave right answers to short prompts and garbage after about 90 tokens.
+It was not in the new `Mmq`.  CPU-reference unit tests for the attention, RoPE and gated-delta-rule kernels found it: dpct had
+turned `__fmul_rn(__fsub_rn(a, b), c)` into `a - b * c` (it dropped the parentheses, diagnostic DPCT1013), which corrupted the
+recurrent state from the second token on.  **If you migrate CUDA code with dpct, read every DPCT1013 and test every kernel
+against a CPU reference over many steps, not one.**  Other dpct problems we hit (kernel names without template arguments,
+dropped constant-table arguments, masked sub-group shuffles, Level Zero needing 2 MiB physical-memory granularity) are in
+[`sycl-poly/DEVLOG.md`](sycl-poly/DEVLOG.md).
 
-without Niko's Strata.
+## If UnbiasedStrata's author wants Intel support upstream
 
-Without PolyStrata either.
+This is meant to be usable that way.  Everything is additive, in one directory, and documented:
 
-Use at your own risk. Works on my machine.
+- `sycl-poly/` builds `strata-poly` for SYCL without touching `src/`.  It compiles the repo's own sources where nothing uses
+  CUDA, and carries dpct's migrated copies of the rest.  Merging it is adding a directory (plus the README move).
+- Two pieces are **LGPL-3.0-or-later** because they are XeStrata's code: `sycl-poly/src/xe/` and `sycl-poly/src/poly/mmq_sycl.cpp`
+  (kept in a separate static library, `sp_mmq`).  Everything else we wrote is MIT.  See [`sycl-poly/CREDITS.md`](sycl-poly/CREDITS.md).
+  If the LGPL is a problem, the alternative is to write a `Mmq` of your own; the interface is `src/poly/mmq.hpp` and XeStrata's tiles
+  are the reference.
+- The old `sycl/` port is still stale against this tree and still unbuilt; this work does not depend on it except for its vendored dpct
+  helper headers and `strata/sycl_queue.hpp`.  Whether to keep, refresh or remove it is your call.
+- Not done, in priority order: Intel XMX for `Mmq` (the layout probe rejects it with icpx 2026.0, so the tiles run on dp4a),
+  CUDA graphs, the other models, other GPUs, an intermittent device-lost at start.  Details: [`sycl-poly/NOTES.md`](sycl-poly/NOTES.md).
+- To check any change: `sycl-poly/docs/validate/run_validation.sh` (prints PASS/FAIL; our PASS log is in `sycl-poly/docs/logs/`).
 
+## Documents
 
-# AI generate nonsense from here on out
+| | |
+|---|---|
+| [`sycl-poly/README.md`](sycl-poly/README.md) | how to build and run |
+| [`sycl-poly/DEVLOG.md`](sycl-poly/DEVLOG.md) | the full development log: versions, commands, numbers, dead ends, mistakes |
+| [`sycl-poly/CREDITS.md`](sycl-poly/CREDITS.md) | who wrote what, licenses, what to keep if you redistribute |
+| [`sycl-poly/NOTES.md`](sycl-poly/NOTES.md) | status and what is missing |
+| [`README.upstream.md`](README.upstream.md) | UnbiasedStrata's original README (NVIDIA build) |
 
+## License
 
-
-A fork of [PolyStrata](https://github.com/VecSzn/PolyStrata) v0.1.45-poly.1 that keeps its two inference engines
-unchanged and replaces everything around them: no installer, no downloads at build or start, no Python between a
-request and a token. One `make build` on a Linux box with an NVIDIA card produces the engines and a C++ front end,
-`unbiased-strata`, that serves an OpenAI-style chat API from llama.cpp's own server code. The target is one NVIDIA GPU,
-Pascal or newer, CUDA 12.x, Linux x86-64, on a machine that may have no network at all. What was changed and why is in
-[UPSTREAM.md](UPSTREAM.md); the plan this follows is [PLAN.md](PLAN.md).
-
-```
-git clone <this repo> && cd UnbiasedStrata
-git submodule update --init          # shallow, third_party/llama.cpp @ robertkarl/llama.cpp UnbiasedStrata (a6de9af3)
-make build                           # build/bin/{strata,strata-poly,strata-dsv41,libstrata_kq.so,unbiased-strata}
-make test                            # the front end against a fake engine; no GPU, no model
-```
-
-## Box setup — CliffsNotes
-
-Guest, both cards:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y --no-install-recommends git cmake build-essential gcc-13 nvidia-cuda-toolkit linux-headers-amd64
-python3 -m venv ~/venv-strata && ~/venv-strata/bin/pip install -r tools/requirements.txt   # offline pack tools only
-nvcc --version | tail -1                                        # CUDA 12.4.131
-g++-13 --version | head -1                                      # template default is 14.2; nvcc 12.4 accepts <= 13 (#1645)
-cmake --version | head -1                                       # 3.31.6, needs >= 3.24
-python3 --version; curl --version | head -1                     # make test needs both
-nvidia-smi --query-gpu=driver_version --format=csv,noheader     # 550.163.01
-ls /lib/modules/$(uname -r)/updates/dkms/ | head -1             # DKMS module must exist for the running kernel
-sudo apt-get install -y --no-install-recommends linux-headers-amd64   # before the first reboot after an apt kernel upgrade
-df -h /                                                         # toolkit costs ~8 GB
-```
-
-Pascal — GTX 1080 Ti, compute 6.1:
-
-```bash
-nvcc --list-gpu-arch | grep -q compute_61                       # CUDA 13 has no sm_61; stay on 12.4
-nvidia-smi --query-gpu=driver_version --format=csv,noheader     # 550 is below CUDA 13's requirement (>= 580)
-git clone https://github.com/robertkarl/UnbiasedStrata && cd UnbiasedStrata
-JOBS=4 make test                                                # no GPU, no model
-JOBS=4 make build CUDA_ARCHS=61                                 # -DSTRATA_EXPERIMENTAL_SM60=ON, -ccbin /usr/bin/g++-13; 15 min, 398 MB, 53 warnings
-```
-
-Ada — RTX 4090, compute 8.9:
-
-```bash
-git clone https://github.com/robertkarl/UnbiasedStrata && cd UnbiasedStrata
-make test
-make build CUDA_ARCHS=89                                        # 6m40 on 16 cores, 557 MB, 0 warnings
-```
-
-## Run
-
-```
-unbiased-strata --engine <strata|strata-poly|strata-dsv41|strata-ik2|path> -m <model.gguf> [llama-server options] -- <engine options>
-```
-
-`-m` names the GGUF the vocabulary and chat template are read from; no tensors are loaded from it by the front end.
-`--engine` takes a path, or a bare name looked up beside the program. Everything before `--` is a `llama-server`
-option (`--host`, `--port`, `--api-key`, `--alias`, `--temp`, `--top-k`, `--top-p`, `--min-p`,
-`--reasoning-format`, `--chat-template-kwargs`, `--sse-ping-interval`, ...); everything after `--` goes to the
-engine, which is started as a child process with `--serve` added and spoken to over its line protocol
-([docs/BACKENDS.md](docs/BACKENDS.md)). Where the model ends up (GPU cache, pinned RAM, SSD) and the three expert
-modes: [docs/MEMORY_LAYOUT.md](docs/MEMORY_LAYOUT.md). The server answers `/v1/chat/completions` (streaming and not), `/v1/models`,
-`/health`, `/props`, `/tokenize`, `/detokenize`, as llama.cpp's server does, one request at a time.
-
-```
-build/bin/unbiased-strata --engine build/bin/strata-poly \
-  -m /models/Qwen3.6-35B-A3B-UD-Q3_K_M.gguf --host 127.0.0.1 --port 18091 --alias qwen3.6-35b-a3b-ud-q3_k_m \
-  -- --model /models/Qwen3.6-35B-A3B-UD-Q3_K_M.gguf --max-context 32768 \
-     --expert-profile /models/expert-profile-q3km.txt --tail-skip 6
-```
-
-With pictures, add `--mmproj /models/mmproj-F16.gguf` (the projector from the same `-MTP` repository) and
-`--threads N` for the encoder before the `--`. The front end checks the projector's width against the model's at
-start, encodes each picture with llama.cpp's mtmd and hands the rows to the engine over upstream's `GENI`
-protocol. A picture is at most 300 rows by default (upstream's installer's CPU setting; `--image-max-tokens`
-changes it), which read a 1920x1080 dashboard correctly in 15 s of encoding on a Ryzen 7 1700.
-Flash-Next through `strata` takes the same `--mmproj` (its own BF16 projector) and also needs `--vision` after the
-`--`, or the engine refuses the rows ("this engine was started without --vision"); checked on the 4090, 2026-10-20.
-
-**Qwen3.8-Flash-Next GSQ-RCO IQ3_XXS** (`strata`; the two GGUF shards, the pack directory made from shard 1, the MTP
-draft directory). On the 24 GB card:
-
-```
-build/bin/unbiased-strata --engine build/bin/strata \
-  -m /models/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf \
-  --host 127.0.0.1 --port 18090 --alias qwen3.8-flash-next-iq3_xxs --sse-ping-interval 10 \
-  -- --pack /models/pack-iq3-xxs \
-     --native /models/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf \
-     --ple-gguf /models/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00002-of-00002.gguf \
-     --expert-profile /models/pack-iq3-xxs/expert-profile.bin \
-     --expert-cache auto --prefill auto --spec 4 --spec-min-p 0.5 --mtp /models/mtp \
-     --max-context 65536 --kv int8 --ple-io ram --pool-workers 15 --kv-resident 32768
-```
-
-
-**Tencent Hy4-Flash** uses Strata’s native SQ checkpoints and the shared Engram shard.
-Build the CUDA or Apple Silicon Metal runner with `make hy4`. The front end reads the vocabulary
-and chat template from the text checkpoint. [Build, serving and oracle comparison](docs/HY4.md).
-
-**Inkling 2 Mini** runs with Project Maya’s CUDA engine on Linux x86-64 (Ampere or newer) and Strata’s native Metal engine on Apple Silicon.
-
-On a Mac, put the SQ pack and its matching `tokenizer.json` in the same directory. The pack contains the chat template. The Metal engine can use the pack’s built-in DSpark drafter.
-
-```bash
-make inkling
-PACK=/models/Inkling-2-Mini-SQ-20.strata
-build-frontend/bin/unbiased-strata --engine strata-inkling -m "$PACK" --alias inkling-2-mini --port 8080 \
-  -- --native "$PACK" --max-context 32768 --parallel 1 --draft auto
-```
-
-[Inkling SQ packs and tokenizer](https://huggingface.co/strata-engine/Inkling-2-Mini-Strata/tree/04996a1e2c45009b6a04f2af126cb6bdb2ba3587)
-
-For an RTX 3090 or 3090 Ti (24 GB), build for compute capability 8.6 and point both processes at the same Unsloth GGUF.
-
-```bash
-make inkling CUDA_ARCHS=86
-MODEL=/models/Inkling-2-Mini-UD-Q4_K_XL.gguf
-IK2_KV=fp8 IK2_GATE_BF16=1 IK2_GATE_TILE=64 IK2_Q8_UNROLL=1 IK2_BATCH_PREFILL=1 \
-  build/bin/unbiased-strata --engine strata-ik2 -m "$MODEL" --alias inkling-2-mini --port 8080 \
-  -- --model "$MODEL" --max-context 32768
-```
-
-For image input, add `--mmproj /models/mmproj-BF16.gguf` before the `--` separator and send an
-OpenAI `image_url` content part alongside the text in `/v1/chat/completions`. The front end encodes images on the CPU by default. On Apple Silicon, add `--mmproj-gpu` to encode them on Metal.
-Set `"reasoning_effort":"none"` for a direct answer or choose a level
-such as `"medium"` to receive `reasoning_content`. Streaming and function calls use the same endpoint.
-For CUDA speculative decoding, append `--draft /models/mtp.safetensors` after the engine options, using the drafter
-from Thinking Machines' Inkling-2-Mini checkpoint.
-To check tokenization, streamed responses, and tool-call round trips on a machine without CUDA, run
-`make frontend` and `python3 frontend/tests/inkling_chat.py build-frontend/bin/unbiased-strata "$MODEL"`. Add the projector path as the last argument to test image input.
-Inkling sampling supports temperature, top-p, min-p and a seed. Top-k defaults to the server setting. A value of zero uses the full candidate buffer (1,000 on CUDA and 128 on Metal). The HTTP API rejects logit bias and ignore-EOS on both backends. Repetition, frequency and presence penalties are available on Metal.
-
-[A6000 and Debra correctness and performance measurements](bench/inkling/README.md) ·
-[Engine source and model configuration](https://github.com/alesha-pro/maya-inkling-mini/blob/e819852f822479af783638a467bfdfe2ed6882ec/docs/INKLING2-MINI.md)
-
-**DeepSeek-V4.1-Flash-1017, ISTA-DASLab IQ2_XXS** (`strata-dsv41`, Strata v0.2.4's third engine; the four shards,
-the shared Engram file, Unsloth's DSpark drafter and a pack directory made from them): [docs/DEEPSEEK41.md](docs/DEEPSEEK41.md).
-
-```
-build/bin/unbiased-strata --engine build/bin/strata-dsv41 \
-  -m /models/dsv41/IQ2_XXS/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00001-of-00004.gguf \
-  --host 127.0.0.1 --port 11434 --alias deepseek-v4.1-flash-1017-ista-iq2_xxs --sse-ping-interval 10 \
-  --chat-template-file data/dsv41/chat_template-ista-1017.jinja --temp 1.0 --top-p 1.0 --min-p 0.0 --top-k 64 \
-  -- --pack /models/dsv41/IQ2_XXS/maya-ds4 --max-context 131072 --dspark auto --gpus 0
-```
-
-### Preparing a Flash-Next pack
-
-`strata-poly` reads a GGUF as it is. `strata` needs a pack directory and an MTP draft directory made once, offline
-except for the draft download, with upstream's tools (`tools/requirements.txt`: numpy, regex; `gguf-py` comes from the
-submodule). This is what upstream's installer ran. Re-run in this fork on 2026-10-20 on three hosts; the MTP directory
-came out byte-identical each time, so it is published, with the commands and hashes, at
-https://huggingface.co/robertkarl/UnbiasedStrataPacks: copy it instead of fetching and quantizing.
-
-```
-python tools/iq_pack.py --gguf <shard1> --out <pack>             # --compat-bf16 for Unsloth files
-STRATA_SOURCE=huggingface python tools/mtp_fetch.py fetch --out <mtp>
-python tools/mtp_pack.py --src <mtp> --experts q2_0 --out <mtp>/mtp-q2_0.gguf
-python tools/mtp_rt.py --gguf <mtp>/mtp-q2_0.gguf --out <mtp>/rt
-cp data/draft_vocab.bin <mtp>/rt/draft_vocab.bin
-```
-
-Model files themselves are downloaded on a machine with network access and copied to the inference box; the fork does
-not fetch them. The files that have been served, with sizes and SHA-256, are in
-[docs/MODEL-FILES.md](docs/MODEL-FILES.md).
-
-## Measured
-
-Each number came from a run directory with the command, the raw client output, the server log and the model files'
-checksums; the per-run records were removed from the tree on 2026-10-19 and are in git history at commit 7551f138 (`git checkout 7551f138 -- bench/unbiased bench/results`). What stays in `bench/` is
-reusable tooling only: upstream's `bench_vs_llama.py` and its corpus, the kernel probes, and `bench/correctness/`, the
-teacher-forced harness of the correctness checks. Tokens per second, median of 3 runs. Upstream is PolyStrata v0.1.45-poly.1 with its Python
-server, on the same card, the same files, the same client, back to back.
-
-**Upstream versus this fork, RTX 3090, 2026-10-18** (the step-9 record, in history at 7551f138; the client is
-upstream's `tools/strata_bench.py --runs 3 --long` plus a three-document sustained supplement):
-
-| Model | Workload | upstream | fork |
-| --- | --- | --- | --- |
-| Flash-Next IQ3_XXS, 64K ctx | chat decode | 87.1 | 103.1 |
-| | sustained decode, 512 tokens | 105.1 | 119.1 |
-| | prefill 4K / 16K / 32K | 1924 / 2342 / 2393 | 2065 / 2531 / 2616 |
-| | agent turn decode | 110.6 | 116.8 |
-| Qwen3.6 UD-Q3_K_M, 32K ctx | chat decode | 220.8 | 213.5 |
-| | sustained decode, 512 tokens | 207.6 | 200.0 |
-| | prefill 4K / 16K | 3652 / 3570 | 3822 / 3486 |
-| | agent turn decode | 194.0 | 186.9 |
-
-Flash-Next: the fork is ahead on every workload. Qwen3.6: decode is within the run-to-run range; 16K prefill is 2.3 %
-slower with non-overlapping ranges and is recorded as an open finding. The two engines were built separately in the
-two trees, so an engine-build difference is not excluded.
-
-**pi on a fixed coding task** (pi 0.85.1, Flash-Next on the 3090, three runs a side, `…-step9/row3/`): every run
-completed the task. Generated tokens per wall-clock second, the whole run: upstream 72.1, fork 76.6 (medians); the raw
-wall times (36.3 vs 44.7 s) follow the length of each sampled trajectory.
-
-**Short-prompt decode through the fork, first end-to-end runs** (`…-step6/`, 2026-10-17; ranges over the smoke
-requests, not medians of a benchmark):
-
-| Model | RTX 3090 | RTX A6000 |
-| --- | --- | --- |
-| Qwen3.6 UD-Q3_K_M | 211 to 227 | 214 to 235 |
-| Qwen3.6 UD-IQ4_XS | 205 to 245 | 207 to 215 |
-
-Greedy answers to the same prompt were identical on the two boxes and identical to upstream on the pod for both
-Flash-Next and Qwen3.6 (text and token count). Against llama.cpp at the pinned commit (PLAN.md step 12,
-harness `bench/correctness/`, record in history at 7551f138, 2026-10-18 on the A6000): teacher-forced on 16 sequences per model, both engines' per-step
-distributions are as close to llama.cpp's GPU run as llama.cpp's own CPU run is (mean KL 0.6 to 1.2x that spread on every
-set and arm), and the greedy token agrees at every position with a 0.5-nat margin except a handful of near ties per arm
-(Qwen3.6: 4 of 2,700; Flash-Next: 0 to 4 of about 2,880 depending on the arm). The findings, each with a ticket, are in
-that directory's README: upstream's own `poly_expert_parity` exceeds its bound on one expert; speculation is not bitwise
-inert above 4-token windows (it passes the KL gate); `strata`'s bits depend on the free VRAM at start when not every
-expert fits the card. Extended 2026-10-19 to DeepSeek V4 Flash UD-IQ2_XXS and GLM 5.3 Flash 3.0bit on a 2x RTX PRO 6000 pod (section 8 of that record): T2 holds on every set and arm, 0.69 to 1.13x llama.cpp's own CPU-vs-GPU spread; a handful of 0.5-nat-margin flips per model where both llama.cpp runs agree (USTRAT-10); on GLM the draft block's VRAM moves 52 experts to the CPU, so its answers are not bitwise the no-draft ones (USTRAT-9); and llama.cpp master's CPU run differs from the pinned commit's by as much as the engine does, so the DeepSeek numbers are against 3cf03257 specifically (USTRAT-11).
-
-**Model acceptance (PLAN.md step 13, 2026-10-19).** A coding agent (pi 0.85.1, in a container with tools, sampled as
-the model card asks) completed four work items through the fork's server with every served model: a Markdown
-table-of-contents CLI with tests, an HTTP key-value store with persistence, three planted bugs, and a browser
-Minesweeper that a headless browser can play; Minesweeper again at temperature 1.0. Flash-Next IQ3_XXS and Qwen3.6
-UD-Q3_K_M on an RTX 3090 and Qwen3.6 UD-IQ4_XS on the A6000 pass as is (the IQ4_XS temperature-1.0 page threw a
-`ReferenceError` of the agent's own making); DeepSeek V4 Flash UD-IQ2_XXS and GLM 5.3 Flash 3.0bit on a B200 pass
-after the two fixes under "Known limits" (argument order; GLM's architecture name in the vocabulary load). The
-API-only checks (`frontend/tests/acceptance-real-engine.sh`) hold decode and prompt reading within 15 % of step 9 on
-the 3090 (Flash-Next with the installer's `--pool-workers 15`; 24 costs 14 %) and record the first B200 figures
-(72 and 74 tok/s decode on one card). Record: the step-13 directory, in history at 7551f138. pi's compaction defaults (reserve 16K, keep the last 20K tokens) assume a window well above 64K: against a server at `--max-context 32768` a long pi session compacts to no effect and then sends `max_tokens: 1` ("Response was truncated before completion"); serve 128K or more to pi, or lower pi's `compaction` settings (USTRAT-8).
-
-
+MIT ([`LICENSE`](LICENSE), "Copyright (c) 2026 Niko1221 and the Strata contributors"), with these exceptions: `sycl-poly/src/xe/` and
+`sycl-poly/src/poly/mmq_sycl.cpp` are LGPL-3.0-or-later (some parts MIT), the vendored dpct headers are Apache-2.0 WITH
+LLVM-exception, and every model has its own license.  Texts: `sycl-poly/LICENSES/`, `sycl-poly/src/xe/COPYING*`.
