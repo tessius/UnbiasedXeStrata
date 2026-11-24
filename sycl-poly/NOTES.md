@@ -1,4 +1,6 @@
-# strata-poly on Intel GPUs (SYCL) - experimental
+# Unbiased XeStrata: strata-poly on Intel GPUs (SYCL) - experimental
+
+See README.md (overview), DEVLOG.md (how it was made), CREDITS.md (who wrote what, licenses).
 
 Builds `strata-poly` (the Qwen3.5/3.6, GLM, Gemma, DeepSeek, LFM2 engine) for SYCL. Separate from `../sycl/` (the Strata
 `strata` engine port, which is stale against this tree: ~700 merge conflicts).

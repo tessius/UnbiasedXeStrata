@@ -24,8 +24,8 @@ users relink.  All texts are in `LICENSES/` and `src/xe/COPYING*`.
 | **ggml / llama.cpp**: the quantized-matrix tile design that `iq_mmq.cpp` ports, the quant formats, `ggml-cpu`/`ggml-base`, `ggml-common.h`, the `llama-tokenize` the validation uses | The ggml authors (Georgi Gerganov and contributors) | MIT | `src/xe/iq_mmq.cpp` (transcribed parts), `../third_party/llama.cpp` (submodule, built as ggml-cpu/ggml-base) | https://github.com/ggml-org/llama.cpp; the submodule is robertkarl/llama.cpp branch `UnbiasedStrata` `db1f382bb25f9cc481893105dbead09c86a52f01` |
 | **The older SYCL port** (`../sycl/`): `strata/sycl_queue.hpp` (`q_of`), the vendored dpct helper library, the migration/fixup tooling and the approach (dpct + 3-way merge), whose notes taught most of what is in `docs/INTEL.md` | maxfridbe (Strata PR #423) and the people who tested it | MIT (Strata); dpct headers Apache-2.0 WITH LLVM-exception | `../sycl/include/`, `../sycl/tools/`, `../docs/INTEL.md`, `../docs/INTEL_ARC.md` | https://github.com/Niko1221/Strata/pull/423 |
 | **dpct / SYCLomatic helper headers** (`dpct/*.hpp`) | Intel Corporation | Apache-2.0 WITH LLVM-exception | `../sycl/include/dpct/` (vendored; `sycl-poly` includes them from there) | Intel DPC++ Compatibility Tool 2025.3 (SYCLomatic) |
-| **Intel DPC++/C++ compiler (icpx), oneMKL, Level Zero runtime** | Intel Corporation | their own licenses (the compiler is Apache-2.0 WITH LLVM-exception in its open-source form) | not distributed; the build uses what is installed | icpx 2026.0.0.20260331, oneMKL 2026.0 |
-| **Qwen3.6-35B-A3B** (the model used to validate) | Qwen team (Alibaba); GGUF quantization and the MTP layer by Unsloth | the model's own license (Apache-2.0 for Qwen3.6; check the card) | not distributed | https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF, file `Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf` |
+| **Intel DPC++/C++ compiler (icpx), oneMKL, Level Zero runtime** | Intel Corporation | Intel's own license terms (oneAPI); we did not check them in detail | not distributed; the build uses what is installed | icpx 2026.0.0.20260331, oneMKL 2026.0 |
+| **Qwen3.6-35B-A3B** (the model used to validate) | Qwen team (Alibaba); GGUF quantization and the MTP layer by Unsloth | the model's own license (see the model card; we did not verify it) | not distributed | https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF, file `Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf` |
 
 `../docs/HOW_IT_WORKS.md#credits` and `../docs/DETAILS.md#credits-and-licenses` credit the rest of the Strata family
 (Project Maya, Splash, ninfer, HyperQwen, eddoursul/Strata, the model makers).  XeStrata's own credits (oneMath, intel/llvm,
@@ -42,9 +42,9 @@ none of those parts are used here.
 - The kernel unit tests (`src/poly/{gdn,attend,rope}_q_test.cpp`) and `docs/validate/` (MIT).
 - This documentation and `DEVLOG.md`.
 
-The work was done in one session by a person with an AI coding assistant (Claude Code, Anthropic); the assistant wrote and
-debugged most of the code and notes under the person's direction, and every claim in `DEVLOG.md` is backed by a command
-and output kept in `docs/logs/`.
+The work was done in one session by a person working with an AI coding assistant (Claude Code, Anthropic); the assistant wrote and
+debugged most of the code and notes under the person's direction, and the claims in `DEVLOG.md` are backed by output kept in `docs/logs/`
+(`docs/logs/history/measurements-by-hand.txt` marks the few numbers that were noted from a terminal).
 
 ## If you redistribute
 
@@ -53,3 +53,5 @@ and output kept in `docs/logs/`.
 3. Offer the source of `src/xe/` with any binary, and keep it linkable (`sp_mmq` is a static library: a user can relink).
 4. Do not remove XeStrata's, ggml's, Strata's or Intel's copyright notices.
 5. The model files are not ours and not covered here.
+
+*We are not lawyers.  This file is our good-faith account of the licenses involved; check the license headers and texts yourself before you redistribute.*
