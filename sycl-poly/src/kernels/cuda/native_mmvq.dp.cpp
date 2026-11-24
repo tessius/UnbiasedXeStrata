@@ -160,8 +160,7 @@ __dpct_inline__ float warp_sum(float x) {
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        x += dpct::experimental::permute_sub_group_by_xor(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), x,
+        x += dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), x,
             offset);
     }
     return x;
@@ -176,9 +175,7 @@ __dpct_inline__ float warp_max(float x) {
         compilers or runtimes. You may need to adjust the code.
         */
         x = sycl::fmax(x,
-                       dpct::experimental::permute_sub_group_by_xor(
-                           0xffffffff,
-                           sycl::ext::oneapi::this_work_item::get_sub_group(),
+                       dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                            x, offset));
     }
     return x;
@@ -2623,15 +2620,13 @@ native_quantize_q8_1_il_kernel(const float *__restrict__ x,
     masked sub_group function which may not be supported by all compilers or
     runtimes. You may need to adjust the code.
     */
-    v |= dpct::experimental::permute_sub_group_by_xor(
-        0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(), v, 1);
+    v |= dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), v, 1);
     /*
     DPCT1108: '__shfl_xor_sync' was migrated with the experimental feature
     masked sub_group function which may not be supported by all compilers or
     runtimes. You may need to adjust the code.
     */
-    v |= dpct::experimental::permute_sub_group_by_xor(
-        0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(), v, 2);
+    v |= dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), v, 2);
     const int nb = n_in / Q8K, c = i / n_in, b = (i - c * n_in) / Q8K, pp = lane >> 2;
     if ((lane & 3) == 0) {
         bm[(std::size_t(b) * 8 + pp) * cp + c] = int(v);

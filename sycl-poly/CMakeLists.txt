@@ -11,8 +11,18 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 add_compile_definitions(STRATA_VERSION="poly-sycl")
 # kernels are written for 32-lane warps (see ../sycl/CMakeLists.txt); fp32 divide/sqrt must round like nvcc's
+set(STRATA_SYCL_AOT "" CACHE STRING "AOT device for the GPU code, e.g. bmg-g21 (Arc Pro B60); empty: SPIR-V, JIT-compiled at run time (minutes at first start)")
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-fsycl;-fsycl-default-sub-group-size=32>" -fp-model=precise -w)
-add_link_options(-fsycl -fsycl-default-sub-group-size=32 -Xsycl-target-backend=spir64 "-cl-fp32-correctly-rounded-divide-sqrt -ze-opt-greater-than-4GB-buffer-required")
+# CUDA's __dp4a (src/xe/cuda_intrinsics.hpp) is SPV_KHR_integer_dot_product
+add_link_options("SHELL:-Xspirv-translator --spirv-ext=+SPV_KHR_integer_dot_product")
+if(STRATA_SYCL_AOT)
+  add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-fsycl-targets=spir64_gen>")
+  add_link_options(-fsycl -fsycl-default-sub-group-size=32 -fsycl-targets=spir64_gen -Xsycl-target-backend=spir64_gen
+                   "-device ${STRATA_SYCL_AOT} -options -cl-fp32-correctly-rounded-divide-sqrt")
+else()
+  add_link_options(-fsycl -fsycl-default-sub-group-size=32 -Xsycl-target-backend=spir64
+                   "-cl-fp32-correctly-rounded-divide-sqrt -ze-opt-greater-than-4GB-buffer-required")
+endif()
 
 # ggml-cpu / ggml-base from the llama.cpp submodule (CPU experts, GGUF types)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -50,6 +60,13 @@ add_library(sp_spec STATIC ${ROOT}/src/spec/suffix_drafter.cpp ${ROOT}/src/spec/
         ${ROOT}/src/spec/draft_policy.cpp ${ROOT}/src/spec/draft_source.cpp)
 target_include_directories(sp_spec PUBLIC ${INC})
 
+# XeStrata's SYCL port of ggml's quantized matrix tiles (LGPL-3.0-or-later AND MIT, src/xe/README.md): poly's Mmq
+add_library(sp_mmq STATIC src/xe/iq_mmq.cpp src/xe/matrix_report.cpp)
+if(STRATA_SYCL_AOT MATCHES "^(bmg|lnl)")
+  target_compile_definitions(sp_mmq PRIVATE STRATA_MMQ_NO_XE_HPG_SHAPE=1)
+endif()
+target_include_directories(sp_mmq PUBLIC src/xe ${ROOT}/third_party/llama.cpp/ggml/src ${ROOT}/third_party/llama.cpp/ggml/include)
+
 # the one strata kernel file poly calls (native_mmvq, quantize, add+RMSnorm): freshly migrated
 add_library(sp_kernels STATIC src/kernels/cuda/native_mmvq.dp.cpp src/kernels/cuda/iq_kernels.dp.cpp)
 target_include_directories(sp_kernels PUBLIC ${INC})
@@ -68,4 +85,21 @@ add_executable(strata-poly ${_poly_copies} src/poly/engine.cpp src/poly/glm5next
 target_include_directories(strata-poly PRIVATE ${INC})
 target_compile_options(strata-poly PRIVATE -qmkl=sequential)
 target_link_options(strata-poly PRIVATE -qmkl=sequential)
-target_link_libraries(strata-poly PRIVATE sp_kernels sp_spec sp_cpu ggml-cpu ggml-base Threads::Threads)
+target_link_libraries(strata-poly PRIVATE sp_mmq sp_kernels sp_spec sp_cpu ggml-cpu ggml-base Threads::Threads)
+
+# attend() against a CPU reference (Qwen3.6's head shape); run by hand: poly_attend_q_test
+add_executable(poly_attend_q_test src/poly/attend_q_test.cpp src/poly/kernels.dp.cpp)
+target_include_directories(poly_attend_q_test PRIVATE ${INC})
+target_compile_options(poly_attend_q_test PRIVATE -qmkl=sequential)
+target_link_options(poly_attend_q_test PRIVATE -qmkl=sequential)
+target_link_libraries(poly_attend_q_test PRIVATE sp_kernels Threads::Threads)
+add_executable(poly_rope_q_test src/poly/rope_q_test.cpp src/poly/kernels.dp.cpp)
+target_include_directories(poly_rope_q_test PRIVATE ${INC})
+target_compile_options(poly_rope_q_test PRIVATE -qmkl=sequential)
+target_link_options(poly_rope_q_test PRIVATE -qmkl=sequential)
+target_link_libraries(poly_rope_q_test PRIVATE sp_kernels Threads::Threads)
+add_executable(poly_gdn_q_test src/poly/gdn_q_test.cpp src/poly/kernels.dp.cpp)
+target_include_directories(poly_gdn_q_test PRIVATE ${INC})
+target_compile_options(poly_gdn_q_test PRIVATE -qmkl=sequential)
+target_link_options(poly_gdn_q_test PRIVATE -qmkl=sequential)
+target_link_libraries(poly_gdn_q_test PRIVATE sp_kernels Threads::Threads)

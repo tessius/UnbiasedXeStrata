@@ -41,8 +41,7 @@ __dpct_inline__ float warp_sum(float x) {
     runtimes. You may need to adjust the code.
     */
     for (int o = WARP / 2; o > 0; o >>= 1) x +=
-        dpct::experimental::permute_sub_group_by_xor(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), x,
+        dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), x,
             o);
     return x;
 }
@@ -82,8 +81,7 @@ runtimes. You may need to adjust the code.
 */
 #pragma unroll
     for (int o = lanes / 2; o > 0; o >>= 1) x +=
-        dpct::experimental::permute_sub_group_by_xor(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), x,
+        dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), x,
             o);
     return x;
 }
@@ -97,8 +95,7 @@ auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
     runtimes. You may need to adjust the code.
     */
     for (int o = WARP / 2; o > 0; o >>= 1) x = sycl::fmax(
-        x, dpct::experimental::permute_sub_group_by_xor(
-               0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(),
+        x, dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                x, o));
     if ((item_ct1.get_local_id(2) & 31) == 0)
         part[item_ct1.get_local_id(2) >> 5] = x;
@@ -1170,8 +1167,7 @@ __dpct_inline__ int block_before(int x, int *part, int *all) {
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        const int y = dpct::experimental::shift_sub_group_right(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), in,
+        const int y = dpct::shift_sub_group_right(sycl::ext::oneapi::this_work_item::get_sub_group(), in,
             o);
         if (lane >= o) in += y;
     }
@@ -1191,8 +1187,7 @@ __dpct_inline__ int block_before(int x, int *part, int *all) {
             feature masked sub_group function which may not be supported by all
             compilers or runtimes. You may need to adjust the code.
             */
-            const int y = dpct::experimental::shift_sub_group_right(
-                0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(),
+            const int y = dpct::shift_sub_group_right(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 v, o);
             if (lane >= o) v += y;
         }
@@ -1466,9 +1461,7 @@ void route_kernel(const float *__restrict__ logits, int n_expert, int n_used,
         compilers or runtimes. You may need to adjust the code.
         */
         for (int o = WARP / 2; o > 0; o >>= 1) mx = sycl::fmax(
-            mx, dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffff,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), mx, o));
+            mx, dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), mx, o));
         float sum = 0.0f;
 #pragma unroll
         for (int k = 0; k < PER; ++k) {
@@ -1511,16 +1504,14 @@ void route_kernel(const float *__restrict__ logits, int n_expert, int n_used,
             feature masked sub_group function which may not be supported by all
             compilers or runtimes. You may need to adjust the code.
             */
-            const float b = dpct::experimental::permute_sub_group_by_xor(
-                0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(),
+            const float b = dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 best, o);
             /*
             DPCT1108: '__shfl_xor_sync' was migrated with the experimental
             feature masked sub_group function which may not be supported by all
             compilers or runtimes. You may need to adjust the code.
             */
-            const int a = dpct::experimental::permute_sub_group_by_xor(
-                0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(),
+            const int a = dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 at, o);
             if (b > best || (b == best && a < at)) best = b, at = a;
         }
@@ -1533,8 +1524,7 @@ void route_kernel(const float *__restrict__ logits, int n_expert, int n_used,
         masked sub_group function which may not be supported by all compilers or
         runtimes. You may need to adjust the code.
         */
-        pw = dpct::experimental::select_from_sub_group(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), pw,
+        pw = dpct::select_from_sub_group(sycl::ext::oneapi::this_work_item::get_sub_group(), pw,
             at % WARP);
         sum += pw;
         if (lane == j) mine = pw, my_id = at;
@@ -1715,8 +1705,7 @@ runtimes. You may need to adjust the code.
 */
 #pragma unroll
         for (int off = WARP / 2; off > 0; off >>= 1) acc[i] +=
-            dpct::experimental::shift_sub_group_left(
-                0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+            dpct::shift_sub_group_left(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 acc[i], off);
         if (lane == 0) score[size_t(i) * n_keys] = acc[i] * scale;
     }
@@ -1793,9 +1782,7 @@ __dpct_inline__ float scores_sum(float *v, int lane, int *which) {
                 the code.
                 */
                 v[i] = keep +
-                       dpct::experimental::permute_sub_group_by_xor(
-                           0xffffffffu,
-                           sycl::ext::oneapi::this_work_item::get_sub_group(),
+                       dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                            send, off);
             }
             idx = 2 * idx + (upper ? 1 : 0);
@@ -1806,8 +1793,7 @@ __dpct_inline__ float scores_sum(float *v, int lane, int *which) {
             feature masked sub_group function which may not be supported by all
             compilers or runtimes. You may need to adjust the code.
             */
-            v[0] += dpct::experimental::permute_sub_group_by_xor(
-                0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+            v[0] += dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 v[0], off);
         }
     }
@@ -2033,8 +2019,7 @@ attn_values(const float *__restrict__ w, const sycl::half *__restrict__ v,
         runtimes. You may need to adjust the code.
         */
         for (int i = 0; i < N; ++i) acc[i] +=
-            dpct::experimental::select_from_sub_group(
-                0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+            dpct::select_from_sub_group(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 weight, i) *
             x;
         v += VALUE_SHARES * width;
@@ -2211,8 +2196,7 @@ __dpct_inline__ void attn_split_kernel(const float *__restrict__ q,
     runtimes. You may need to adjust the code.
     */
     for (int o = WARP / 2; o > 0; o >>= 1) m = sycl::fmax(
-        m, dpct::experimental::permute_sub_group_by_xor(
-               0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+        m, dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                m, o));
     float l = 0.0f;
     for (int j = lane; j < nk; j += WARP) {
@@ -2779,9 +2763,7 @@ __dpct_inline__ void attn_flash64_kernel(const float *__restrict__ q,
             */
             mx = sycl::fmax(
                 mx,
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), mx, 1));
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), mx, 1));
             /*
             DPCT1108: '__shfl_xor_sync' was migrated with the experimental
             feature masked sub_group function which may not be supported by all
@@ -2789,9 +2771,7 @@ __dpct_inline__ void attn_flash64_kernel(const float *__restrict__ q,
             */
             mx = sycl::fmax(
                 mx,
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), mx, 2));
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), mx, 2));
             const float now = sycl::fmax(m[i], mx),
                         base = now == -INFINITY ? 0.0f : now;
             const float f = sycl::exp2(m[i] - base);
@@ -2826,16 +2806,14 @@ __dpct_inline__ void attn_flash64_kernel(const float *__restrict__ q,
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        l[i] += dpct::experimental::permute_sub_group_by_xor(
-            0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+        l[i] += dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
             l[i], 1);
         /*
         DPCT1108: '__shfl_xor_sync' was migrated with the experimental
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        l[i] += dpct::experimental::permute_sub_group_by_xor(
-            0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+        l[i] += dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
             l[i], 2);
         if (tok[i] >= rows) continue;
         float* y = out + (size_t(tok[i]) * n_head + head[i]) * DIM + 2 * tig;
@@ -2886,8 +2864,7 @@ auto &part = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[32]>(
     runtimes. You may need to adjust the code.
     */
     for (int o = WARP / 2; o > 0; o >>= 1) at = sycl::min(
-        at, dpct::experimental::permute_sub_group_by_xor(
-                0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(),
+        at, dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 at, o));
     if ((item_ct1.get_local_id(2) & 31) == 0)
         first[item_ct1.get_local_id(2) >> 5] = at;
@@ -3221,7 +3198,7 @@ __dpct_inline__ void gdn_state_reg_kernel(
         Verify the correctness. SYCL math built-in function rounding mode is
         aligned with OpenCL C 1.2 standard.
         */
-        const float d = va - sk * sa;
+        const float d = (va - sk) * sa;   // __fmul_rn(__fsub_rn(va, sk), sa): dpct dropped the parentheses (DPCT1013)
         float o = 0.0f;
         float* m = snap_of(snap, stride, snaps, row);
         if (m) m += mine;

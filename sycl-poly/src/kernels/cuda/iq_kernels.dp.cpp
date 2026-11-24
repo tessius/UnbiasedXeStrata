@@ -785,8 +785,7 @@ __dpct_inline__ float warp_sum(float v) {
     runtimes. You may need to adjust the code.
     */
     for (int o = 16; o > 0; o >>= 1) v +=
-        dpct::experimental::permute_sub_group_by_xor(
-            0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(), v,
+        dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), v,
             o);
     return v;
 }
@@ -1395,9 +1394,7 @@ __dpct_inline__ void row_dot_40_sub8(const uint8_t *row, const block_q8_1 *x,
             compilers or runtimes. You may need to adjust the code.
             */
             for (int o = 4; o > 0; o >>= 1) s[c] +=
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), s[c],
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), s[c],
                     o);
         }
     }
@@ -1464,9 +1461,7 @@ __dpct_inline__ void row_dot_20_sub8(const uint8_t *row, const block_q8_1 *x,
             compilers or runtimes. You may need to adjust the code.
             */
             for (int o = 4; o > 0; o >>= 1) s[c] +=
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), s[c],
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), s[c],
                     o);
         }
     }
@@ -1522,9 +1517,7 @@ __dpct_inline__ void row_dot_20_sub16(const uint8_t *row, const block_q8_1 *x,
             compilers or runtimes. You may need to adjust the code.
             */
             for (int o = 8; o > 0; o >>= 1) s[c] +=
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), s[c],
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), s[c],
                     o);
         }
     }
@@ -1593,9 +1586,7 @@ row_dot_80_sub16(const uint8_t *row, const block_q8_1 *x, const int (&off)[NC],
             compilers or runtimes. You may need to adjust the code.
             */
             for (int o = 8; o > 0; o >>= 1) s[c] +=
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), s[c],
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), s[c],
                     o);
         }
     }
@@ -2356,9 +2347,7 @@ ed_gu_rows(const uint8_t *const *wr, const sycl::int4 *__restrict__ s_u,
             compilers or runtimes. You may need to adjust the code.
             */
             for (int o = 8; o > 0; o >>= 1) s[r][c] +=
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), s[r][c],
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), s[r][c],
                     o);
         }
 }
@@ -2569,9 +2558,7 @@ __dpct_inline__ void ed_d20_rows(const uint8_t *const *wr,
             compilers or runtimes. You may need to adjust the code.
             */
             for (int o = 4; o > 0; o >>= 1) s[r][c] +=
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), s[r][c],
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), s[r][c],
                     o);
 }
 
@@ -2639,9 +2626,7 @@ ed_d42_rows(const uint8_t *const *wr, const sycl::int4 *__restrict__ s_u,
             compilers or runtimes. You may need to adjust the code.
             */
             for (int o = 8; o > 0; o >>= 1) s[r][c] +=
-                dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), s[r][c],
+                dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), s[r][c],
                     o);
         }
 }
@@ -2757,16 +2742,14 @@ __dpct_inline__ void q8_1_store(const float xi, block_q8_1 *__restrict__ y,
         */
         amax = sycl::fmax(
             amax,
-            dpct::experimental::permute_sub_group_by_xor(
-                0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+            dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 amax, o));
         /*
         DPCT1108: '__shfl_xor_sync' was migrated with the experimental
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        sum += dpct::experimental::permute_sub_group_by_xor(
-            0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+        sum += dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
             sum, o);
     }
     const float d = q8_1_finite(amax / 127.0f);   // #606: q8_1_finite.hpp - the same bits for every finite block
@@ -4017,16 +4000,14 @@ __dpct_inline__ void s26_swiglu_q8_1_kernel(const float *__restrict__ gate,
         */
         amax = sycl::fmax(
             amax,
-            dpct::experimental::permute_sub_group_by_xor(
-                0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+            dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                 amax, o));
         /*
         DPCT1108: '__shfl_xor_sync' was migrated with the experimental
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        sum += dpct::experimental::permute_sub_group_by_xor(
-            0xffffffffu, sycl::ext::oneapi::this_work_item::get_sub_group(),
+        sum += dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
             sum, o);
     }
     const float d = q8_1_finite(amax / 127.0f);   // #606: as native_quantize_q8_1_kernel - finite blocks bit for bit
@@ -6195,9 +6176,7 @@ __dpct_inline__ void native_gu_fused_kernel(
                 */
                 amax = sycl::fmax(
                     amax,
-                    dpct::experimental::permute_sub_group_by_xor(
-                        0xffffffffu,
-                        sycl::ext::oneapi::this_work_item::get_sub_group(),
+                    dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                         amax, o));
                 /*
                 DPCT1108: '__shfl_xor_sync' was migrated with the
@@ -6205,9 +6184,7 @@ __dpct_inline__ void native_gu_fused_kernel(
                 supported by all compilers or runtimes. You may need to adjust
                 the code.
                 */
-                sum += dpct::experimental::permute_sub_group_by_xor(
-                    0xffffffffu,
-                    sycl::ext::oneapi::this_work_item::get_sub_group(), sum, o);
+                sum += dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), sum, o);
             }
             const float d = q8_1_finite(amax / 127.0f);   // #606, as q8_1_store: finite blocks bit for bit
             const int8_t q = q8_1_quant(xi, d, amax);

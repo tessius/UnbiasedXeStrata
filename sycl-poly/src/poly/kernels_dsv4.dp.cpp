@@ -91,8 +91,7 @@ __dpct_inline__ float warp_sum(float x) {
     runtimes. You may need to adjust the code.
     */
     for (int o = WARP / 2; o > 0; o >>= 1) x +=
-        dpct::experimental::permute_sub_group_by_xor(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), x,
+        dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(), x,
             o);
     return x;
 }
@@ -105,8 +104,7 @@ __dpct_inline__ float warp_max(float x) {
     runtimes. You may need to adjust the code.
     */
     for (int o = WARP / 2; o > 0; o >>= 1) x = sycl::fmax(
-        x, dpct::experimental::permute_sub_group_by_xor(
-               0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(),
+        x, dpct::permute_sub_group_by_xor(sycl::ext::oneapi::this_work_item::get_sub_group(),
                x, o));
     return x;
 }
@@ -431,8 +429,7 @@ __dpct_inline__ int block_before(int x, int *part, int *all) {
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        const int v = dpct::experimental::shift_sub_group_right(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), in,
+        const int v = dpct::shift_sub_group_right(sycl::ext::oneapi::this_work_item::get_sub_group(), in,
             o);
         if (lane >= o) in += v;
     }
