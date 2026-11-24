@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 MistVVK and the XeStrata contributors
+// SPDX-FileCopyrightText: 2026 the UnbiasedStrata SYCL contributors
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// (written against, and calling, XeStrata's iq_mmq.hpp; its interface and its dpct-free design are XeStrata's: LGPL.)
 // Mmq (src/poly/mmq.hpp) on XeStrata's SYCL port of llama.cpp's quantized matrix tiles (src/xe/iq_mmq.cpp: dp4a, and
 // Intel XMX where the GPU reports the matrix shapes).  The activations are quantized in that file's own layout
 // (int8 rows, then the block scales, then the block sums), which is all Mmq's `xq` ever is.

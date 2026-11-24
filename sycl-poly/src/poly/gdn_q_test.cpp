@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 the UnbiasedStrata SYCL contributors
+// SPDX-License-Identifier: MIT
 // gdn_step() (Qwen3.6's gated delta rule: 128-value heads, 32 value heads over 16 key heads) for 300 single-token steps,
 // the state carried from step to step, against a CPU reference of the same arithmetic.
 #include "strata/poly/kernels.hpp"

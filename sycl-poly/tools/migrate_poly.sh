@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 the UnbiasedStrata SYCL contributors
+# SPDX-License-Identifier: MIT
 # Re-creates sycl-poly's dpct input: dpct 2025.3 over the poly sources of a tree, using ../../sycl/tools/migrate.sh.
 #   migrate_poly.sh TREE OUT     TREE = a `git archive` of the repo; OUT = an empty directory
 # Then: take src/poly/{kernels,kernels_dsv4}.dp.cpp, engine.cpp, runtime.hpp, X.cpp.dp.cpp -> src/poly/X.cpp

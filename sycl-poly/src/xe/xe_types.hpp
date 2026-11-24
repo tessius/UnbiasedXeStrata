@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 MistVVK and the XeStrata contributors
+// SPDX-FileCopyrightText: 2026 the UnbiasedStrata SYCL contributors
+// SPDX-License-Identifier: LGPL-3.0-or-later
 // The engine-private type ids iq_mmq.cpp names (from XeStrata's include/strata/kernels/native_mmvq.hpp). In strata-poly the
 // weights stay in GGUF order, so these row-split layouts are never produced: only the constants are needed to compile.
 #pragma once

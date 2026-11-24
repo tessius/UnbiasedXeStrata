@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 the UnbiasedStrata SYCL contributors
+// SPDX-License-Identifier: MIT
 // attend() for Qwen3.6's shape (head 256, 16 heads, 2 KV heads) against a CPU reference, at several context lengths.
 //   attend_q_test   (exit 0: every length within 2e-3 of the reference)
 #include "strata/poly/kernels.hpp"

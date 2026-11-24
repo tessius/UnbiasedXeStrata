@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 the UnbiasedStrata SYCL contributors
+# SPDX-License-Identifier: MIT
 """dpct names the kernel of a templated `*_wrapper` function `dpct_kernel_name<class X_>` with no template arguments,
 so every instantiation gets the same name (the SYCL integration header then fails: redefinition of KernelInfo).
 Give the name the wrapper's own template parameters: types as they are, values as dpct_kernel_scalar<V>.

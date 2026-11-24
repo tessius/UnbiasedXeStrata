@@ -1,0 +1,199 @@
+XeStrata
+Copyright (C) 2026 MistVVK and the XeStrata contributors
+
+XeStrata is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+XeStrata is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+details.
+
+The GNU Lesser General Public License is in COPYING.LESSER; it supplements the GNU General Public License, which is in
+COPYING.
+
+Additional permission under GNU GPL version 3 section 7
+
+If you modify XeStrata, or any covered work, by linking or combining it with a math or compute library that the maker of
+a GPU or CPU publishes for its processors, or with the runtime libraries such a library or its compiler needs (for
+example Intel oneMKL and the runtime libraries of Intel's oneAPI compilers, NVIDIA cuBLAS and the CUDA runtime and
+driver), or with the C and C++ runtime libraries of the operating system it runs on or of that system's standard
+compiler (for example Microsoft's Universal C Runtime and Visual C++ runtime libraries), or with a modified version of
+such a library, containing parts covered by the terms of that library's license, the licensors of XeStrata grant you
+additional permission to convey the resulting work.
+
+This permission does not apply to the measurement records in bench/XeStrataBenchResults/, which nothing links with:
+they are under the GNU Lesser General Public License alone.
+
+Copyright notices
+=================
+
+Every copyright holder whose work is in this repository, its license and where the license text is:
+
+- Copyright (C) 2026 MistVVK and the XeStrata contributors
+  LGPL-3.0-or-later - XeStrata's own code, and XeStrata as a combined work (its parts keep the licenses listed
+  here) - COPYING.LESSER, COPYING
+- Copyright (c) 2026 Niko1221 and the Strata contributors
+  MIT - Strata, which XeStrata is a port of. Strata's files XeStrata has not changed stay under MIT alone
+  (their headers say MIT); in those XeStrata has changed, Strata's code stays under MIT and XeStrata's changes
+  and the file as a whole are under the LGPL (LGPL-3.0-or-later AND MIT) - text below
+- Copyright (c) 2023-2026 The ggml authors
+  MIT - third_party/main/ggml/ggml-common.h (an unmodified copy, kept under MIT), and the code in src/ transcribed
+  from ggml / llama.cpp (each such file says so in its header; the code stays under MIT, the file as a whole is
+  under the LGPL: LGPL-3.0-or-later AND MIT) - text below and in
+  third_party/main/ggml/LICENSE. setup also fetches llama.cpp (MIT, the same authors) into third_party/main/llama.cpp,
+  with its own LICENSE
+- Copyright (c) 2026 Peasant Smith and the Project Maya contributors
+  MIT - the loop guard of the server (serve/loop_guard.py and its tests), transcribed from Project Maya
+  (https://github.com/mw00/project-maya), a fork of Strata; the code stays under MIT, the files as a whole are under
+  the LGPL (LGPL-3.0-or-later AND MIT) - text below
+- Copyright (c) 2017 Sean Barrett
+  MIT or public domain (the Unlicense), at your option - third_party/main/stb/stb_image.h (stb_image v2.30, an
+  unmodified copy), which the image engine (strata-image) is compiled with - third_party/main/stb/LICENSE,
+  LICENSES/MIT.txt, LICENSES/Unlicense.txt
+- Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts)
+  SIL Open Font License 1.1 - third_party/main/outfit/, the web app's font - third_party/main/outfit/OFL.txt
+- Copyright (c) 2013-2020 Khan Academy and other contributors
+  MIT - third_party/main/katex/ (KaTeX 0.19.0, its script, style sheet and fonts as upstream Strata vendors them),
+  which the web app's chat draws math with - third_party/main/katex/LICENSE, LICENSES/MIT.txt
+- Copyright Codeplay Software Limited; changes Copyright 2026 MistVVK and the XeStrata contributors
+  Apache-2.0 - XeStrata's changes to oneMath (https://github.com/uxlfoundation/oneMath), in XeStrata's fork
+  (https://github.com/MistVVK/oneMath, branch xestrata), whose tag CMakeLists.txt fetches for the dense matrix products. oneMath
+  itself is not in this repository - third_party/main/oneMath/LICENSE, LICENSES/Apache-2.0.txt
+- Copyright the LLVM project contributors; changes Copyright 2026 MistVVK and the XeStrata contributors
+  Apache-2.0 WITH LLVM-exception - XeStrata's fixes to intel/llvm (https://github.com/intel/llvm), in
+  third_party/main/intel-llvm/patches/, which tools/intel_llvm_build.py applies to the release it builds. intel/llvm
+  itself is not in this repository - third_party/main/intel-llvm/LICENSE.TXT, LICENSES/Apache-2.0.txt,
+  LICENSES/LLVM-exception.txt
+- Copyright 2022-2026 Maxime Chambonnet, Étienne Mollier, Cordell Bloor, Xuanteng Huang, Christian Kastner, Igor Luppi, Talha Can Havadar
+  Expat (MIT) - the target features tools/intel_llvm_build.py gives ROCm's device libraries' build, transcribed
+  from the debian/rules of Debian's rocm-llvm package (https://salsa.debian.org/rocm-team/rocm-llvm); they stay
+  under Expat, the file as a whole is under the LGPL (LGPL-3.0-or-later AND MIT) - text below
+- Copyright (c) 2014-2016, Advanced Micro Devices, Inc.
+  University of Illinois/NCSA Open Source License - ROCm's device libraries (ocml, ockl and the others, from
+  https://github.com/ROCm/llvm-project, amd/device-libs), which tools/intel_llvm_build.py builds with intel/llvm and
+  the engine's code for AMD GPUs links: that code carries parts of them. They are not in this repository -
+  third_party/main/rocm-device-libs/LICENSE.TXT
+- Copyright (c) 2026 Qwen
+  Qwen Community License 1.0 - third_party/nonfree/: material made from or copied from the Qwen3.8-Flash-Next model.
+  Not free software and not covered by the LGPL; XeStrata builds and runs without it - third_party/nonfree/*/LICENSE
+
+The deb and rpm packages (cmake/packaging.cmake) also carry, each with its license text: the SYCL runtime of
+intel/llvm (Apache-2.0 WITH LLVM-exception) built with XeStrata's fixes, llama.cpp's gguf-py (MIT, Copyright (c)
+2023-2026 The ggml authors), the license of ROCm's device libraries, parts of which the engine's code for AMD GPUs
+carries (NCSA, Copyright (c) 2014-2016 Advanced Micro Devices, Inc.), stb_image's (MIT, Copyright (c) 2017 Sean
+Barrett), which the image engine is compiled with, oneDNN's library for Intel GPUs (Apache-2.0, Copyright Intel
+Corporation, with the third-party programs its THIRD-PARTY-PROGRAMS lists), AOTriton's library and kernels' images for
+AMD GPUs (MIT, Copyright Advanced Micro Devices, Inc.; the images can carry parts of AMD's aiter (MIT), FlyDSL's kernels
+(Apache-2.0) and Triton (MIT)), and in the contrib-llvm ones oneMath (Apache-2.0) with XeStrata's changes and cuDNN
+Frontend (Apache-2.0, parts MIT, Copyright NVIDIA CORPORATION & AFFILIATES), which the image engine is compiled with.
+The engine in the contrib-llvm packages is compiled with NVIDIA's CUDA Toolkit, and its code for NVIDIA GPUs can contain
+parts of NVIDIA's libdevice; those parts are NVIDIA's, distributed under the NVIDIA CUDA Toolkit End User License
+Agreement.
+
+The models are not part of this repository; each model's own license applies to its files.
+Neither are the vendors' libraries the contrib-llvm mode links or opens (Intel oneMKL, NVIDIA cuBLAS, cuDNN and the CUDA
+runtime and driver); each one's own license applies to it.
+
+
+Strata (MIT License)
+--------------------
+
+Copyright (c) 2026 Niko1221 and the Strata contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+Project Maya (MIT License)
+--------------------------
+
+Copyright (c) 2026 Peasant Smith and the Project Maya contributors
+Copyright (c) 2026 Niko1221 and the Strata contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+ggml / llama.cpp (MIT License)
+------------------------------
+
+Copyright (c) 2023-2026 The ggml authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+Debian's rocm-llvm packaging (Expat License)
+--------------------------------------------
+
+Copyright 2022, Maxime Chambonnet
+Copyright 2022-2023, Étienne Mollier
+Copyright 2022-2025, Cordell Bloor
+Copyright 2024, Xuanteng Huang
+Copyright 2024, Christian Kastner
+Copyright 2025, Igor Luppi
+Copyright 2025-2026, Talha Can Havadar
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

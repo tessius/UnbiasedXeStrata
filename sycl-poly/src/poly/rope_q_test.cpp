@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 the UnbiasedStrata SYCL contributors
+// SPDX-License-Identifier: MIT
 // head_norm_rope() for Qwen3.6 (head 256, 16 heads, 64 rotary values, theta 1e7) against a CPU reference at many positions.
 #include "strata/poly/kernels.hpp"
 
