@@ -1906,9 +1906,13 @@ void Engine::load(const Options& o) {
                 grain_ = sycl::ext::oneapi::experimental::get_mem_granularity(
                     dpct::get_device(prop.location.id),
                     dpct::get_device(prop.location.id).get_context(),
+                    // SYCL: Level Zero refuses physical memory that is not a multiple of the recommended (2 MiB) granularity
                     sycl::ext::oneapi::experimental::granularity_mode::
-                        minimum)) == 0 &&
+                        recommended)) == 0 &&
             grain_ > 0;
+        // SYCL: Level Zero reports 64 KiB but refuses physical memory (UR_RESULT_ERROR_INVALID_VALUE) that is not a
+        // whole number of 2 MiB (B60, 2026-11)
+        if (vmm_) grain_ = (grain_ + (2u << 20) - 1) / (2u << 20) * (2u << 20);
     }
 
     // the token table stays in the file, a row a token, and embed() reads a row in whatever type it has
