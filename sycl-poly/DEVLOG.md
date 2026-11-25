@@ -190,3 +190,27 @@ BIN=build-poly/strata-poly BUILD=build-poly MODEL=<Qwen3.6-35B-A3B-UD-Q4_K_XL.gg
 ```
 For other Intel GPUs leave `STRATA_SYCL_AOT` empty (JIT: slow first start) or give your device (`ocloc compile --help`); the
 Xe-HPG/Alchemist shape of `Mmq` is built only in that case.
+
+## 9. 2026-11-24: the front end, so that it is used the way UnbiasedStrata is used
+
+Goal stated by the project owner: Unbiased XeStrata must be as usable as the original: clone, build, run `unbiased-strata`, get the
+OpenAI-style API with every supported model.  UnbiasedStrata is a C++ front end (`unbiased-strata`, built from llama.cpp's server,
+common and mtmd code) that starts an engine binary (`--engine strata-poly`) and talks to it over stdin/stdout (`GEN ...` in, `T <id>`
+lines out).  The front end is CPU code; it needed nothing from us except an engine that speaks the protocol.
+
+- `make frontend` (no CUDA, g++ 16.2) built it; `make test` (against the fake engine in `frontend/tests/`) passed: "e2e: all checks passed".
+- The SYCL `strata-poly` already had `--serve`, so the front end ran it unchanged:
+  `unbiased-strata --engine strata-poly -m Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf --mmproj mmproj-F16.gguf --threads 8 -- --model ... --max-context 8192 --no-graphs`.
+  The engine took about 3.5 minutes to become ready on the first start (reading the 22 GB file), then answered.
+- `docs/validate/frontend_checks.py` (+ `run_frontend_validation.sh`) drives the running server like a user or a coding agent.  Result,
+  `docs/logs/frontend-validation-2026-11-24.log`: chat (right answer); SSE streaming (33 events, `[DONE]`); retrieval of one fact among 100 at
+  2,710 tokens **exact** (prefill 451 tok/s, decode 92 tok/s); a 459-token story (57 tok/s); thinking mode (`reasoning_content` separate from the
+  answer); a tool call (`get_weather {"city":"Paris"}`, `finish_reason: tool_calls`); and an image (the model described a green/red
+  image with a white bar correctly, the projector run on the CPU by the front end).  **PASS.**
+- Nothing in the front end or the engine had to change for this.  What was missing was only the build and the documentation:
+- `make intel` (new, in the top-level `Makefile`): builds the front end and the SYCL engine into `build-intel/bin/`, detects the card with
+  `sycl-ls` (B50/B60/B570/B580 -> `bmg-g21`, B65/B70 -> `bmg-g31`, anything else -> JIT), no manual cmake.  `make intel-test` runs the kernel unit tests.
+- The mmproj file for Qwen3.6 (`mmproj-F16.gguf`, 899 MB, Unsloth) was downloaded for the vision check.
+
+Engines of UnbiasedStrata still missing on Intel: `strata-ik2` / `strata-inkling` (Inkling 2 Mini), `strata-dsv41` (DeepSeek V4.1), `strata-hy4`
+(Hy4-Flash) and `strata` (Qwen3.8-Flash-Next).  The next steps are in this order: Inkling (the one asked for), then the others as far as a 24 GB card allows.

@@ -96,6 +96,36 @@ test: frontend
 	$(BUILD_DIR)-frontend/bin/picture_cache_test
 	frontend/tests/e2e.sh $(BUILD_DIR)-frontend/bin/unbiased-strata
 
+# ---- Intel GPUs (Unbiased XeStrata, sycl-poly/) --------------------------------------------------------------------------
+# `make intel` builds the front end and the SYCL strata-poly engine side by side in build-intel/bin/, which is where the
+# front end looks for `--engine strata-poly`.  Needs Intel oneAPI (icpx and oneMKL; on PATH, or /opt/intel/oneapi) and the
+# Intel GPU driver (Level Zero).  Nothing is downloaded.  The GPU code is compiled ahead of time for the card it finds
+# (Battlemage: B50/B60/B570/B580 = bmg-g21, B65/B70 = bmg-g31); any other card gets the JIT build, which compiles the GPU
+# code at run time (minutes at every start).  `make intel INTEL_AOT=bmg-g21` (or `INTEL_AOT=none`) overrides it.
+#   make intel
+#   build-intel/bin/unbiased-strata --engine strata-poly -m model.gguf --port 8080 -- --model model.gguf --no-graphs
+INTEL_BUILD ?= $(BUILD_DIR)-intel
+ICPX ?= $(or $(shell command -v icpx 2>/dev/null),$(wildcard /opt/intel/oneapi/compiler/latest/bin/icpx))
+ICX  ?= $(or $(shell command -v icx 2>/dev/null),$(wildcard /opt/intel/oneapi/compiler/latest/bin/icx))
+INTEL_CARD := $(shell sycl-ls 2>/dev/null | grep -i -o -E 'B70|B65|B60|B580|B570|B50' | head -1)
+INTEL_AOT ?= $(if $(filter B70 B65,$(INTEL_CARD)),bmg-g31,$(if $(INTEL_CARD),bmg-g21,none))
+.PHONY: intel intel-test
+intel: frontend
+	@test -n "$(ICPX)" || { echo "icpx not found: install Intel oneAPI DPC++ (or: source /opt/intel/oneapi/setvars.sh)"; exit 1; }
+	@test -f third_party/llama.cpp/ggml/CMakeLists.txt || { echo "run 'git submodule update --init' first"; exit 1; }
+	@echo "make intel: card '$(or $(INTEL_CARD),not detected)', GPU code: $(if $(filter none,$(INTEL_AOT)),JIT (compiled at run time),ahead of time for $(INTEL_AOT))"
+	cmake -S sycl-poly -B $(INTEL_BUILD) -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=$(ICPX) -DCMAKE_C_COMPILER=$(ICX) \
+	      "-DSTRATA_SYCL_AOT=$(filter-out none,$(INTEL_AOT))"
+	cmake --build $(INTEL_BUILD) -j $(JOBS) --target strata-poly
+	mkdir -p $(INTEL_BUILD)/bin
+	cp $(INTEL_BUILD)/strata-poly $(BUILD_DIR)-frontend/bin/unbiased-strata $(INTEL_BUILD)/bin/
+	@echo "built:"; ls -1 $(INTEL_BUILD)/bin/strata-poly $(INTEL_BUILD)/bin/unbiased-strata
+
+# The Intel kernels' unit tests against CPU references (needs the GPU; no model).
+intel-test: intel
+	cmake --build $(INTEL_BUILD) -j $(JOBS) --target poly_gdn_q_test poly_attend_q_test poly_rope_q_test
+	$(INTEL_BUILD)/poly_gdn_q_test && $(INTEL_BUILD)/poly_attend_q_test && $(INTEL_BUILD)/poly_rope_q_test
+
 clean:
 	rm -rf $(BUILD_DIR)
 
