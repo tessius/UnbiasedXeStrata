@@ -14,7 +14,18 @@
 | Decode | 49-93 tok/s depending on the answer's length and whether the draft head is on |
 | Correctness | exact on retrieval at 2.7k tokens and on counting 1..200; kernel unit tests against CPU references pass |
 
-Everything Intel-specific is in [`sycl-poly/`](sycl-poly/).  **No existing UnbiasedStrata file was changed** except moving this
+## Build and run (Intel GPUs)
+
+You need Intel oneAPI (`icpx`, oneMKL), the Intel GPU driver (Level Zero), CMake and a C++20 compiler.  No CUDA.
+
+```
+git clone --recursive https://github.com/tessius/UnbiasedXeStrata && cd UnbiasedXeStrata
+make intel                       # front end + SYCL engine into build-intel/bin/ (detects your card; first build takes a while)
+build-intel/bin/unbiased-strata --engine strata-poly -m Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf --port 8080 \
+    -- --model Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf --max-context 32768 --no-graphs
+```
+Then use the OpenAI-style API on port 8080 as you would with UnbiasedStrata (chat, streaming, thinking mode, tool calls, images with
+`--mmproj`).  `make intel-test` runs the Intel kernels' unit tests.  Everything Intel-specific is in [`sycl-poly/`](sycl-poly/).  **No existing UnbiasedStrata file was changed** except moving this
 README to `README.upstream.md`.  Build and run: [`sycl-poly/README.md`](sycl-poly/README.md).
 
 ## Why this exists, and what we found (2026-11-23)
