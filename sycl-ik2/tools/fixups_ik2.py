@@ -576,3 +576,103 @@ edit("ik2_main.dp.cpp", attn_gate_fused_main)
 
 # the loop gates' apply kernel with a fixed rank-64 tile (the engine's own option): 45.0 -> 47.2 tok/s decode
 edit("ik2_kernels.dp.cpp", lambda s: s.replace('static const int tile = getenv("IK2_GATE_TILE") ? atoi(getenv("IK2_GATE_TILE")) : 0;', 'static const int tile = getenv("IK2_GATE_TILE") ? atoi(getenv("IK2_GATE_TILE")) : 64;', 1))
+
+# Decode's small kernels rewritten for latency (src/ik2_small.dp.inc): mv_f16 with 16-byte weight loads.  IK2_SMALL_WIDE=0 keeps the generic kernels.
+def small_kernels(s):
+    if "ik2_small.dp.inc" in s: return s
+    a = "void mv_f16(const uint16_t *W, int N, int K, const float *x, float *y,\n            dpct::queue_ptr s) {\n    if (N <= 0) return;\n"
+    assert a in s, "mv_f16 not found"
+    return s.replace(a, '#include "ik2_small.dp.inc"\n' + a + "    if (mv_f16_wide_ok(W, K, x)) { mv_f16_wide(W, N, K, x, y, s); return; }\n", 1)
+edit("ik2_kernels.dp.cpp", small_kernels)
+edit("ik2_kernels.dp.hpp", lambda s: s if "set_small_wide" in s else s.replace("void set_decode_lut(bool on);", "void set_small_wide(bool on);   // (Intel) decode's small kernels rewritten for latency (default) or the generic ones\nvoid set_decode_lut(bool on);", 1))
+
+# the attention sinks' dot products (H extra warps in prep_qkv, K = 2304) with 16-byte weight loads, as mv_f16_wide: 72 strided scalar loads a lane -> 9 chunk loads.
+def prep_sink_wide(s):
+    old = """        float a = 0.0f;
+#pragma unroll
+        for (int j = lane; j < sink_k; j += 32) a += h2f(w[j]) * sx[j];
+        a = wsum(a);
+        if (lane == 0) sink_y[(size_t) t * H + h] = a;"""
+    if old not in s: return s
+    new = """        float a = 0.0f;
+        if ((sink_k & 255) == 0 && (((uintptr_t) w & 15) == 0) && (((uintptr_t) sx & 15) == 0)) {
+            const sycl::uint4 *w4 = (const sycl::uint4 *) w;
+            const sycl::float4 *x4 = (const sycl::float4 *) sx;
+            for (int c = lane; c < sink_k / 8; c += 32) {
+                const sycl::uint4 wv = ik2_ldg(w4 + c);
+                const sycl::float4 xa = ik2_ldg(x4 + 2 * c), xb = ik2_ldg(x4 + 2 * c + 1);
+                const sycl::float2 p0 = u32_to_f2(wv.x()), p1 = u32_to_f2(wv.y()), p2 = u32_to_f2(wv.z()), p3 = u32_to_f2(wv.w());
+                a += (p0.x() * xa.x() + p0.y() * xa.y()) + (p1.x() * xa.z() + p1.y() * xa.w()) + (p2.x() * xb.x() + p2.y() * xb.y()) + (p3.x() * xb.z() + p3.y() * xb.w());
+            }
+        } else
+#pragma unroll
+        for (int j = lane; j < sink_k; j += 32) a += h2f(w[j]) * sx[j];
+        a = wsum(a);
+        if (lane == 0) sink_y[(size_t) t * H + h] = a;"""
+    return s.replace(old, new, 1)
+edit("ik2_kernels.dp.cpp", prep_sink_wide)
+
+# the loop gates' dots kernel with 16-byte loads (4 elements a load of x, m and the D rows; 8-byte loads of the compact BF16 weights): 18 iterations of 4 scalar loads -> 5 of 4 vector loads a thread.
+def gate_dots_wide(s):
+    old = """    for (int c = tid; c < C; c += 128) {
+        const float xv = xr[c], mv = mr[c];
+        ax += gate_weight<Compact>(a.D[j], row + c) * xv, am += gate_weight<Compact>(a.D[j], row + C + c) * mv;
+        sx += xv * xv, sm += mv * mv;
+    }"""
+    if old not in s or "gate_weight4" in s: return s
+    helper = """template <bool Compact>
+__dpct_inline__ sycl::float4 gate_weight4(const void *p, size_t i) {   // 4 consecutive weights from element i (i a multiple of 4)
+    if constexpr (Compact) {
+        const sycl::uint2 u = ik2_ldg((const sycl::uint2 *) ((const uint16_t *) p + i));
+        return sycl::float4(sycl::bit_cast<float>(u.x() << 16), sycl::bit_cast<float>(u.x() & 0xFFFF0000u), sycl::bit_cast<float>(u.y() << 16), sycl::bit_cast<float>(u.y() & 0xFFFF0000u));
+    } else {
+        return ik2_ldg((const sycl::float4 *) ((const float *) p + i));
+    }
+}
+
+"""
+    a = "// (1) a block a rank (128 threads): its two dots; rank 0's block also stores the sums of squares"
+    assert a in s
+    s = s.replace(a, helper + a, 1)
+    new = """    const bool wide = (C & 3) == 0 && (((uintptr_t) xr & 15) == 0) && (((uintptr_t) mr & 15) == 0) &&
+                      (((uintptr_t) a.D[j] & (Compact ? 7 : 15)) == 0);
+    if (wide) {
+        for (int c4 = tid; c4 < C / 4; c4 += 128) {
+            const sycl::float4 xv = ik2_ldg((const sycl::float4 *) xr + c4), mv = ik2_ldg((const sycl::float4 *) mr + c4);
+            const sycl::float4 dx = gate_weight4<Compact>(a.D[j], row + 4 * c4), dm = gate_weight4<Compact>(a.D[j], row + C + 4 * c4);
+            ax += (dx.x() * xv.x() + dx.y() * xv.y()) + (dx.z() * xv.z() + dx.w() * xv.w());
+            am += (dm.x() * mv.x() + dm.y() * mv.y()) + (dm.z() * mv.z() + dm.w() * mv.w());
+            sx += (xv.x() * xv.x() + xv.y() * xv.y()) + (xv.z() * xv.z() + xv.w() * xv.w());
+            sm += (mv.x() * mv.x() + mv.y() * mv.y()) + (mv.z() * mv.z() + mv.w() * mv.w());
+        }
+    } else
+""" + old
+    return s.replace(old, new, 1)
+edit("ik2_kernels.dp.cpp", gate_dots_wide)
+
+# route_token: each thread ranks its expert against all E values in SLM: E scalar loads -> E / 4 float4 loads (a count: order-free, bit-identical).
+def route_rank_vec(s):
+    old = """    int rank = 0;
+    for (int j = 0; j < E; ++j) {
+        const float o = val[j];
+        rank += (o > v || (o == v && j < e)) ? 1 : 0;
+    }"""
+    if old not in s or "route rank vec" in s: return s
+    new = """    int rank = 0;   // route rank vec
+    if ((E & 3) == 0) {
+        const sycl::float4 *val4 = (const sycl::float4 *) val;
+        for (int j4 = 0; j4 < E / 4; ++j4) {
+            const sycl::float4 o = val4[j4];
+            const int j = 4 * j4;
+            rank += (o.x() > v || (o.x() == v && j < e)) ? 1 : 0;
+            rank += (o.y() > v || (o.y() == v && j + 1 < e)) ? 1 : 0;
+            rank += (o.z() > v || (o.z() == v && j + 2 < e)) ? 1 : 0;
+            rank += (o.w() > v || (o.w() == v && j + 3 < e)) ? 1 : 0;
+        }
+    } else
+    for (int j = 0; j < E; ++j) {
+        const float o = val[j];
+        rank += (o > v || (o == v && j < e)) ? 1 : 0;
+    }"""
+    return s.replace(old, new, 1)
+edit("ik2_kernels.dp.cpp", route_rank_vec)

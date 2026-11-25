@@ -636,6 +636,16 @@ prep_qkv_r_impl_kernel(float *q, const float *q_clip, const float *k_in, KV *kc,
         const uint16_t* w = sink_w + (size_t) h * sink_k;
         const float* sx = sink_x + (size_t) t * sink_k;
         float a = 0.0f;
+        if ((sink_k & 255) == 0 && (((uintptr_t) w & 15) == 0) && (((uintptr_t) sx & 15) == 0)) {
+            const sycl::uint4 *w4 = (const sycl::uint4 *) w;
+            const sycl::float4 *x4 = (const sycl::float4 *) sx;
+            for (int c = lane; c < sink_k / 8; c += 32) {
+                const sycl::uint4 wv = ik2_ldg(w4 + c);
+                const sycl::float4 xa = ik2_ldg(x4 + 2 * c), xb = ik2_ldg(x4 + 2 * c + 1);
+                const sycl::float2 p0 = u32_to_f2(wv.x()), p1 = u32_to_f2(wv.y()), p2 = u32_to_f2(wv.z()), p3 = u32_to_f2(wv.w());
+                a += (p0.x() * xa.x() + p0.y() * xa.y()) + (p1.x() * xa.z() + p1.y() * xa.w()) + (p2.x() * xb.x() + p2.y() * xb.y()) + (p3.x() * xb.z() + p3.y() * xb.w());
+            }
+        } else
 #pragma unroll
         for (int j = lane; j < sink_k; j += 32) a += h2f(w[j]) * sx[j];
         a = wsum(a);
@@ -815,7 +825,7 @@ __dpct_inline__ void attn_res_warp0_softmax(float sh_red[][kResMax * 4],
     }
 }
 
-constexpr int kResGroup = 4;
+constexpr int kResGroup = 12;
 template <bool FUSED_RMS, int BLOCK_THREADS>
 /*
 DPCT1110: The total declared local variable size in device function
@@ -1338,6 +1348,22 @@ constexpr int kFaBN = 64, kFaD = 128, kFaLd = kFaD + 8;   // (row pad: conflict-
 constexpr float kLog2e = 1.4426950408889634f;
 
 #include "ik2_mma_emul.dp.inc"   // SYCL: the tensor-core primitives, emulated (see that file)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
 // SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
@@ -2716,6 +2742,16 @@ __dpct_inline__ float gate_weight(const void *p, size_t i) {
         return ((const float*)p)[i];
 }
 
+template <bool Compact>
+__dpct_inline__ sycl::float4 gate_weight4(const void *p, size_t i) {   // 4 consecutive weights from element i (i a multiple of 4)
+    if constexpr (Compact) {
+        const sycl::uint2 u = ik2_ldg((const sycl::uint2 *) ((const uint16_t *) p + i));
+        return sycl::float4(sycl::bit_cast<float>(u.x() << 16), sycl::bit_cast<float>(u.x() & 0xFFFF0000u), sycl::bit_cast<float>(u.y() << 16), sycl::bit_cast<float>(u.y() & 0xFFFF0000u));
+    } else {
+        return ik2_ldg((const sycl::float4 *) ((const float *) p + i));
+    }
+}
+
 // (1) a block a rank (128 threads): its two dots; rank 0's block also stores the sums of squares
 template <bool Compact>
 __dpct_inline__ void loop_gate_dots_kernel(LoopGateArgs a, int T, int C, int R,
@@ -2730,6 +2766,18 @@ auto &sh = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[4][4]>(
     const float* mr = a.m[j] + (size_t) t * C;
     const size_t row = (size_t)r * 2 * C;
     float ax = 0.0f, am = 0.0f, sx = 0.0f, sm = 0.0f;
+    const bool wide = (C & 3) == 0 && (((uintptr_t) xr & 15) == 0) && (((uintptr_t) mr & 15) == 0) &&
+                      (((uintptr_t) a.D[j] & (Compact ? 7 : 15)) == 0);
+    if (wide) {
+        for (int c4 = tid; c4 < C / 4; c4 += 128) {
+            const sycl::float4 xv = ik2_ldg((const sycl::float4 *) xr + c4), mv = ik2_ldg((const sycl::float4 *) mr + c4);
+            const sycl::float4 dx = gate_weight4<Compact>(a.D[j], row + 4 * c4), dm = gate_weight4<Compact>(a.D[j], row + C + 4 * c4);
+            ax += (dx.x() * xv.x() + dx.y() * xv.y()) + (dx.z() * xv.z() + dx.w() * xv.w());
+            am += (dm.x() * mv.x() + dm.y() * mv.y()) + (dm.z() * mv.z() + dm.w() * mv.w());
+            sx += (xv.x() * xv.x() + xv.y() * xv.y()) + (xv.z() * xv.z() + xv.w() * xv.w());
+            sm += (mv.x() * mv.x() + mv.y() * mv.y()) + (mv.z() * mv.z() + mv.w() * mv.w());
+        }
+    } else
     for (int c = tid; c < C; c += 128) {
         const float xv = xr[c], mv = mr[c];
         ax += gate_weight<Compact>(a.D[j], row + c) * xv, am += gate_weight<Compact>(a.D[j], row + C + c) * mv;
@@ -5317,7 +5365,18 @@ __dpct_inline__ void route_token_kernel(
     performance if there is no access to global memory.
     */
     item_ct1.barrier();
-    int rank = 0;
+    int rank = 0;   // route rank vec
+    if ((E & 3) == 0) {
+        const sycl::float4 *val4 = (const sycl::float4 *) val;
+        for (int j4 = 0; j4 < E / 4; ++j4) {
+            const sycl::float4 o = val4[j4];
+            const int j = 4 * j4;
+            rank += (o.x() > v || (o.x() == v && j < e)) ? 1 : 0;
+            rank += (o.y() > v || (o.y() == v && j + 1 < e)) ? 1 : 0;
+            rank += (o.z() > v || (o.z() == v && j + 2 < e)) ? 1 : 0;
+            rank += (o.w() > v || (o.w() == v && j + 3 < e)) ? 1 : 0;
+        }
+    } else
     for (int j = 0; j < E; ++j) {
         const float o = val[j];
         rank += (o > v || (o == v && j < e)) ? 1 : 0;
@@ -7333,7 +7392,7 @@ void launch_attn_res(const ResStates &states, int n, const float *q, int nq,
                                          dpct_kernel_scalar<512>>>(
             sycl::nd_range<3>(g * sycl::range(1, 1, 512),
                               sycl::range(1, 1, 512)),
-            exp_props,
+            sycl::ext::oneapi::experimental::properties{sycl::ext::oneapi::experimental::use_root_sync, sycl::ext::intel::experimental::grf_size<256>},
             [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(32)]] {
                 attn_res_vec4_kernel<FUSED_RMS, 512>(states, n, q, nq, T, C,
                                                      res_eps, rms_eps, out,
@@ -9560,9 +9619,11 @@ void decode_q8p_f16(const int8_t *q, const uint16_t *d, size_t n, uint16_t *out,
     check("decode_q8p_f16");
 }
 
+#include "ik2_small.dp.inc"
 void mv_f16(const uint16_t *W, int N, int K, const float *x, float *y,
             dpct::queue_ptr s) {
     if (N <= 0) return;
+    if (mv_f16_wide_ok(W, K, x)) { mv_f16_wide(W, N, K, x, y, s); return; }
     {
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};

@@ -102,6 +102,7 @@ void moe_gate_up_swiglu_xmx(const MoeXmxExp *tab, int n_exp, int max_cnt, const 
                             float gcap, float ucap, uint16_t *h, dpct::queue_ptr s);
 void moe_down_xmx(const MoeXmxExp *tab, int n_exp, int max_cnt, const uint16_t *A, int C, int F, size_t off_down, float *y, dpct::queue_ptr s);
 void decode_f16_nvfp4_multi(const uint8_t *const *blobs, int ne, size_t n, uint16_t *out, size_t out_stride, dpct::queue_ptr s);   // (Intel) ne matrices in one launch (ne <= 16)
+void set_small_wide(bool on);   // (Intel) decode's small kernels rewritten for latency (default) or the generic ones
 void set_decode_lut(bool on);   // (Intel) NVFP4 -> FP16 decode, store-coalesced (opt-in: IK2_DECODE_LUT=1) or the original kernel (default)
 void set_flash_xmx(bool on);   // (Intel) the prefill attention on XMX (default) or the emulated CUDA kernel
 void attn_flash_f16(const uint16_t *q16, int q_ld, const uint16_t *kc,

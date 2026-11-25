@@ -522,3 +522,25 @@ AOT: decode 47.3 tok/s at a short context, 40.8 after 4,000 tokens, 38.0 after 1
 **Not done** (the two bigger fusions): the router matvec into `route_token` (a multi-block kernel that also packs the expert inputs, so a different kernel to extend), and anything around the loop gates
 (`attn_res -> dots -> apply -> rms` are separated by grid-wide dependencies).  Given the measurement above, neither would gain much through the launch count; making the single-block kernels use more of the
 card (split a reduction across blocks, overlap the independent q / k / v gates) is the direction that could.
+
+## 23. Inkling decode: the small kernels (2026-11-25), Arc Pro B60
+
+Section 22 found the ~9 ms of small kernels is their own latency, not launches.  The pattern in the slow ones: strided *scalar* loads in a serial chain, one warp or block on a card of 20 cores.  Real cost a call (sync table minus
+~10 us), before -> after, and a token's saving (ms):
+
+| kernel (calls a token) | what it was | change | before -> after |
+|---|---|---|---|
+| `mv_f16` (61: router 128 x 2304, small dense) | a lane: 72 scalar loads (2-byte weight, 4-byte x) | 16-byte weight loads, two float4 of x, 9 chunks a lane | 13.3 -> ~3 us (`tests/small_bench`: 19.9 -> 3.4 us back to back, max diff 1.4e-6 on |y| ~ 6) |
+| `attn_res` / `attn_res_rms_f16` (49 / 46) | states loaded 4 at a time between reductions | all 12 states in flight (`kResGroup` 12, 256 registers); the sums keep their order | 18.1 -> 12.9, 17.0 -> 14.2 us |
+| `prep_qkv_r_f16_at` (46): the H sink dots, K = 2304 | the same 72-load chain | the same wide loads | 16.5 us -> less (the sink warps were its longest) |
+| `loop_gates (dots)` (46) | 4 scalar loads x 18 iterations | float4 loads of x, m and the weight rows (8-byte for the BF16 form) | 8.9 us -> less |
+| `route_token` (46) | rank over E = 128 values in SLM, one load each | float4 loads (a count: bit-identical) | 11.6 us -> less |
+
+Decode (AOT): 47.3 -> **52.5 tok/s** at a short context, 40.8 -> **44.8** after 4,000 tokens, 38.0 -> **41.5** after 12,000.  Through the front end 52-53 tok/s short, 44-45 after 4k-7.5k-token prompts; 10 of 10 retrievals correct.
+
+**Numerics.**  `attn_res` (batched loads only) and `route_token` (a count) are bit-identical; `mv_f16`, the sink dots and the gate dots add in a different order, so their sums differ in the last bits (~1e-6 relative).  With the
+nearly flat distribution of the `--tokens 1,2,3` smoke prompt that flips the second greedy token (16 -> 930), so that prompt is no longer a regression check across such changes.  `docs/validate/ab_greedy.py` is the gate:
+ten varied prompts, temperature 0, ~120 tokens each, reference build against new build through the front end: **9 of 10 answers identical**; the tenth diverges ~80 tokens in at a near-tie ("cream or milk" vs "cream or coconut milk"), fluent both ways.
+(Run it before and after any change that reorders sums; identical or near-tie divergence is the expected outcome, repeated garbage is not.)
+
+Not done: `attn_decode` split (7 us), `loop_gates (apply)` (6), `moe_combine_conv`, `rms_multi` are small already; `prep_qkv`'s head warps and `attn_res`' two passes are the next-longest chains.
