@@ -723,3 +723,31 @@ edit("ik2_main.dp.cpp", lambda s: s.replace('static const int limb = getenv("IK2
 # (padding NvInput to 48 bytes / 16-byte aligned for vector loads was tried here: slower, 54.9 vs 56.7 tok/s; see DEVLOG)
 
 # (a larger work-group for the limb kernels (8 / 16 warps instead of 4) was tried here: slightly slower, 54.4 / 54.1 vs 54.8 tok/s; see DEVLOG)
+
+# NVFP4 limb kernel with RP row pairs a warp (src/ik2_limb_rp.dp.inc): the activation record is loaded once for 2 * RP dots.  IK2_LIMB_RP = 1 (the original one pair) / 2 / 4 (default: measured best; 8 is slower).
+def limb_rp(s):
+    if "ik2_limb_rp.dp.inc" in s: return s
+    a = "void expert_limb_mv(bool gate, const uint8_t *const *blob, size_t offset, int C,\n                    int F, int S, const float *x, uint16_t *h, float *y,\n                    const float *sg, const float *su, float gcap, float ucap,\n                    void *scratch, dpct::queue_ptr stream, bool q8,\n                    bool packed) {\n    auto* p = (NvInput*)scratch;\n"
+    assert a in s, "expert_limb_mv head not found"
+    new = a + """    static const int limb_rp = getenv("IK2_LIMB_RP") ? atoi(getenv("IK2_LIMB_RP")) : 4;
+    if (!q8 && limb_rp > 1) {
+        if (gate) {
+            if (!packed)
+                stream->parallel_for<class nv_input_rp_gate_name>(sycl::nd_range<3>(sycl::range(1, 1, (C / 16 + 31) / 32) * sycl::range(1, 1, 32), sycl::range(1, 1, 32)),
+                                                                  [=](sycl::nd_item<3>) { nv_input<true>(x, nullptr, C, p, false); });
+            if (limb_rp >= 8) launch_nv_limb_rp<true, 8>(blob, p, offset, C, F, S, sg, su, gcap, ucap, h, nullptr, stream);
+            else if (limb_rp >= 4) launch_nv_limb_rp<true, 4>(blob, p, offset, C, F, S, sg, su, gcap, ucap, h, nullptr, stream);
+            else launch_nv_limb_rp<true, 2>(blob, p, offset, C, F, S, sg, su, gcap, ucap, h, nullptr, stream);
+        } else {
+            stream->parallel_for<class nv_input_rp_down_name>(sycl::nd_range<3>(sycl::range(1, S, (F / 16 + 31) / 32) * sycl::range(1, 1, 32), sycl::range(1, 1, 32)),
+                                                              [=](sycl::nd_item<3>) { nv_input<false>(nullptr, h, F, p, false); });
+            if (limb_rp >= 8) launch_nv_limb_rp<false, 8>(blob, p, offset, C, F, S, nullptr, nullptr, 0.f, 0.f, nullptr, y, stream);
+            else if (limb_rp >= 4) launch_nv_limb_rp<false, 4>(blob, p, offset, C, F, S, nullptr, nullptr, 0.f, 0.f, nullptr, y, stream);
+            else launch_nv_limb_rp<false, 2>(blob, p, offset, C, F, S, nullptr, nullptr, 0.f, 0.f, nullptr, y, stream);
+        }
+        check("nv_expert_limb");
+        return;
+    }
+"""
+    return s.replace(a, '#include "ik2_limb_rp.dp.inc"\n' + new, 1)
+edit("ik2_kernels.dp.cpp", limb_rp)

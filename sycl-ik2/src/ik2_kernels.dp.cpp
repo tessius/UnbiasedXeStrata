@@ -1356,6 +1356,10 @@ constexpr float kLog2e = 1.4426950408889634f;
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
 // item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
 __dpct_inline__ void cp_async16(void *dst, const void *src, bool valid) {
     if (valid) *reinterpret_cast<sycl::uint4 *>(dst) = *reinterpret_cast<const sycl::uint4 *>(src);
     else *reinterpret_cast<sycl::uint4 *>(dst) = sycl::uint4(0, 0, 0, 0);
@@ -8650,12 +8654,32 @@ void launch_experts_down(const uint8_t *const *blob, int S, int ty_down,
     }
 }
 
+#include "ik2_limb_rp.dp.inc"
 void expert_limb_mv(bool gate, const uint8_t *const *blob, size_t offset, int C,
                     int F, int S, const float *x, uint16_t *h, float *y,
                     const float *sg, const float *su, float gcap, float ucap,
                     void *scratch, dpct::queue_ptr stream, bool q8,
                     bool packed) {
     auto* p = (NvInput*)scratch;
+    static const int limb_rp = getenv("IK2_LIMB_RP") ? atoi(getenv("IK2_LIMB_RP")) : 4;
+    if (!q8 && limb_rp > 1) {
+        if (gate) {
+            if (!packed)
+                stream->parallel_for<class nv_input_rp_gate_name>(sycl::nd_range<3>(sycl::range(1, 1, (C / 16 + 31) / 32) * sycl::range(1, 1, 32), sycl::range(1, 1, 32)),
+                                                                  [=](sycl::nd_item<3>) { nv_input<true>(x, nullptr, C, p, false); });
+            if (limb_rp >= 8) launch_nv_limb_rp<true, 8>(blob, p, offset, C, F, S, sg, su, gcap, ucap, h, nullptr, stream);
+            else if (limb_rp >= 4) launch_nv_limb_rp<true, 4>(blob, p, offset, C, F, S, sg, su, gcap, ucap, h, nullptr, stream);
+            else launch_nv_limb_rp<true, 2>(blob, p, offset, C, F, S, sg, su, gcap, ucap, h, nullptr, stream);
+        } else {
+            stream->parallel_for<class nv_input_rp_down_name>(sycl::nd_range<3>(sycl::range(1, S, (F / 16 + 31) / 32) * sycl::range(1, 1, 32), sycl::range(1, 1, 32)),
+                                                              [=](sycl::nd_item<3>) { nv_input<false>(nullptr, h, F, p, false); });
+            if (limb_rp >= 8) launch_nv_limb_rp<false, 8>(blob, p, offset, C, F, S, nullptr, nullptr, 0.f, 0.f, nullptr, y, stream);
+            else if (limb_rp >= 4) launch_nv_limb_rp<false, 4>(blob, p, offset, C, F, S, nullptr, nullptr, 0.f, 0.f, nullptr, y, stream);
+            else launch_nv_limb_rp<false, 2>(blob, p, offset, C, F, S, nullptr, nullptr, 0.f, 0.f, nullptr, y, stream);
+        }
+        check("nv_expert_limb");
+        return;
+    }
     if (gate) {
         if (!packed) {
             auto exp_props = sycl::ext::oneapi::experimental::properties{

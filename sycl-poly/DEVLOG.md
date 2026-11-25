@@ -568,3 +568,19 @@ the activation records staged in SLM (neutral), the 36-byte record padded to 48 
 
 What is left in the experts (~7 ms of a ~18 ms token): the limb kernels at ~84 us a launch.  The ideas that remain are the int8 *activation* side (one limb instead of two: half the dp4a, ~7 bits: a numerics change) and
 splitting rows over more of the card; neither done.
+
+## 25. Inkling decode: the expert kernels, round 2 (2026-11-25), Arc Pro B60
+
+`tests/decode_experts_bench` now times the limb path too (`expert_limb_mv`, each call with its activation-packing launch, 8 distinct experts in rotation): generic 118 / 72 us (9.1 ms a token), limb 109 / 62 us (8.2 ms), i.e. weights read at
+190-220 GB/s of a card that should do 400+.  The limb kernel's lane iteration loads the 36-byte activation record (9 scalar words) and 3 words per weight row for just two dot products; that record is 60% of the loads.
+
+**`nv_limb_mv_rp<Gate, RP>`** (`src/ik2_limb_rp.dp.inc`, `IK2_LIMB_RP`, NVFP4 only): a warp takes RP row pairs (gate/up) or 2 RP rows (down), so the record is loaded once for 2 RP dots and 6 x 2 RP weight words are in flight.  Each row's sum is accumulated in
+the same order as before, so the outputs are **bit-identical** (same difference from the generic kernels in the bench; same greedy answers).  Bench, a token's experts: RP 1 8.17 ms, 2 7.91, **4 7.32**, 8 8.56 (too few warps).
+Engine, same session (AOT): decode +2.2% at a short context (56.1 vs 54.9 tok/s), +2.0% after 4000 tokens (47.3 vs 46.4), +1.7% after 12,000 (43.7 vs 42.9).  Default RP 4.
+
+No gain: 2 / 8 warps a work-group (7.33 / 7.39 vs 7.35 ms), `#pragma unroll 2` / 4 on the sub-block loop (7.7 / 8.0 ms: registers).
+
+Greedy A/B (`ab_greedy.py`): 10 of 10 answers identical to the original reference build and to the previous build.  Retrieval 10 of 10; through the front end 56.6 tok/s on short prompts, 46-47 after 4k-7.5k-token prompts.
+
+The experts are now ~7 ms of a ~17.5 ms token.  Left: the activation-side (one int8 limb instead of two: half the dp4a and half the record, ~7 bits instead of ~14: a numerics change) and wider weight loads feeding the dp4a (the generic kernels' wide-load
+attempt failed on their heavy arithmetic; the limb kernels' is light).
