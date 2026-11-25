@@ -502,3 +502,23 @@ The floor for decode is ~4 ms of expert reads a token (1.7 GB); reaching it need
 numerics: Inkling's router is full of near-ties).  Left alone.
 
 What else is in the 8.9 ms: ~800 small dependent launches (router, loop gates, norms, residual mixes, combine) at ~10 us each; fusing them is the lever, one kernel at a time.
+
+## 22. Inkling decode: small launches (2026-11-25), Arc Pro B60
+
+One decode token is **806 launches** (`IK2_SYNC_CHECK=1` prints the sequence).  A looped visit is 18-19: `attn_res -> loop_gates (dots) -> loop_gates (apply) -> rms(_multi)` (before attention) ->
+`mv_q8p` (qkv) -> `prep_qkv_r_f16_at` -> attention split -> combine -> `gate_mul_f16` -> `mv_q8p` (o) -> `attn_res -> dots -> apply -> rms` (before the MoE) -> `mv_f16` (router) -> `route_token` -> experts gate/up
+-> experts down -> `moe_combine_conv`.  Per token: 113 `mv_q8p`, 64 `mv_f16`, 50 `attn_res`, 48 each of prep / split / combine / gate_mul / attn_res_rms / route / gate-up / down / combine_conv / loop-gate dots and apply, ~49 rms.
+
+**Launches are cheap here; the kernels are what cost.**  A launch is ~3 us back to back (section 16), and *removing 48 of them* (below) changed nothing measurable: even deleting every launch gap would be
+bounded at ~1.5 ms of a 21 ms token.  The ~9 ms the small kernels add up to is their own GPU time: real cost (sync table minus ~10 us of sync) of `loop_gates (apply)` ~26 us, `attn_res` ~18, `attn_res_rms_f16` ~17,
+`prep_qkv_r_f16_at` ~16, `mv_f16` ~13, `route_token` ~12, `loop_gates (dots)` ~9, each launched with one or a few work-groups (1 of 20 cores busy): latency-bound chains of load -> reduce -> barrier -> load.
+`attn_res` is already one cross-warp reduction with its loads batched four at a time; its two passes over the states are inherent.
+
+**Shipped:**
+- `IK2_GATE_TILE` default 64 (the engine's own option: a fixed-rank-64 `apply` kernel for one token): 45.0 -> 47.2 tok/s (+5%), same tokens.  The other engine knobs (`IK2_Q8_UNROLL`, `IK2_GATE_BF16`) do nothing here.
+- The attention combine applies the output gate and writes the FP16 copy itself (`attn_decode_f16_at_gate`), so `gate_mul_f16` is gone from the scalar path: 806 -> 758 launches a token, bit-identical output, no speed change.
+AOT: decode 47.3 tok/s at a short context, 40.8 after 4,000 tokens, 38.0 after 12,000; through the front end 47.5 tok/s short, 39-41 after 4k-7.5k-token prompts; 10 of 10 retrievals correct.
+
+**Not done** (the two bigger fusions): the router matvec into `route_token` (a multi-block kernel that also packs the expert inputs, so a different kernel to extend), and anything around the loop gates
+(`attn_res -> dots -> apply -> rms` are separated by grid-wide dependencies).  Given the measurement above, neither would gain much through the launch count; making the single-block kernels use more of the
+card (split a reduction across blocks, overlap the independent q / k / v gates) is the direction that could.

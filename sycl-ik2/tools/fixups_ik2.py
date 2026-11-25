@@ -503,3 +503,76 @@ def attn_mma_default(s):
 edit("ik2_main.dp.cpp", attn_mma_default)
 
 # (decode's NVFP4 expert products with 16- / 8-byte loads were tried (9 lanes a row, 144-byte runs): correct, but slower than the generic kernels, 141-193 vs 118 us for gate/up; see DEVLOG)
+
+# Decode (scalar attention): the attention's combine kernel applies the output gate (o * sigmoid(g)) and writes the FP16 copy itself: one launch less a layer visit (gate_mul_f16 was the
+# next launch).  The same arithmetic, so the same bits.
+def attn_gate_fused_kernels(s):
+    if "attn_decode_f16_at_gate" in s: return s
+    a = "void attn_decode_fp8_at(const float *q, const float *r, const float *sink,"
+    assert a in s
+    new = """// attn_combine_kernel with the output gate: out = (o / den) * v_inv * sigmoid(gate), and its FP16 copy (what gate_mul_f16 did a launch later)
+__dpct_inline__ void attn_combine_gate_kernel(const float *sink, const float *part, int H, int P, float v_inv_scale, float *out, const float *gate, uint16_t *out16) {
+    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    const int h = item_ct1.get_group(2), qi = item_ct1.get_group(1), tid = item_ct1.get_local_id(2);
+    const float* pp = part + ((size_t) qi * H + h) * P * 130;
+    const float sk = sink[(size_t) qi * H + h];
+    float M = sk;
+#pragma unroll
+    for (int p = 0; p < P; ++p) M = sycl::fmax(M, pp[(size_t)p * 130]);
+    float den = sycl::native::exp(sk - M), o = 0.0f;
+    for (int p = 0; p < P; ++p) {
+        const float mp = pp[(size_t) p * 130];
+        if (mp == -INFINITY) continue;
+        const float f = sycl::native::exp(mp - M);
+        den += pp[(size_t) p * 130 + 1] * f;
+        o += pp[(size_t) p * 130 + 2 + tid] * f;
+    }
+    const size_t i = ((size_t) qi * H + h) * 128 + tid;
+    const float comb = (o / den) * v_inv_scale;   // (stored as F32 before: the same rounding)
+    const float res = comb * (1.0f / (1.0f + sycl::native::exp(-gate[i])));
+    out[i] = res;
+    out16[i] = f2h(res);
+}
+void attn_decode_f16_at_gate(const float *q, const float *r, const float *sink, const uint16_t *kc, const uint16_t *vc, int kv_cap, int H, int Hkv, const int *pos, int P,
+                             float qk_scale, const float *proj, int d_rel, int extent, int window, float *scratch, float *out, const float *gate, uint16_t *out16,
+                             dpct::queue_ptr s) {
+    {
+        auto exp_props = sycl::ext::oneapi::experimental::properties{sycl::ext::oneapi::experimental::use_root_sync};
+        dpct::has_capability_or_fail(s->get_device(), {sycl::aspect::fp16});
+        s->parallel_for<dpct_kernel_name<class attn_split_kernel_gate_variant, uint16_t>>(
+            sycl::nd_range<3>(sycl::range(1, P, H) * sycl::range(1, 1, 128), sycl::range(1, 1, 128)), exp_props,
+            [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(32)]] {
+                attn_split_kernel<uint16_t>(q, r, kc, vc, kv_cap, H, Hkv, 0, 0, 0, qk_scale, proj, d_rel, extent, window, scratch, pos);
+            });
+    }
+    check("attn_decode_f16_at (split)");
+    {
+        auto exp_props = sycl::ext::oneapi::experimental::properties{sycl::ext::oneapi::experimental::use_root_sync};
+        s->parallel_for<dpct_kernel_name<class attn_combine_gate_kernel_name>>(
+            sycl::nd_range<3>(sycl::range(1, 1, H) * sycl::range(1, 1, 128), sycl::range(1, 1, 128)), exp_props,
+            [=](sycl::nd_item<3> item_ct1) { attn_combine_gate_kernel(sink, scratch, H, P, 1.0f, out, gate, out16); });
+    }
+    check("attn_decode_f16_at (combine+gate)");
+}
+"""
+    return s.replace(a, new + a, 1)
+edit("ik2_kernels.dp.cpp", attn_gate_fused_kernels)
+edit("ik2_kernels.dp.hpp", lambda s: s if "attn_decode_f16_at_gate" in s else s.replace("void attn_decode_fp8_at(", "void attn_decode_f16_at_gate(const float *q, const float *r, const float *sink, const uint16_t *kc, const uint16_t *vc, int kv_cap, int H, int Hkv, const int *pos, int P,\n                             float qk_scale, const float *proj, int d_rel, int extent, int window, float *scratch, float *out, const float *gate, uint16_t *out16,\n                             dpct::queue_ptr s);   // (Intel) attn_decode_f16_at with the output gate applied and the FP16 copy written by the combine\nvoid attn_decode_fp8_at(", 1))
+def attn_gate_fused_main(s):
+    if "attn_decode_f16_at_gate" in s: return s
+    old = """            else
+                k::attn_decode_f16_at(q_p, r_p, W.sink, Ly.kc, Ly.vc, Ly.sliding ? Ly.kv_cap : 0, c.H, c.KV, W.pos, P,
+                                      qk_scale, Ly.rel_proj, c.d_rel, extent, window, W.lg, W.o, g_s);
+        }
+        if (!mma) k::gate_mul_f16(W.o, gate_p, (size_t) HD, W.x16, true, g_s);   // (the tensor cores' merge has it)"""
+    assert old in s, "decode attention call not found"
+    new = """            else
+                k::attn_decode_f16_at_gate(q_p, r_p, W.sink, Ly.kc, Ly.vc, Ly.sliding ? Ly.kv_cap : 0, c.H, c.KV, W.pos, P,
+                                           qk_scale, Ly.rel_proj, c.d_rel, extent, window, W.lg, W.o, gate_p, W.x16, g_s);   // (its combine applies the gate)
+        }
+        if (!mma && g_kv_fp8) k::gate_mul_f16(W.o, gate_p, (size_t) HD, W.x16, true, g_s);   // (the tensor cores' merge and the F16 scalar combine have it)"""
+    return s.replace(old, new, 1)
+edit("ik2_main.dp.cpp", attn_gate_fused_main)
+
+# the loop gates' apply kernel with a fixed rank-64 tile (the engine's own option): 45.0 -> 47.2 tok/s decode
+edit("ik2_kernels.dp.cpp", lambda s: s.replace('static const int tile = getenv("IK2_GATE_TILE") ? atoi(getenv("IK2_GATE_TILE")) : 0;', 'static const int tile = getenv("IK2_GATE_TILE") ? atoi(getenv("IK2_GATE_TILE")) : 64;', 1))

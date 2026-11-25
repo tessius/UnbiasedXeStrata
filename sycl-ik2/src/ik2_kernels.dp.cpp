@@ -1418,6 +1418,10 @@ constexpr float kLog2e = 1.4426950408889634f;
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
 // item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
 __dpct_inline__ void cp_async16(void *dst, const void *src, bool valid) {
     if (valid) *reinterpret_cast<sycl::uint4 *>(dst) = *reinterpret_cast<const sycl::uint4 *>(src);
     else *reinterpret_cast<sycl::uint4 *>(dst) = sycl::uint4(0, 0, 0, 0);
@@ -7921,7 +7925,7 @@ void loop_gates(const LoopGate *gt, int n, int T, int C, int R, float eps,
             });
     }
     check("loop_gates (dots)");
-    static const int tile = getenv("IK2_GATE_TILE") ? atoi(getenv("IK2_GATE_TILE")) : 0;
+    static const int tile = getenv("IK2_GATE_TILE") ? atoi(getenv("IK2_GATE_TILE")) : 64;
     const bool fixed = T == 1 && R == 64 && (tile == 32 || tile == 64 || tile == 128);
     const int threads = fixed ? tile : kBlk;
     const dpct::dim3 apply((C + threads - 1) / threads, n, T);
@@ -9767,6 +9771,50 @@ void attn_decode_f16_at(const float *q, const float *r, const float *sink,
             });
     }
     check("attn_decode_f16_at (combine)");
+}
+// attn_combine_kernel with the output gate: out = (o / den) * v_inv * sigmoid(gate), and its FP16 copy (what gate_mul_f16 did a launch later)
+__dpct_inline__ void attn_combine_gate_kernel(const float *sink, const float *part, int H, int P, float v_inv_scale, float *out, const float *gate, uint16_t *out16) {
+    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    const int h = item_ct1.get_group(2), qi = item_ct1.get_group(1), tid = item_ct1.get_local_id(2);
+    const float* pp = part + ((size_t) qi * H + h) * P * 130;
+    const float sk = sink[(size_t) qi * H + h];
+    float M = sk;
+#pragma unroll
+    for (int p = 0; p < P; ++p) M = sycl::fmax(M, pp[(size_t)p * 130]);
+    float den = sycl::native::exp(sk - M), o = 0.0f;
+    for (int p = 0; p < P; ++p) {
+        const float mp = pp[(size_t) p * 130];
+        if (mp == -INFINITY) continue;
+        const float f = sycl::native::exp(mp - M);
+        den += pp[(size_t) p * 130 + 1] * f;
+        o += pp[(size_t) p * 130 + 2 + tid] * f;
+    }
+    const size_t i = ((size_t) qi * H + h) * 128 + tid;
+    const float comb = (o / den) * v_inv_scale;   // (stored as F32 before: the same rounding)
+    const float res = comb * (1.0f / (1.0f + sycl::native::exp(-gate[i])));
+    out[i] = res;
+    out16[i] = f2h(res);
+}
+void attn_decode_f16_at_gate(const float *q, const float *r, const float *sink, const uint16_t *kc, const uint16_t *vc, int kv_cap, int H, int Hkv, const int *pos, int P,
+                             float qk_scale, const float *proj, int d_rel, int extent, int window, float *scratch, float *out, const float *gate, uint16_t *out16,
+                             dpct::queue_ptr s) {
+    {
+        auto exp_props = sycl::ext::oneapi::experimental::properties{sycl::ext::oneapi::experimental::use_root_sync};
+        dpct::has_capability_or_fail(s->get_device(), {sycl::aspect::fp16});
+        s->parallel_for<dpct_kernel_name<class attn_split_kernel_gate_variant, uint16_t>>(
+            sycl::nd_range<3>(sycl::range(1, P, H) * sycl::range(1, 1, 128), sycl::range(1, 1, 128)), exp_props,
+            [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(32)]] {
+                attn_split_kernel<uint16_t>(q, r, kc, vc, kv_cap, H, Hkv, 0, 0, 0, qk_scale, proj, d_rel, extent, window, scratch, pos);
+            });
+    }
+    check("attn_decode_f16_at (split)");
+    {
+        auto exp_props = sycl::ext::oneapi::experimental::properties{sycl::ext::oneapi::experimental::use_root_sync};
+        s->parallel_for<dpct_kernel_name<class attn_combine_gate_kernel_name>>(
+            sycl::nd_range<3>(sycl::range(1, 1, H) * sycl::range(1, 1, 128), sycl::range(1, 1, 128)), exp_props,
+            [=](sycl::nd_item<3> item_ct1) { attn_combine_gate_kernel(sink, scratch, H, P, 1.0f, out, gate, out16); });
+    }
+    check("attn_decode_f16_at (combine+gate)");
 }
 void attn_decode_fp8_at(const float *q, const float *r, const float *sink,
                         const uint8_t *kc, const uint8_t *vc, int kv_cap, int H,

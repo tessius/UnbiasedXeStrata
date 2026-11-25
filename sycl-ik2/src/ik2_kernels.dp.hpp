@@ -424,6 +424,9 @@ void attn_decode_f16_at(const float *q, const float *r, const float *sink,
                         int H, int Hkv, const int *pos, int P, float qk_scale,
                         const float *proj, int d_rel, int extent, int window,
                         float *scratch, float *out, dpct::queue_ptr s);
+void attn_decode_f16_at_gate(const float *q, const float *r, const float *sink, const uint16_t *kc, const uint16_t *vc, int kv_cap, int H, int Hkv, const int *pos, int P,
+                             float qk_scale, const float *proj, int d_rel, int extent, int window, float *scratch, float *out, const float *gate, uint16_t *out16,
+                             dpct::queue_ptr s);   // (Intel) attn_decode_f16_at with the output gate applied and the FP16 copy written by the combine
 void attn_decode_fp8_at(const float *q, const float *r, const float *sink,
                         const uint8_t *kc, const uint8_t *vc, int kv_cap, int H,
                         int Hkv, const int *pos, int P, float qk_scale,
