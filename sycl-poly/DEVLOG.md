@@ -270,3 +270,17 @@ DPCT1013 (the precedence bug class of section 6.5 does not occur here), 3 unmigr
 through the front end: "What is the capital of France? Answer in one sentence." -> "The capital of France is Paris."; "17 * 23, just the number" -> "391";
 a coherent haiku.  Decode ~8-9 tok/s (graphs on or off, token-identical), which is slow: the next item.  The kernel pieces are tested
 (`tests/mma_emul_test.cpp`, `rms_test.cpp`, `experts_down_test.cpp`); the engine's `--dump` comparison against its reference (`tools/ik2_compare.py`) is not yet run.
+
+## 11. Inkling decode speed (2026-11-25), Arc Pro B60, Inkling-2-Mini UD-Q4_K_XL, 64-token greedy decode, identical tokens throughout
+
+| change | decode tok/s |
+|---|---|
+| first working build | 9.4 |
+| `IK2_EXPERT_MMA=0` default: the shuffle-emulated tensor-core MMA experts lose to the plain grouped kernels | 26.8 |
+| expert tiling 8 warps x 1 row (gate/up and down), was 4x2 / 4x4 | 33.4 |
+| E2M1 decode without `dpct::byte_level_permute` (four variable 64-bit shifts a call, in the NVFP4 inner loop) | **41.4** |
+
+Through the front end: 38-40 tok/s decode on short prompts, 32 tok/s after a 4k-token prompt; prefill 65 tok/s (short) to 94 tok/s (4k tokens), which is
+still slow (the prefill attention and expert paths are not tuned).  Per token now ~24 ms: experts ~10 ms (floor at memory bandwidth ~4 ms), dense
+`mv_q8p` ~6 ms, the rest launch overhead.  `IK2_SYNC_CHECK=2` prints a per-kernel time table; its first row ("rms", ~2.7 s) is start-up work, not a kernel.
+Next: prefill (grouped expert path with real GEMM tiles), fusing the small launches, `mv_q8p`.  `make intel` now builds `strata-ik2` next to `strata-poly`.

@@ -117,9 +117,12 @@ intel: frontend
 	cmake -S sycl-poly -B $(INTEL_BUILD) -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=$(ICPX) -DCMAKE_C_COMPILER=$(ICX) \
 	      "-DSTRATA_SYCL_AOT=$(filter-out none,$(INTEL_AOT))"
 	cmake --build $(INTEL_BUILD) -j $(JOBS) --target strata-poly
+	cmake -S sycl-ik2 -B $(INTEL_BUILD)-ik2 -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=$(ICPX) -DCMAKE_C_COMPILER=$(ICX) \
+	      "-DSTRATA_SYCL_AOT=$(filter-out none,$(INTEL_AOT))"
+	cmake --build $(INTEL_BUILD)-ik2 -j $(JOBS) --target strata-ik2
 	mkdir -p $(INTEL_BUILD)/bin
-	cp $(INTEL_BUILD)/strata-poly $(BUILD_DIR)-frontend/bin/unbiased-strata $(INTEL_BUILD)/bin/
-	@echo "built:"; ls -1 $(INTEL_BUILD)/bin/strata-poly $(INTEL_BUILD)/bin/unbiased-strata
+	cp $(INTEL_BUILD)/strata-poly $(INTEL_BUILD)-ik2/strata-ik2 $(BUILD_DIR)-frontend/bin/unbiased-strata $(INTEL_BUILD)/bin/
+	@echo "built:"; ls -1 $(INTEL_BUILD)/bin/strata-poly $(INTEL_BUILD)/bin/strata-ik2 $(INTEL_BUILD)/bin/unbiased-strata
 
 # The Intel kernels' unit tests against CPU references (needs the GPU; no model).
 intel-test: intel

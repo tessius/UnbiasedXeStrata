@@ -1,15 +1,14 @@
 // src/ik2/ik2_kernels.cu - maya-ik2's kernels (the interface and the conventions: ik2_kernels.cuh).
 #include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
-#include <map>
-#include <chrono>
-#include <algorithm>
-#include <vector>
-#include <string>
 #include "ik2_kernels.dp.hpp"
 #include "ik2_iq_tables.h"
 
 #include <algorithm>
+#include <chrono>
+#include <map>
+#include <string>
+#include <vector>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -1338,10 +1337,6 @@ constexpr int kFaBN = 64, kFaD = 128, kFaLd = kFaD + 8;   // (row pad: conflict-
 constexpr float kLog2e = 1.4426950408889634f;
 
 #include "ik2_mma_emul.dp.inc"   // SYCL: the tensor-core primitives, emulated (see that file)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
 // SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
@@ -2972,18 +2967,12 @@ constexpr size_t xp_floats(int K) {
 
 // Fast register E2M1 pair decode via FP16 high-byte LUT in __byte_perm -> __half22float2:
 // FP16 representations of {0, 1, 2, 3, 4, 6, 8, 12} all have low byte 0x00 and high bytes {0x00, 0x3c, 0x40, 0x42, 0x44, 0x46, 0x48, 0x4a}.
-__dpct_inline__ sycl::float2 e2m1_pair_lo(uint32_t s) {
-    const uint32_t sel = (s << 4) & 0x7070u;
-    const uint32_t sgn = ((s & 8u) << 12) | ((s & 0x800u) << 20);
-    return u32_to_f2(dpct::byte_level_permute(0x42403c00u, 0x4a484644u, sel) |
-                     sgn);
+__dpct_inline__ float ik2_e2m1(uint32_t nib) {   // (Intel) one E2M1 nibble, doubled, as a float
+    const float v = (float) ((0xC8643210u >> ((nib & 7u) * 4u)) & 15u);
+    return sycl::bit_cast<float>(sycl::bit_cast<uint32_t>(v) | ((nib & 8u) << 28));
 }
-__dpct_inline__ sycl::float2 e2m1_pair_hi(uint32_t s) {
-    const uint32_t sel = s & 0x7070u;
-    const uint32_t sgn = ((s & 0x80u) << 8) | ((s & 0x8000u) << 16);
-    return u32_to_f2(dpct::byte_level_permute(0x42403c00u, 0x4a484644u, sel) |
-                     sgn);
-}
+__dpct_inline__ sycl::float2 e2m1_pair_lo(uint32_t s) { return sycl::float2(ik2_e2m1(s), ik2_e2m1(s >> 8)); }        // nibbles 0, 2
+__dpct_inline__ sycl::float2 e2m1_pair_hi(uint32_t s) { return sycl::float2(ik2_e2m1(s >> 4), ik2_e2m1(s >> 12)); }   // nibbles 1, 3
 
 // Four signed FP16 high bytes in the order of the serialized E2M1 nibbles.
 #if defined(DPCT_COMPATIBILITY_TEMP) && DPCT_COMPATIBILITY_TEMP == 860
@@ -8801,8 +8790,7 @@ void experts_down(const uint8_t *const *blob, int S, int ty_down,
                   dpct::queue_ptr s) {
 
     if (S <= 0) return;
-    if (S <= 4) launch_experts_down<4, 2>(blob, S, ty_down, off_down, h, C, F, y, s);
-    else launch_experts_down<4, 4>(blob, S, ty_down, off_down, h, C, F, y, s);
+    launch_experts_down<8, 1>(blob, S, ty_down, off_down, h, C, F, y, s);
     check("experts_down");
 }
 void experts_gate_up_g(const uint8_t *const *blob, const int *n, const int *tok,
@@ -9000,8 +8988,7 @@ void experts_gate_up_swiglu_rows(const uint8_t *const *blob, const int *tok,
                                  uint16_t *h, const int *orow, int h_ld,
                                  dpct::queue_ptr s) {
     if (S <= 0) return;
-    if (S <= 8) launch_experts_gate_up_swiglu<4, 2>(blob, tok, S, ty_gate, ty_up, eb0, x, C, F, sg, su, gcap, ucap, h, s, orow, h_ld);
-    else launch_experts_gate_up_swiglu<4, 4>(blob, tok, S, ty_gate, ty_up, eb0, x, C, F, sg, su, gcap, ucap, h, s, orow, h_ld);
+    launch_experts_gate_up_swiglu<8, 1>(blob, tok, S, ty_gate, ty_up, eb0, x, C, F, sg, su, gcap, ucap, h, s, orow, h_ld);
     check("experts_gate_up_swiglu_rows");
 }
 void experts_gate_up_swiglu(const uint8_t *const *blob, const int *tok, int S,
@@ -9011,8 +8998,7 @@ void experts_gate_up_swiglu(const uint8_t *const *blob, const int *tok, int S,
                             dpct::queue_ptr s) {
 
     if (S <= 0) return;
-    if (S <= 8) launch_experts_gate_up_swiglu<4, 2>(blob, tok, S, ty_gate, ty_up, eb0, x, C, F, sg, su, gcap, ucap, h, s);
-    else launch_experts_gate_up_swiglu<4, 4>(blob, tok, S, ty_gate, ty_up, eb0, x, C, F, sg, su, gcap, ucap, h, s);
+    launch_experts_gate_up_swiglu<8, 1>(blob, tok, S, ty_gate, ty_up, eb0, x, C, F, sg, su, gcap, ucap, h, s);
     check("experts_gate_up_swiglu");
 }
 

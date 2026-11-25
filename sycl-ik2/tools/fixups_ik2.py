@@ -130,3 +130,34 @@ def sync_default_queue(s):
     return re.sub(r"\.wait\(\)(\s*)\.wait\(\)", r".wait()", "".join(out))   # (a first version of this fix doubled some)
 for _name in ("ik2_main.dp.cpp", "ik2_draft.dp.cpp", "ik2_kernels.dp.cpp"):
     edit(_name, sync_default_queue)
+
+# On Intel the tensor-core MMA is emulated with sub-group shuffles (src/ik2_mma_emul.dp.inc), which loses badly to the plain
+# dp4a-style grouped expert kernels (measured on the Arc Pro B60: 9.4 vs 26.6 tok/s, same tokens).  Default IK2_EXPERT_MMA to 0.
+edit("ik2_main.dp.cpp", lambda s: s.replace('getenv("IK2_EXPERT_MMA") ? atoi(getenv("IK2_EXPERT_MMA")) : 1;', 'getenv("IK2_EXPERT_MMA") ? atoi(getenv("IK2_EXPERT_MMA")) : 0;'))
+
+# Intel: dpct::byte_level_permute is four variable 64-bit shifts per call and sat in the NVFP4 inner loop (e2m1_pair_lo/hi).
+# Decode a nibble with a packed table in a constant instead: |value|*2 in {0,1,2,3,4,6,8,12} is nibble `mag` of 0xC8643210.
+def fast_e2m1(s):
+    if "ik2_e2m1" in s: return s
+    pat = re.compile(r"__dpct_inline__ sycl::float2 e2m1_pair_lo\(uint32_t s\) \{.*?\n\}\n__dpct_inline__ sycl::float2 e2m1_pair_hi\(uint32_t s\) \{.*?\n\}\n", re.S)
+    new = """__dpct_inline__ float ik2_e2m1(uint32_t nib) {   // (Intel) one E2M1 nibble, doubled, as a float
+    const float v = (float) ((0xC8643210u >> ((nib & 7u) * 4u)) & 15u);
+    return sycl::bit_cast<float>(sycl::bit_cast<uint32_t>(v) | ((nib & 8u) << 28));
+}
+__dpct_inline__ sycl::float2 e2m1_pair_lo(uint32_t s) { return sycl::float2(ik2_e2m1(s), ik2_e2m1(s >> 8)); }        // nibbles 0, 2
+__dpct_inline__ sycl::float2 e2m1_pair_hi(uint32_t s) { return sycl::float2(ik2_e2m1(s >> 4), ik2_e2m1(s >> 12)); }   // nibbles 1, 3
+"""
+    s2, n = pat.subn(lambda m: new, s, count=1)
+    assert n == 1, "e2m1_pair_lo/hi not found"
+    return s2
+edit("ik2_kernels.dp.cpp", fast_e2m1)
+
+# Expert-kernel tiling for the Arc Pro B60 (measured, decode of Inkling-2-Mini): 8 warps x 1 row per work-group for gate/up and for down
+# beat the CUDA defaults (4x2 / 4x4): 26.8 -> 33.4 tok/s.  Same for every S.
+def tile_experts(s):
+    s = re.sub(r"if \(S <= 8\) launch_experts_gate_up_swiglu<4, 2>\((.*?)\);\s*else launch_experts_gate_up_swiglu<4, 4>\(.*?\);",
+               r"launch_experts_gate_up_swiglu<8, 1>(\1);", s, flags=re.S)
+    s = re.sub(r"if \(S <= 4\) launch_experts_down<4, 2>\((.*?)\);\s*else launch_experts_down<4, 4>\(.*?\);",
+               r"launch_experts_down<8, 1>(\1);", s, flags=re.S)
+    return s
+edit("ik2_kernels.dp.cpp", tile_experts)

@@ -3230,7 +3230,7 @@ void fast_token_launches(Model& M, Work& W, OutMode out_mode) {
             C % 64 == 0 && (((limb & 1) && Ly.ty[0] == k::kNVFP4 && Ly.ty[1] == k::kNVFP4) || ((limb & 4) && q8_gate));
         const bool fast_down =
             c.F % 64 == 0 && (((limb & 2) && Ly.ty[2] == k::kNVFP4) || ((limb & 8) && Ly.ty[2] == k::kQ8_0));
-        static const int exp_mma = getenv("IK2_EXPERT_MMA") ? atoi(getenv("IK2_EXPERT_MMA")) : 1;
+        static const int exp_mma = getenv("IK2_EXPERT_MMA") ? atoi(getenv("IK2_EXPERT_MMA")) : 0;
         const bool exp_tc = exp_mma && !fast_gate && !fast_down && k::experts_mma_fits(Ly.ty[0], Ly.ty[1], Ly.ty[2], C, c.F);
         k::route_token(W.rlog, Ly.probs_b, c.E, c.K, c.route_scale, Ly.tab_blob, Ly.tab_sc[0], Ly.tab_sc[1],
                        Ly.tab_sc[2], rtop, rw, W.blob, W.tok, W.inv, W.sg, W.su, W.wt, g_s, W.xq, C,
@@ -4842,7 +4842,7 @@ void forward(Model& M, const int* tok, int T, int pos0, bool all_logits, OutMode
             const float* pwt = (const float*) (pk_d + 1536);
             const int F = c.F;
             // (one token: its NVFP4 experts on the tensor cores, as the resident path runs them; IK2_EXPERT_MMA=0: no)
-            static const int exp_mma_c = getenv("IK2_EXPERT_MMA") ? atoi(getenv("IK2_EXPERT_MMA")) : 1;
+            static const int exp_mma_c = getenv("IK2_EXPERT_MMA") ? atoi(getenv("IK2_EXPERT_MMA")) : 0;
             const bool tc = exp_mma_c && T == 1 && nh + nw > 0 && k::experts_mma_fits(Ly.ty[0], Ly.ty[1], Ly.ty[2], C, F);
             if (tc) k::to_f16_limbs(W.xq, C, (uint16_t*) W.gu32, g_s);
             for (int part = 0; part < 2; ++part) {
