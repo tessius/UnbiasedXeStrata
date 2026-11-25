@@ -161,3 +161,17 @@ def tile_experts(s):
                r"launch_experts_down<8, 1>(\1);", s, flags=re.S)
     return s
 edit("ik2_kernels.dp.cpp", tile_experts)
+
+# Prefill attention on the Intel matrix engine (XMX, joint_matrix): src/ik2_flash_xmx.dp.inc replaces the FP16 attn_flash path (the CUDA kernel's mma.sync
+# emulated with shuffles is ~50x slower).  FP8 caches keep the emulated kernel.
+def flash_xmx(s):
+    if "ik2_flash_xmx.dp.inc" in s: return s
+    a = "void attn_flash_f16(const uint16_t *q16, int q_ld, const uint16_t *kc,"
+    assert a in s
+    s = s.replace(a, '#include "ik2_flash_xmx.dp.inc"\n' + a, 1)
+    b = "    if (fa_wgmma())\n        attn_flash_launch<kFaNW, true, uint16_t>"
+    assert b in s
+    s = s.replace(b, "    if (g_flash_xmx) attn_flash_xmx_launch(q16, q_ld, kc, vc, kv_cap, H, KV, Tq, qpos0, qk_scale, bias, extent, window, n_split, o_part, ml_part, s);\n    else " + b.lstrip(), 1)
+    return s
+edit("ik2_kernels.dp.cpp", flash_xmx)
+edit("ik2_kernels.dp.hpp", lambda s: s if "set_flash_xmx" in s else s.replace("void attn_flash_f16(", "void set_flash_xmx(bool on);   // (Intel) the prefill attention on XMX (default) or the emulated CUDA kernel\nvoid attn_flash_f16(", 1))

@@ -284,3 +284,24 @@ Through the front end: 38-40 tok/s decode on short prompts, 32 tok/s after a 4k-
 still slow (the prefill attention and expert paths are not tuned).  Per token now ~24 ms: experts ~10 ms (floor at memory bandwidth ~4 ms), dense
 `mv_q8p` ~6 ms, the rest launch overhead.  `IK2_SYNC_CHECK=2` prints a per-kernel time table; its first row ("rms", ~2.7 s) is start-up work, not a kernel.
 Next: prefill (grouped expert path with real GEMM tiles), fusing the small launches, `mv_q8p`.  `make intel` now builds `strata-ik2` next to `strata-poly`.
+
+## 12. Inkling prefill speed (2026-11-25), Arc Pro B60
+
+Profile of a 1024-token prefill (160 tok/s): `attn_flash` was 5.5 s of 8.3 s.  It is the CUDA kernel with `mma.sync` / `ldmatrix` emulated with sub-group shuffles
+(~32 shuffles + 128 conversions per 16x8x16 product), ~56 GFLOP/s.  The non-flash fallback (`IK2_FLASH=0`) fails on oneMKL's stride-0 batched GEMM
+(GQA broadcast), so it is not an alternative.
+
+New: `src/ik2_flash_xmx.dp.inc`, the FP16 prefill attention on the Xe matrix engine (SYCL `joint_matrix`, 8x16x16 half -> float, sub-group 16; JIT and AOT
+for bmg-g21 both give exact results in a probe).  A work-group of 4 sub-groups = 32 queries of one head against one split of its keys, 64-key tiles; K / V
+tiles staged once per work-group in SLM in VNNI form; S = QK^T by 32 mads per tile and sub-group, stored to SLM, online softmax by the lanes (same mask /
+window / relative-bias / log2 arithmetic as the CUDA kernel), P (FP16) in SLM, O += PV by 32 mads, O rescaled in place.  It writes the same `o_part` /
+`ml_part`, so `attn_flash_combine` is unchanged.  `tests/flash_xmx_test.cpp` compares it with the emulated kernel (causal, window, bias, GQA, splits, ragged
+Tq, ring cache): 7/7 within 1.2e-4 (FP16 noise).  `IK2_FLASH_XMX=0` selects the old path; FP8 caches keep it.
+
+| | prefill tok/s |
+|---|---|
+| before (emulated MMA attention) | 160 (1024 tokens), 94 (4k) |
+| XMX attention | **735** (1024 tokens), **642** (4k: a 3,988-token prompt in 6.4 s, was 44 s) |
+
+Retrieval over the 4k prompt is correct (3 of 3 items).  Attention is now 0.65 s of a 1.4 s prefill; the rest is the experts (NVFP4 -> FP16 decode + oneMKL GEMM
+per expert), the dense GEMMs and small kernels.  Next: skip fully masked key tiles per sub-group, fuse the expert decode, XMX for the expert GEMMs.

@@ -1345,6 +1345,10 @@ constexpr float kLog2e = 1.4426950408889634f;
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
 // item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
 __dpct_inline__ void cp_async16(void *dst, const void *src, bool valid) {
     if (valid) *reinterpret_cast<sycl::uint4 *>(dst) = *reinterpret_cast<const sycl::uint4 *>(src);
     else *reinterpret_cast<sycl::uint4 *>(dst) = sycl::uint4(0, 0, 0, 0);
@@ -7405,6 +7409,7 @@ void attn_flash_launch(const uint16_t *q16, int q_ld, const KVT *kc,
     }
     check("attn_flash");
 }
+#include "ik2_flash_xmx.dp.inc"
 void attn_flash_f16(const uint16_t *q16, int q_ld, const uint16_t *kc,
                     const uint16_t *vc, int kv_cap, int H, int KV, int D,
                     int Tq, int qpos0, float qk_scale, const float *bias,
@@ -7421,7 +7426,8 @@ void attn_flash_f16(const uint16_t *q16, int q_ld, const uint16_t *kc,
     float* o_part = scratch;
     sycl::float2 *ml_part =
         (sycl::float2 *)(scratch + (size_t)n_split * Tq * H * kFaD);
-    if (fa_wgmma())
+    if (g_flash_xmx) attn_flash_xmx_launch(q16, q_ld, kc, vc, kv_cap, H, KV, Tq, qpos0, qk_scale, bias, extent, window, n_split, o_part, ml_part, s);
+    else if (fa_wgmma())
         attn_flash_launch<kFaNW, true, uint16_t>(q16, q_ld, kc, vc, kv_cap, H, KV, Tq, qpos0, qk_scale, bias, extent,
                                                  window, n_split, o_part, ml_part, s);
     else

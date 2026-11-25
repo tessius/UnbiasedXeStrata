@@ -96,6 +96,7 @@ void attn_probs_f16(const float *lg, uint16_t *out16, int H, int Tq, int nk,
 /// kc / vc the cache [pos or pos % kv_cap][KV * D]; keys [max(0, qp - window + 1), qp] of each query; the relative
 /// bias from the table bias [Tq * H][extent] (as attn_probs_bias_f16), sink [Tq][H] -> out [Tq] rows of o_ld (F32).
 /// The keys split n_split ways (scratch: n_split * Tq * H * (D + 2) floats; fewer splits if it holds fewer).
+void set_flash_xmx(bool on);   // (Intel) the prefill attention on XMX (default) or the emulated CUDA kernel
 void attn_flash_f16(const uint16_t *q16, int q_ld, const uint16_t *kc,
                     const uint16_t *vc, int kv_cap, int H, int KV, int D,
                     int Tq, int qpos0, float qk_scale, const float *bias,
