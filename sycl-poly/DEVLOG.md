@@ -412,3 +412,25 @@ attn_res) look slow because they include the GEMM before them.  Read GEMM cost f
 
 Where a 4000-token prefill's 2.7 s goes now (approximately): GEMMs 0.83 s (dense 0.28, experts 0.54), expert NVFP4 weight decode 0.4, attention 0.85 (section 14), the rest small kernels.
 The expert GEMMs (39 TFLOP/s on small, ragged token counts, plus the decode that feeds them) are the largest remaining piece; the fused-dequant kernel of section 13 is the way in.
+
+## 18. Inkling prefill expert GEMMs (2026-11-25), Arc Pro B60: measured, nothing faster found
+
+The expert GEMMs of a 4000-token prefill (one 4096-token chunk, ~250 tokens an expert on average): 3,408 calls, 380 ms, 39 TFLOP/s (dense GEMMs: 74.5).  oneMKL's FP16 GEMM
+(`gemm16`: m = N, n = T, K) swept over T on the expert shapes (16 distinct weight matrices, so the weights come from memory like the engine's):
+
+| N x K | T 64 | 128 | 250 | 256 | 384 | 512 | 1024 | 4000 |
+|---|---|---|---|---|---|---|---|---|
+| 2304 x 2304 (gate+up) | 34 us / 20 TFLOP/s | 38 / 35 | 57 / 46 | 58 / 47 | 53 / 78 | 67 / 81 | 132 / 82 | 514 / 83 |
+| 2304 x 1152 (down) | 14 / 24 | 14 / 47 | 20 / 65 | 28 / 49 | 29 / 71 | 36 / 75 | 70 / 77 | 280 / 76 |
+
+The time is a staircase in T (tiles of 128), with dips and bumps (K = 2304: T = 254 takes 60 us, T = 262 takes 51), so a GEMM only reaches the dense speed from T ~ 384 up;
+the engine's experts sit around 250.  What I tried or measured:
+- **Pad T to a faster nearby size** (T..T+128 over the engine's T range 100..450): -1% (+8), -3% (+64), -6% (+128) at best.  Not worth rows of slack and ordering constraints.
+- **Concurrent queues** for the GEMMs alone (`mkl_conc`): 57 -> 51 us at T = 256 (2 queues), 25 -> 21 at T = 128; no more with 4.
+- **A two-stream pipeline in the engine** (even experts on the main queue, odd on a second queue with its own FP16 buffer and BLAS handle, fork / join with barriers; decode of one
+  overlapping the GEMM of another): *slower*, 2.50 s -> 2.64 s for the 4000-token prefill, same tokens.  Same reason as the grouped decode in section 16: the decode -> GEMM pair
+  is L2-resident with one buffer; two doubles the working set past the L2.  Kept opt-in (`IK2_EXPERT_PIPE=1`), default off.
+- A bigger chunk raises T and so the speed (section 16: 8192 tokens: 12,000-token prefill 8.46 -> 8.08 s for +1.2 GiB of VRAM).
+
+What would still help: a GEMM that dequantizes NVFP4 in SLM and keeps a *whole expert's* tokens in one work-group (T ~ 256 x K of FP16 activations does not fit registers; it needs the
+A-fragment loads of section 13 solved).  The ceiling is ~0.25 s of a 2.5 s prefill (expert GEMMs 0.38 s at 39 TFLOP/s -> 0.2 s at ~75).

@@ -391,3 +391,100 @@ def chunk_default(s):
     s = s.replace("[--chunk 2048]", "[--chunk 4096]", 1)
     return s
 edit("ik2_main.dp.cpp", chunk_default)
+
+# Two-stream pipeline for the batched prefill's experts: even-indexed hit experts decode + GEMM on the main queue, odd ones on a second queue (own FP16 buffer, own BLAS
+# handle), so one expert's bandwidth-bound decode overlaps another's GEMM and small GEMMs share the matrix engine.  Fork / join with barriers.  IK2_EXPERT_PIPE=1: on (default off: measured slower, the two decoded buffers do not fit the L2 together).
+def pipe_gemm16(s):
+    if "gemm16_on" in s: return s
+    a = "uint8_t* g_stage = nullptr;   // a raw tensor on its way to its FP16 decode"
+    assert a in s
+    fn = """// gemm16 on another BLAS handle (its own queue)
+void gemm16_on(dpct::blas::descriptor_ptr h, const uint16_t *W, int N, int Kd, const uint16_t *X, int T, float *Y, int ldy) {
+    const float one = 1.0f, zero = 0.0f;
+    CB(DPCT_CHECK_ERROR(dpct::blas::gemm(
+        h, oneapi::mkl::transpose::trans, oneapi::mkl::transpose::nontrans, N, T, Kd, &one, W, dpct::library_data_t::real_half, Kd, X,
+        dpct::library_data_t::real_half, Kd, &zero, Y, dpct::library_data_t::real_float, ldy, dpct::compute_type::f32)));
+}
+
+"""
+    return s.replace(a, fn + a, 1)
+edit("ik2_main.dp.cpp", pipe_gemm16)
+def pipe_main(s):
+    if "expert_pipe" in s: return s
+    old_a = """                } else {
+                    for (int e : X.hit_exps) {
+                        const size_t offset = W.start[e];
+                        gate_up_product(e, sorted_input + offset * C, X.gu32 + offset * 2 * F);
+                    }
+                }
+"""
+    new_a = """                } else if (expert_pipe) {
+                    run_pipe([&](dpct::queue_ptr q, dpct::blas::descriptor_ptr hb, uint16_t* wb, int e) {
+                        const size_t offset = W.start[e];
+                        const uint8_t* blob = X.slot_ptrs[e];
+                        if (Ly.ty[0] == Ly.ty[1]) k::decode_f16(Ly.ty[0], blob, (size_t) 2 * F * C, wb, q);
+                        else {
+                            k::decode_f16(Ly.ty[0], blob, (size_t) F * C, wb, q);
+                            k::decode_f16(Ly.ty[1], blob + Ly.eb[0], (size_t) F * C, wb + (size_t) F * C, q);
+                        }
+                        gemm16_on(hb, wb, 2 * F, C, sorted_input + offset * C, W.cnt[e], X.gu32 + offset * 2 * F, 2 * F);
+                    });
+                } else {
+                    for (int e : X.hit_exps) {
+                        const size_t offset = W.start[e];
+                        gate_up_product(e, sorted_input + offset * C, X.gu32 + offset * 2 * F);
+                    }
+                }
+"""
+    assert old_a in s, "gate/up loop not found"
+    s = s.replace(old_a, new_a, 1)
+    old_b = """                } else {
+                    for (int e : X.hit_exps) {
+                        const size_t offset = W.start[e];
+                        down_product(e, sorted_input + offset * F, sorted_out + offset * C);
+                    }
+                }
+"""
+    new_b = """                } else if (expert_pipe) {
+                    run_pipe([&](dpct::queue_ptr q, dpct::blas::descriptor_ptr hb, uint16_t* wb, int e) {
+                        const size_t offset = W.start[e];
+                        k::decode_f16(Ly.ty[2], X.slot_ptrs[e] + Ly.eb[0] + Ly.eb[1], (size_t) C * F, wb, q);
+                        gemm16_on(hb, wb, C, F, sorted_input + offset * F, W.cnt[e], sorted_out + offset * C, C);
+                    });
+                } else {
+                    for (int e : X.hit_exps) {
+                        const size_t offset = W.start[e];
+                        down_product(e, sorted_input + offset * F, sorted_out + offset * C);
+                    }
+                }
+"""
+    assert old_b in s, "down loop not found"
+    s = s.replace(old_b, new_b, 1)
+    old_c = "                const int nhit = (int) X.hit_exps.size();\n"
+    new_c = """                const int nhit = (int) X.hit_exps.size();
+                static const bool expert_pipe_on = getenv("IK2_EXPERT_PIPE") && atoi(getenv("IK2_EXPERT_PIPE"));   // opt-in: two streams double the FP16 working set past the L2 (slower)
+                const bool expert_pipe = expert_pipe_on && !grouped;
+                static dpct::queue_ptr pq = nullptr; static dpct::blas::descriptor_ptr pblas = nullptr; static uint16_t* pw16 = nullptr;
+                if (expert_pipe && !pq) {   // (the second stream: its queue, BLAS handle and FP16 buffer, made on first use)
+                    pq = dpct::get_current_device().create_queue(true);
+                    pblas = new dpct::blas::descriptor();
+                    pblas->set_queue(pq);
+                    pblas->set_math_mode(dpct::blas::math_mode::mm_default);
+                    pw16 = (uint16_t*) sycl::malloc_device((size_t) 2 * F * C * 2, g_s->get_device(), g_s->get_context());
+                }
+                // the hit experts, alternating between the main stream and the second: fork after the main queue's work, join before its next kernel
+                auto run_pipe = [&](auto&& one) {
+                    const sycl::event fork = g_s->ext_oneapi_submit_barrier();
+                    pq->ext_oneapi_submit_barrier({fork});
+                    int idx = 0;
+                    for (int e : X.hit_exps) {
+                        if (idx++ & 1) one(pq, pblas, pw16, e); else one(g_s, g_blas, X.w16, e);
+                    }
+                    const sycl::event done = pq->ext_oneapi_submit_barrier();
+                    g_s->ext_oneapi_submit_barrier({done});
+                };
+"""
+    assert old_c in s, "nhit line not found"
+    s = s.replace(old_c, new_c, 1)
+    return s
+edit("ik2_main.dp.cpp", pipe_main)
