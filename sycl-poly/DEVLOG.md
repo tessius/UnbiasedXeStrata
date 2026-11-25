@@ -350,3 +350,23 @@ Dead ends: forcing `#pragma unroll` (already unrolled); the 4000-token numbers d
 Engine, 4000-token prompt: attention ~4 s -> ~0.85 s; prefill 684 -> **1325-1410 tok/s** (5.85 s -> 2.83 s, through the front end 6.4 s -> 3.1 s); 1024 tokens
 767 -> 1143 tok/s.  Same greedy tokens as before; 7 of 7 retrievals correct at 4k.  `tests/flash_xmx_test` against the emulated kernel: 7/7.
 What is left in a 4000-token prefill: the expert weight decode (decode_f16_nvfp4, ~1.1 s), attention ~0.85 s, small kernels.
+
+## 15. Inkling prefill expert weight decode (2026-11-25), Arc Pro B60
+
+`decode_f16_nvfp4` showed as ~1.1 s of a 4000-token prefill in the per-kernel table, but that table waits for the card after every launch.  Measured properly:
+skipping every NVFP4 decode (garbage weights, timing only) takes the prefill from 2.82 s to 2.40 s, so the decode costs ~0.42 s (15%) in all, ~13,500 launches
+of ~30 us each: mostly launch and dependency latency, not bandwidth.
+
+`tests/decode_bench.cpp` (one expert's gate+up, 5.3M weights, 10.6 MB out): the original kernel 28-29 us; a plain memset of the same output 7.8 us; reads alone ~11 us;
+the original's structure with trivial ALU ~17 us.  Findings: (a) the original writes two 16-byte stores 32 bytes apart per lane, so each store instruction fills half of
+every cache line; (b) the conversion arithmetic is the other ~12 us.  Tried:
+- a 256-entry byte -> half2 table in SLM, one 36-byte block a thread, packed half2 multiply by the scale (bit-exact): *slower* (35-65 us: unaligned 36-byte
+  strides, register pressure);
+- a thread takes half a sub-block (low or high nibbles) and writes one 16-byte store, lanes contiguous (`src/ik2_decode_lut.dp.inc`, bit-exact): 21.5 us in a loop,
+  but 21-36 us from run to run (JIT and AOT), and no change in the 4000-token prefill (2.81 s either way); shifting the word instead of selecting between the
+  two nibble decodes was slower.
+It ships as opt-in (`IK2_DECODE_LUT=1`); the default is the original kernel.
+
+What would help: fewer launches, not faster kernels: decode several experts' weights per launch into a few FP16 buffers and batch the GEMMs (oneMKL group
+`gemm_batch` accepts a different M per group), or the fused-dequant GEMM of section 13 with proper register blocking.  Together the expert path is
+~0.4 s (decode) + ~0.3 s (GEMMs and glue) of a 2.8 s prefill; attention ~0.85 s; the rest is the dense GEMMs, loop gates and small kernels.

@@ -1382,6 +1382,18 @@ constexpr float kLog2e = 1.4426950408889634f;
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
 // item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
 __dpct_inline__ void cp_async16(void *dst, const void *src, bool valid) {
     if (valid) *reinterpret_cast<sycl::uint4 *>(dst) = *reinterpret_cast<const sycl::uint4 *>(src);
     else *reinterpret_cast<sycl::uint4 *>(dst) = sycl::uint4(0, 0, 0, 0);
@@ -9935,9 +9947,14 @@ void unpack_kv_fp8_to_f16(const uint8_t *kc, const uint8_t *vc, int kv_cap,
     check("unpack_kv_fp8_to_f16");
 }
 
+#include "ik2_decode_lut.dp.inc"
 void decode_f16(int type, const uint8_t *blocks, size_t n, uint16_t *out,
                 dpct::queue_ptr s) {
     if (!n) return;
+    if (type == kNVFP4 && g_decode_lut && n % 16 == 0 && (((uintptr_t) blocks & 3) == 0) && (((uintptr_t) out & 15) == 0)) {
+        decode_f16_nvfp4_half(blocks, n, out, s);
+        return;
+    }
     if (type == kNVFP4 && n % 16 == 0 && (((uintptr_t) blocks & 3) == 0) && (((uintptr_t) out & 15) == 0)) {
         {
             auto exp_props = sycl::ext::oneapi::experimental::properties{

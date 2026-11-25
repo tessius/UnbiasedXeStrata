@@ -301,3 +301,13 @@ def grf_include(s):
     if "grf_size_properties.hpp" in s: return s
     return s.replace("#include <algorithm>\n", "#include <algorithm>\n#include <sycl/ext/intel/experimental/grf_size_properties.hpp>\n", 1)
 edit("ik2_kernels.dp.cpp", grf_include)
+
+# NVFP4 weight decode, store-coalesced (src/ik2_decode_lut.dp.inc: a thread takes half a sub-block, one 16-byte store); opt-in with IK2_DECODE_LUT=1.
+def decode_lut(s):
+    if "ik2_decode_lut.dp.inc" in s: return s
+    a = "void decode_f16(int type, const uint8_t *blocks, size_t n, uint16_t *out,\n                dpct::queue_ptr s) {\n    if (!n) return;\n"
+    assert a in s
+    s = s.replace(a, '#include "ik2_decode_lut.dp.inc"\n' + a + "    if (type == kNVFP4 && g_decode_lut && n % 16 == 0 && (((uintptr_t) blocks & 3) == 0) && (((uintptr_t) out & 15) == 0)) {\n        decode_f16_nvfp4_half(blocks, n, out, s);\n        return;\n    }\n", 1)
+    return s
+edit("ik2_kernels.dp.cpp", decode_lut)
+edit("ik2_kernels.dp.hpp", lambda s: s if "set_decode_lut" in s else s.replace("void set_flash_xmx(bool on);", "void set_decode_lut(bool on);   // (Intel) NVFP4 -> FP16 decode, store-coalesced (opt-in: IK2_DECODE_LUT=1) or the original kernel (default)\nvoid set_flash_xmx(bool on);", 1))

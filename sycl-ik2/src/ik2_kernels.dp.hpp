@@ -101,6 +101,7 @@ struct MoeXmxExp { const uint8_t *blob; int start, cnt; };   // the expert's wei
 void moe_gate_up_swiglu_xmx(const MoeXmxExp *tab, int n_exp, int max_cnt, const uint16_t *A, int C, int F, size_t eb_up, const float *sg, const float *su,
                             float gcap, float ucap, uint16_t *h, dpct::queue_ptr s);
 void moe_down_xmx(const MoeXmxExp *tab, int n_exp, int max_cnt, const uint16_t *A, int C, int F, size_t off_down, float *y, dpct::queue_ptr s);
+void set_decode_lut(bool on);   // (Intel) NVFP4 -> FP16 decode, store-coalesced (opt-in: IK2_DECODE_LUT=1) or the original kernel (default)
 void set_flash_xmx(bool on);   // (Intel) the prefill attention on XMX (default) or the emulated CUDA kernel
 void attn_flash_f16(const uint16_t *q16, int q_ld, const uint16_t *kc,
                     const uint16_t *vc, int kv_cap, int H, int KV, int D,
