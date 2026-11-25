@@ -1,18 +1,25 @@
 # UnbiasedXeStrata
 
 **[UnbiasedStrata](https://github.com/robertkarl/UnbiasedStrata) with Intel GPU support**, taken from
-[XeStrata](https://github.com/MistVVK/XeStrata).  Runs UnbiasedStrata's `strata-poly` engine on Intel Arc GPUs through SYCL.
+[XeStrata](https://github.com/MistVVK/XeStrata).  Runs two of UnbiasedStrata's engines on Intel Arc GPUs through SYCL: `strata-poly` (Qwen3.6 and other models) and `strata-ik2` (**Inkling-2-Mini**).
 
-> **Experimental.**  Written and tested on one machine on **2026-11-23**: an Intel Arc Pro B60 (24 GB), one model (Qwen3.6-35B-A3B,
-> Unsloth `UD-Q4_K_XL`).  Other models, other Intel GPUs, multi-GPU and CUDA graphs are untested.
+> **Experimental.**  Written and tested on one machine, **2026-11-23 to 2026-11-25**: an Intel Arc Pro B60 (24 GB), two models (Qwen3.6-35B-A3B `UD-Q4_K_XL`
+> on `strata-poly`; Inkling-2-Mini `UD-Q4_K_XL` on `strata-ik2`).  Other models, other Intel GPUs, multi-GPU and CUDA graphs are untested.  UnbiasedStrata's other engines
+> (`strata` Flash-Next, `strata-dsv41`, `hy4flash`, the Metal ones) are **not ported**.
 > The original UnbiasedStrata README (NVIDIA/CUDA build) is kept, unchanged, as [`README.upstream.md`](README.upstream.md).
-> Not affiliated with or endorsed by the authors of UnbiasedStrata, XeStrata, Strata, llama.cpp or Intel.
+> Not affiliated with or endorsed by the authors of UnbiasedStrata, XeStrata, Strata, Project Maya, llama.cpp or Intel.
 
 | Qwen3.6-35B-A3B on an Arc Pro B60, all experts in VRAM | |
 |---|---|
 | Prefill | ~447 tok/s (2,700-token prompt) |
 | Decode | 49-93 tok/s depending on the answer's length and whether the draft head is on |
 | Correctness | exact on retrieval at 2.7k tokens and on counting 1..200; kernel unit tests against CPU references pass |
+
+| Inkling-2-Mini on an Arc Pro B60, all experts in VRAM (`strata-ik2`) | |
+|---|---|
+| Prefill | ~1,900-2,000 tok/s (4,000-12,000-token prompts) |
+| Decode | ~56 tok/s on a short context, ~47 after 4,000 tokens, ~44 after 12,000 |
+| Correctness | 10 of 10 needle-in-a-haystack answers right at ~4k and ~7.5k tokens; greedy answers match the reference build; kernel tests pass |
 
 ## Build and run (Intel GPUs)
 
@@ -24,8 +31,16 @@ make intel                       # front end + SYCL engine into build-intel/bin/
 build-intel/bin/unbiased-strata --engine strata-poly -m Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf --port 8080 \
     -- --model Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf --max-context 32768 --no-graphs
 ```
+**Inkling-2-Mini** (`strata-ik2`, 24 GB card): use Unsloth's GGUF from the `Old_Support/` folder of
+[`unsloth/Inkling-2-Mini-GGUF`](https://huggingface.co/unsloth/Inkling-2-Mini-GGUF) (rename `*.gguf_file` to `*.gguf`; the files in the repository root use a newer layout the engine cannot read):
+```
+build-intel/bin/unbiased-strata --engine strata-ik2 -m Inkling-2-Mini-UD-Q4_K_XL.gguf --alias inkling-2-mini --port 8080 \
+    -- --model Inkling-2-Mini-UD-Q4_K_XL.gguf --max-context 8192
+```
+Details, switches and what was tried: [`sycl-ik2/README.md`](sycl-ik2/README.md).  Tested: chat answers and needle-in-a-haystack retrieval up to 12k tokens.  Untested here: streaming, tool calls, image input, the speculative drafter.
+
 Then use the OpenAI-style API on port 8080 as you would with UnbiasedStrata (chat, streaming, thinking mode, tool calls, images with
-`--mmproj`).  `make intel-test` runs the Intel kernels' unit tests.  Everything Intel-specific is in [`sycl-poly/`](sycl-poly/).  **No existing UnbiasedStrata file was changed** except moving this
+`--mmproj`).  `make intel-test` runs the Intel kernels' unit tests.  Everything Intel-specific is in [`sycl-poly/`](sycl-poly/) and [`sycl-ik2/`](sycl-ik2/).  **No existing UnbiasedStrata file was changed** except moving this
 README to `README.upstream.md`.  Build and run: [`sycl-poly/README.md`](sycl-poly/README.md).
 
 ## Why this exists, and what we found (2026-11-23)
@@ -74,7 +89,8 @@ This is meant to be usable that way.  Everything is additive, in one directory, 
 
 | | |
 |---|---|
-| [`sycl-poly/README.md`](sycl-poly/README.md) | how to build and run |
+| [`sycl-poly/README.md`](sycl-poly/README.md) | how to build and run `strata-poly` (Qwen3.6 and others) |
+| [`sycl-ik2/README.md`](sycl-ik2/README.md) | how to build and run `strata-ik2` (Inkling-2-Mini), its switches and measurements |
 | [`sycl-poly/DEVLOG.md`](sycl-poly/DEVLOG.md) | the full development log: versions, commands, numbers, dead ends, mistakes |
 | [`sycl-poly/CREDITS.md`](sycl-poly/CREDITS.md) | who wrote what, licenses, what to keep if you redistribute |
 | [`sycl-poly/NOTES.md`](sycl-poly/NOTES.md) | status and what is missing |
@@ -84,4 +100,4 @@ This is meant to be usable that way.  Everything is additive, in one directory, 
 
 MIT ([`LICENSE`](LICENSE), "Copyright (c) 2026 Niko1221 and the Strata contributors"), with these exceptions: `sycl-poly/src/xe/` and
 `sycl-poly/src/poly/mmq_sycl.cpp` are LGPL-3.0-or-later (some parts MIT), the vendored dpct headers are Apache-2.0 WITH
-LLVM-exception, and every model has its own license.  Texts: `sycl-poly/LICENSES/`, `sycl-poly/src/xe/COPYING*`.
+LLVM-exception, and every model has its own license.  `sycl-ik2/` has no LGPL parts.  Texts: `sycl-poly/LICENSES/`, `sycl-poly/src/xe/COPYING*`.

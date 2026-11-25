@@ -104,6 +104,7 @@ test: frontend
 # code at run time (minutes at every start).  `make intel INTEL_AOT=bmg-g21` (or `INTEL_AOT=none`) overrides it.
 #   make intel
 #   build-intel/bin/unbiased-strata --engine strata-poly -m model.gguf --port 8080 -- --model model.gguf --no-graphs
+#   build-intel/bin/unbiased-strata --engine strata-ik2 -m inkling.gguf --alias inkling-2-mini --port 8080 -- --model inkling.gguf --max-context 8192
 INTEL_BUILD ?= $(BUILD_DIR)-intel
 ICPX ?= $(or $(shell command -v icpx 2>/dev/null),$(wildcard /opt/intel/oneapi/compiler/latest/bin/icpx))
 ICX  ?= $(or $(shell command -v icx 2>/dev/null),$(wildcard /opt/intel/oneapi/compiler/latest/bin/icx))
@@ -124,10 +125,13 @@ intel: frontend
 	cp $(INTEL_BUILD)/strata-poly $(INTEL_BUILD)-ik2/strata-ik2 $(BUILD_DIR)-frontend/bin/unbiased-strata $(INTEL_BUILD)/bin/
 	@echo "built:"; ls -1 $(INTEL_BUILD)/bin/strata-poly $(INTEL_BUILD)/bin/strata-ik2 $(INTEL_BUILD)/bin/unbiased-strata
 
-# The Intel kernels' unit tests against CPU references (needs the GPU; no model).
+# The Intel kernels' unit tests against CPU references (strata-poly's and strata-ik2's; needs the GPU; no model).
 intel-test: intel
 	cmake --build $(INTEL_BUILD) -j $(JOBS) --target poly_gdn_q_test poly_attend_q_test poly_rope_q_test
 	$(INTEL_BUILD)/poly_gdn_q_test && $(INTEL_BUILD)/poly_attend_q_test && $(INTEL_BUILD)/poly_rope_q_test
+	cmake --build $(INTEL_BUILD)-ik2 -j $(JOBS) --target ik2_flash_xmx_test ik2_moe_xmx_test ik2_small_bench ik2_rms_test ik2_mma_emul_test ik2_experts_down_test
+	for t in ik2_flash_xmx_test ik2_moe_xmx_test ik2_small_bench ik2_rms_test ik2_mma_emul_test ik2_experts_down_test; do \
+	    echo "== $$t"; $(INTEL_BUILD)-ik2/$$t || exit 1; done
 
 clean:
 	rm -rf $(BUILD_DIR)

@@ -45,3 +45,7 @@ what you must keep if you redistribute: [`CREDITS.md`](CREDITS.md).  License tex
 The models are not included and have their own licenses.
 
 This project is not affiliated with or endorsed by the authors of UnbiasedStrata, XeStrata, Strata, llama.cpp or Intel.
+
+## The Inkling engine
+
+The same dpct approach was applied to UnbiasedStrata's `strata-ik2` (Inkling-2-Mini): build, run, measurements and switches are in [`../sycl-ik2/README.md`](../sycl-ik2/README.md); `make intel` builds both engines.
