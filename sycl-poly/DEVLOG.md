@@ -305,3 +305,27 @@ Tq, ring cache): 7/7 within 1.2e-4 (FP16 noise).  `IK2_FLASH_XMX=0` selects the 
 
 Retrieval over the 4k prompt is correct (3 of 3 items).  Attention is now 0.65 s of a 1.4 s prefill; the rest is the experts (NVFP4 -> FP16 decode + oneMKL GEMM
 per expert), the dense GEMMs and small kernels.  Next: skip fully masked key tiles per sub-group, fuse the expert decode, XMX for the expert GEMMs.
+
+## 13. Inkling prefill experts (2026-11-25), Arc Pro B60
+
+Where the time is: in a 1024-token prefill (1.36 s) the engine's expert work is ~0.2-0.25 s (about 15%); at 4000 tokens (6 s) attention is ~4 s and the
+experts ~0.4 s.  So the experts cannot give more than ~15-20% however fast they get.
+
+**Shipped (default): the batched expert path with its own buffers.**  The engine had a batched prefill (tokens sorted by expert: one gather, one SwiGLU, one
+combine per layer instead of a gather / scatter-add per expert) that borrowed the attention's logits scratch, which is empty with flash attention, so it never
+ran.  It now allocates its own sorted buffers (`IK2_BATCH_PREFILL=0` turns it off).  Same greedy tokens; 740 -> 767 tok/s (1024 tokens), 668 -> 684 (4000).
+
+**Built, correct, not faster, so opt-in (`IK2_MOE_XMX=1`): a grouped XMX expert GEMM straight from NVFP4** (`src/ik2_moe_xmx.dp.inc`, `tests/moe_xmx_test.cpp`
+against decode_f16 + a CPU F32 product: gate/up + SwiGLU and down, ragged counts, max error at FP16 rounding).  All hit experts in one launch per product,
+weights dequantized into SLM (a 256-entry byte -> half2 table; activations in a "pair" column order so one byte is one VNNI pair), double-buffered, gate/up with
+the SwiGLU fused.  A layer visit (128 experts x 64 tokens) 17.8 -> 13.4 ms, but the old decode_f16 + oneMKL gemm16 path is still cheaper end to end
+(1024 tokens: 1.68 s vs 1.36 s; 4000: 7.4 s vs 6.0 s).  What the ablations showed (all on a layer visit):
+- dequant ~3.6 ms, matrix part ~5 ms, fixed ~1.4 ms; with one A fragment reused from a register the 32 x 16 DPAS cost only ~0.3 ms: the matrix part is the
+  A-fragment loads (`joint_matrix_load` from global, 8 rows x 32 B), not the matrix engine.
+- A staged in SLM: slower (occupancy).  A in a fragment-contiguous layout: slower.  `joint_matrix_load_checked` (2D block load): ~8% faster, and I never got
+  its coordinates validated.  A 64x128 tile with 4x4 register blocking and 256 GRFs: correct but no faster; prefetching the next fragments with
+  `joint_matrix_copy`: 2x slower (spills).
+- Next, if someone continues: a proper register-blocked kernel with the A/B fragments in registers (cutlass-sycl style), verified against `tests/moe_xmx_test`.
+
+Where the prefill time is now: attention at long contexts (it grows with the context: ~4 s of a 4000-token prompt).  The next real gain is there (skip fully
+masked key tiles per sub-group; the sliding-window layers only need their window).

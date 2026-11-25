@@ -96,6 +96,11 @@ void attn_probs_f16(const float *lg, uint16_t *out16, int H, int Tq, int nk,
 /// kc / vc the cache [pos or pos % kv_cap][KV * D]; keys [max(0, qp - window + 1), qp] of each query; the relative
 /// bias from the table bias [Tq * H][extent] (as attn_probs_bias_f16), sink [Tq][H] -> out [Tq] rows of o_ld (F32).
 /// The keys split n_split ways (scratch: n_split * Tq * H * (D + 2) floats; fewer splits if it holds fewer).
+// (Intel) prefill MoE products on the matrix engine, straight from NVFP4 expert weights; all hit experts of a layer in one launch
+struct MoeXmxExp { const uint8_t *blob; int start, cnt; };   // the expert's weights; its rows in the sorted input / output
+void moe_gate_up_swiglu_xmx(const MoeXmxExp *tab, int n_exp, int max_cnt, const uint16_t *A, int C, int F, size_t eb_up, const float *sg, const float *su,
+                            float gcap, float ucap, uint16_t *h, dpct::queue_ptr s);
+void moe_down_xmx(const MoeXmxExp *tab, int n_exp, int max_cnt, const uint16_t *A, int C, int F, size_t off_down, float *y, dpct::queue_ptr s);
 void set_flash_xmx(bool on);   // (Intel) the prefill attention on XMX (default) or the emulated CUDA kernel
 void attn_flash_f16(const uint16_t *q16, int q_ld, const uint16_t *kc,
                     const uint16_t *vc, int kv_cap, int H, int KV, int D,

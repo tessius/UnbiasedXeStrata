@@ -175,3 +175,129 @@ def flash_xmx(s):
     return s
 edit("ik2_kernels.dp.cpp", flash_xmx)
 edit("ik2_kernels.dp.hpp", lambda s: s if "set_flash_xmx" in s else s.replace("void attn_flash_f16(", "void set_flash_xmx(bool on);   // (Intel) the prefill attention on XMX (default) or the emulated CUDA kernel\nvoid attn_flash_f16(", 1))
+
+# Prefill MoE on XMX: src/ik2_moe_xmx.dp.inc (grouped, NVFP4 dequantized into SLM; gate/up + SwiGLU fused) and its declarations.
+def moe_xmx_cpp(s):
+    if "ik2_moe_xmx.dp.inc" in s: return s
+    a = '#include "ik2_flash_xmx.dp.inc"\n'
+    assert a in s
+    return s.replace(a, a + '#include "ik2_moe_xmx.dp.inc"\n', 1)
+edit("ik2_kernels.dp.cpp", moe_xmx_cpp)
+def moe_xmx_hpp(s):
+    if "MoeXmxExp" in s: return s
+    a = "void set_flash_xmx(bool on);"
+    assert a in s
+    decl = """// (Intel) prefill MoE products on the matrix engine, straight from NVFP4 expert weights; all hit experts of a layer in one launch
+struct MoeXmxExp { const uint8_t *blob; int start, cnt; };   // the expert's weights; its rows in the sorted input / output
+void moe_gate_up_swiglu_xmx(const MoeXmxExp *tab, int n_exp, int max_cnt, const uint16_t *A, int C, int F, size_t eb_up, const float *sg, const float *su,
+                            float gcap, float ucap, uint16_t *h, dpct::queue_ptr s);
+void moe_down_xmx(const MoeXmxExp *tab, int n_exp, int max_cnt, const uint16_t *A, int C, int F, size_t off_down, float *y, dpct::queue_ptr s);
+"""
+    return s.replace(a, decl + a, 1)
+edit("ik2_kernels.dp.hpp", moe_xmx_hpp)
+
+# Prefill MoE (batched path) on XMX when the layer's three expert matrices are NVFP4: one grouped launch for gate/up + SwiGLU, one for down, instead of
+# decode_f16 + gemm16 per expert.  IK2_MOE_XMX=0 keeps the per-expert path (always used for other quant types).
+def moe_xmx_main(s):
+    if "moe_gate_up_swiglu_xmx" in s: return s
+    old = """            for (int e : X.hit_exps) {
+                const size_t offset = W.start[e];
+                gate_up_product(e, sorted_input + offset * C, X.gu32 + offset * 2 * F);
+            }
+            k::swiglu_cap_f32(X.gu32, S, F, X.sg, X.su, c.gate_cap, c.up_cap, sorted_input, g_s);
+            for (int e : X.hit_exps) {
+                const size_t offset = W.start[e];
+                down_product(e, sorted_input + offset * F, sorted_out + offset * C);
+            }
+"""
+    new = """            static const bool g_moe_xmx = !(getenv("IK2_MOE_XMX") && !atoi(getenv("IK2_MOE_XMX")));
+            if (g_moe_xmx && Ly.ty[0] == k::kNVFP4 && Ly.ty[1] == k::kNVFP4 && Ly.ty[2] == k::kNVFP4 && C % 64 == 0 && F % 64 == 0) {
+                static k::MoeXmxExp* d_tab = nullptr;   // (the hit experts: weights, rows)
+                if (!d_tab) d_tab = (k::MoeXmxExp*) sycl::malloc_device(sizeof(k::MoeXmxExp) * c.E, g_s->get_device(), g_s->get_context());
+                std::vector<k::MoeXmxExp> tab;
+                int max_cnt = 0;
+                for (int e : X.hit_exps) { tab.push_back({X.slot_ptrs[e], W.start[e], W.cnt[e]}); max_cnt = std::max(max_cnt, (int) W.cnt[e]); }
+                g_s->memcpy(d_tab, tab.data(), tab.size() * sizeof(k::MoeXmxExp)).wait();   // (the vector dies here: wait)
+                uint16_t* hid = (uint16_t*) X.gu32;   // (the hidden, F16 [S][F]: the gate/up output's room, free now; not the input's, other tiles still read it)
+                k::moe_gate_up_swiglu_xmx(d_tab, (int) tab.size(), max_cnt, sorted_input, C, F, Ly.eb[0], X.sg, X.su, c.gate_cap, c.up_cap, hid, g_s);
+                k::moe_down_xmx(d_tab, (int) tab.size(), max_cnt, hid, C, F, Ly.eb[0] + Ly.eb[1], sorted_out, g_s);
+            } else {
+""" + "\n".join(("    " + l if l else l) for l in old.rstrip("\n").split("\n")) + "\n            }\n"
+    assert old in s, "batched MoE loops not found"
+    return s.replace(old, new, 1)
+edit("ik2_main.dp.cpp", moe_xmx_main)
+
+# The XMX MoE path needs the batched prefill's sorted layout (tokens grouped by expert) but not its scratch (the attention's logits buffer, empty with
+# flash attention): it brings its own sorted input / output buffers, and turns the batched path on by itself (IK2_MOE_XMX=0: the old behaviour).
+def moe_xmx_batch(s):
+    if "xmx_moe" in s: return s
+    old = """        const bool batch = batch_prefill && d == -1 && !Ly.tab_h.empty() && n_miss == 0 && T >= 64 && C % 8 == 0 &&
+                           (size_t)S * (2 * std::max(C, F) + 4 * C) <= X.lg_cap * 4 &&
+                           (size_t)S * 2 * F * sizeof(float) <= X.gu32_bytes;
+"""
+    new = """        static const bool moe_xmx_on = getenv("IK2_MOE_XMX") && atoi(getenv("IK2_MOE_XMX"));   // (opt-in: measured slower end to end than decode_f16 + gemm16)
+        static const bool batch_own = !(getenv("IK2_BATCH_PREFILL") && !atoi(getenv("IK2_BATCH_PREFILL")));   // (the batched path, with its own buffers)
+        const bool xmx_moe = moe_xmx_on && Ly.ty[0] == k::kNVFP4 && Ly.ty[1] == k::kNVFP4 && Ly.ty[2] == k::kNVFP4 && C % 64 == 0 && F % 64 == 0;
+        const bool batch = d == -1 && !Ly.tab_h.empty() && n_miss == 0 && T >= 64 && C % 8 == 0 &&
+                           (size_t)S * 2 * F * sizeof(float) <= X.gu32_bytes &&
+                           (xmx_moe || batch_own || (batch_prefill && (size_t)S * (2 * std::max(C, F) + 4 * C) <= X.lg_cap * 4));
+"""
+    assert old in s
+    s = s.replace(old, new, 1)
+    old2 = """            uint16_t* sorted_input = (uint16_t*)X.lg;
+            float* sorted_out = (float*)(sorted_input + (size_t)S * std::max(C, F));
+"""
+    new2 = """            uint16_t* sorted_input = (uint16_t*)X.lg;
+            float* sorted_out = (float*)(sorted_input + (size_t)S * std::max(C, F));
+            if (xmx_moe || batch_own) {   // (own buffers, grown when a bigger chunk comes: [S][C] F16 in, [S][C] F32 out)
+                static uint16_t* si = nullptr; static float* so = nullptr; static size_t cap = 0;
+                if ((size_t) S * C > cap) {
+                    g_s->wait();
+                    if (si) sycl::free(si, g_s->get_context()), sycl::free(so, g_s->get_context());
+                    cap = (size_t) S * C;
+                    si = (uint16_t*) sycl::malloc_device(cap * 2, g_s->get_device(), g_s->get_context());
+                    so = (float*) sycl::malloc_device(cap * 4, g_s->get_device(), g_s->get_context());
+                }
+                sorted_input = si, sorted_out = so;
+            }
+"""
+    assert old2 in s
+    s = s.replace(old2, new2, 1)
+    # the earlier fixup's own decision becomes the same flag
+    s = s.replace("""            static const bool g_moe_xmx = !(getenv("IK2_MOE_XMX") && !atoi(getenv("IK2_MOE_XMX")));
+            if (g_moe_xmx && Ly.ty[0] == k::kNVFP4 && Ly.ty[1] == k::kNVFP4 && Ly.ty[2] == k::kNVFP4 && C % 64 == 0 && F % 64 == 0) {""", """            if (xmx_moe) {""", 1)
+    return s
+edit("ik2_main.dp.cpp", moe_xmx_batch)
+
+# The XMX MoE path takes its activations in the "pair" column order (see ik2_moe_xmx.dp.inc: position 2q = column q, 2q+1 = column q+8 of each 16): the
+# gather that builds its sorted input permutes.
+def gather_perm(s):
+    if "gather_perm16_kernel" in s: return s
+    a = "__dpct_inline__ void gather_f16_16_kernel("
+    assert a in s
+    kern = """// (Intel) the XMX MoE path's sorted input: rows gathered, columns in the pair order (word i = columns (q, q + 8) of group i / 8, q = i % 8)
+__dpct_inline__ void gather_perm16_kernel(const uint16_t *__restrict__ x16, const int *__restrict__ idx, int n, int C, uint16_t *__restrict__ y16) {
+    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    const int row = item_ct1.get_group(2);
+    if (row >= n) return;
+    const uint16_t *src = x16 + (size_t) idx[row] * C;
+    uint32_t *dst = (uint32_t *) (y16 + (size_t) row * C);
+    for (int i = item_ct1.get_local_id(2); i < C / 2; i += item_ct1.get_local_range(2)) {
+        const int g = i >> 3, q = i & 7;
+        dst[i] = (uint32_t) src[g * 16 + q] | ((uint32_t) src[g * 16 + q + 8] << 16);
+    }
+}
+
+"""
+    s = s.replace(a, kern + a, 1)
+    pat = re.compile(r"gather_f16_16_kernel\(xin, X_gidx_ct1, S, C,\s*sorted_input\);")
+    s, n = pat.subn("if (xmx_moe) gather_perm16_kernel(xin, X_gidx_ct1, S, C, sorted_input);\n                            else gather_f16_16_kernel(xin, X_gidx_ct1, S, C, sorted_input);", s, count=1)
+    assert n == 1, "batched gather call not found"
+    return s
+edit("ik2_main.dp.cpp", gather_perm)
+
+# (Intel) the 256-register kernel property used by the XMX MoE kernels
+def grf_include(s):
+    if "grf_size_properties.hpp" in s: return s
+    return s.replace("#include <algorithm>\n", "#include <algorithm>\n#include <sycl/ext/intel/experimental/grf_size_properties.hpp>\n", 1)
+edit("ik2_kernels.dp.cpp", grf_include)

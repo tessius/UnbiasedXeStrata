@@ -1676,6 +1676,19 @@ struct Cand {
     const float* val = nullptr;    // [n] their logits
 } g_cand;
 
+// (Intel) the XMX MoE path's sorted input: rows gathered, columns in the pair order (word i = columns (q, q + 8) of group i / 8, q = i % 8)
+__dpct_inline__ void gather_perm16_kernel(const uint16_t *__restrict__ x16, const int *__restrict__ idx, int n, int C, uint16_t *__restrict__ y16) {
+    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    const int row = item_ct1.get_group(2);
+    if (row >= n) return;
+    const uint16_t *src = x16 + (size_t) idx[row] * C;
+    uint32_t *dst = (uint32_t *) (y16 + (size_t) row * C);
+    for (int i = item_ct1.get_local_id(2); i < C / 2; i += item_ct1.get_local_range(2)) {
+        const int g = i >> 3, q = i & 7;
+        dst[i] = (uint32_t) src[g * 16 + q] | ((uint32_t) src[g * 16 + q + 8] << 16);
+    }
+}
+
 __dpct_inline__ void gather_f16_16_kernel(const uint16_t *__restrict__ x16,
                                           const int *__restrict__ idx, int n,
                                           int C, uint16_t *__restrict__ y16) {
@@ -2297,9 +2310,12 @@ void run_prefill_moe(const Model& M, Layer& Ly, int l, int T, const uint16_t* xq
         g_pf.lap(g_pf.upload);
 
         static const bool batch_prefill = getenv("IK2_BATCH_PREFILL") && atoi(getenv("IK2_BATCH_PREFILL"));
-        const bool batch = batch_prefill && d == -1 && !Ly.tab_h.empty() && n_miss == 0 && T >= 64 && C % 8 == 0 &&
-                           (size_t)S * (2 * std::max(C, F) + 4 * C) <= X.lg_cap * 4 &&
-                           (size_t)S * 2 * F * sizeof(float) <= X.gu32_bytes;
+        static const bool moe_xmx_on = getenv("IK2_MOE_XMX") && atoi(getenv("IK2_MOE_XMX"));   // (opt-in: measured slower end to end than decode_f16 + gemm16)
+        static const bool batch_own = !(getenv("IK2_BATCH_PREFILL") && !atoi(getenv("IK2_BATCH_PREFILL")));   // (the batched path, with its own buffers)
+        const bool xmx_moe = moe_xmx_on && Ly.ty[0] == k::kNVFP4 && Ly.ty[1] == k::kNVFP4 && Ly.ty[2] == k::kNVFP4 && C % 64 == 0 && F % 64 == 0;
+        const bool batch = d == -1 && !Ly.tab_h.empty() && n_miss == 0 && T >= 64 && C % 8 == 0 &&
+                           (size_t)S * 2 * F * sizeof(float) <= X.gu32_bytes &&
+                           (xmx_moe || batch_own || (batch_prefill && (size_t)S * (2 * std::max(C, F) + 4 * C) <= X.lg_cap * 4));
         if (batch) {
 #pragma unroll
             for (int t = 0; t < T; ++t)
@@ -2359,6 +2375,17 @@ void run_prefill_moe(const Model& M, Layer& Ly, int l, int T, const uint16_t* xq
             // Attention has finished. Its temporary output is free until the next visit.
             uint16_t* sorted_input = (uint16_t*)X.lg;
             float* sorted_out = (float*)(sorted_input + (size_t)S * std::max(C, F));
+            if (xmx_moe || batch_own) {   // (own buffers, grown when a bigger chunk comes: [S][C] F16 in, [S][C] F32 out)
+                static uint16_t* si = nullptr; static float* so = nullptr; static size_t cap = 0;
+                if ((size_t) S * C > cap) {
+                    g_s->wait();
+                    if (si) sycl::free(si, g_s->get_context()), sycl::free(so, g_s->get_context());
+                    cap = (size_t) S * C;
+                    si = (uint16_t*) sycl::malloc_device(cap * 2, g_s->get_device(), g_s->get_context());
+                    so = (float*) sycl::malloc_device(cap * 4, g_s->get_device(), g_s->get_context());
+                }
+                sorted_input = si, sorted_out = so;
+            }
             {
                 auto exp_props = sycl::ext::oneapi::experimental::properties{
                     sycl::ext::oneapi::experimental::use_root_sync};
@@ -2372,19 +2399,31 @@ void run_prefill_moe(const Model& M, Layer& Ly, int l, int T, const uint16_t* xq
                                               sycl::range(1, 1, 256),
                                           sycl::range(1, 1, 256)),
                         exp_props, [=](sycl::nd_item<3> item_ct1) {
-                            gather_f16_16_kernel(xin, X_gidx_ct1, S, C,
-                                                 sorted_input);
+                            if (xmx_moe) gather_perm16_kernel(xin, X_gidx_ct1, S, C, sorted_input);
+                            else gather_f16_16_kernel(xin, X_gidx_ct1, S, C, sorted_input);
                         });
                 });
             }
-            for (int e : X.hit_exps) {
-                const size_t offset = W.start[e];
-                gate_up_product(e, sorted_input + offset * C, X.gu32 + offset * 2 * F);
-            }
-            k::swiglu_cap_f32(X.gu32, S, F, X.sg, X.su, c.gate_cap, c.up_cap, sorted_input, g_s);
-            for (int e : X.hit_exps) {
-                const size_t offset = W.start[e];
-                down_product(e, sorted_input + offset * F, sorted_out + offset * C);
+            if (xmx_moe) {
+                static k::MoeXmxExp* d_tab = nullptr;   // (the hit experts: weights, rows)
+                if (!d_tab) d_tab = (k::MoeXmxExp*) sycl::malloc_device(sizeof(k::MoeXmxExp) * c.E, g_s->get_device(), g_s->get_context());
+                std::vector<k::MoeXmxExp> tab;
+                int max_cnt = 0;
+                for (int e : X.hit_exps) { tab.push_back({X.slot_ptrs[e], W.start[e], W.cnt[e]}); max_cnt = std::max(max_cnt, (int) W.cnt[e]); }
+                g_s->memcpy(d_tab, tab.data(), tab.size() * sizeof(k::MoeXmxExp)).wait();   // (the vector dies here: wait)
+                uint16_t* hid = (uint16_t*) X.gu32;   // (the hidden, F16 [S][F]: the gate/up output's room, free now; not the input's, other tiles still read it)
+                k::moe_gate_up_swiglu_xmx(d_tab, (int) tab.size(), max_cnt, sorted_input, C, F, Ly.eb[0], X.sg, X.su, c.gate_cap, c.up_cap, hid, g_s);
+                k::moe_down_xmx(d_tab, (int) tab.size(), max_cnt, hid, C, F, Ly.eb[0] + Ly.eb[1], sorted_out, g_s);
+            } else {
+                for (int e : X.hit_exps) {
+                    const size_t offset = W.start[e];
+                    gate_up_product(e, sorted_input + offset * C, X.gu32 + offset * 2 * F);
+                }
+                k::swiglu_cap_f32(X.gu32, S, F, X.sg, X.su, c.gate_cap, c.up_cap, sorted_input, g_s);
+                for (int e : X.hit_exps) {
+                    const size_t offset = W.start[e];
+                    down_product(e, sorted_input + offset * F, sorted_out + offset * C);
+                }
             }
             {
                 auto exp_props = sycl::ext::oneapi::experimental::properties{
