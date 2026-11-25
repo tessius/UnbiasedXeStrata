@@ -584,3 +584,18 @@ Greedy A/B (`ab_greedy.py`): 10 of 10 answers identical to the original referenc
 
 The experts are now ~7 ms of a ~17.5 ms token.  Left: the activation-side (one int8 limb instead of two: half the dp4a and half the record, ~7 bits instead of ~14: a numerics change) and wider weight loads feeding the dp4a (the generic kernels' wide-load
 attempt failed on their heavy arithmetic; the limb kernels' is light).
+
+## 26. Inkling decode: one int8 limb for the experts (2026-11-25): no gain, not kept
+
+The idea (section 25's "left"): the activation record carries two int8 limbs (~14 bits); the high limb alone is already `round(v * 127 / max)` per 16 values (`qh = (q + 64) >> 7` of the 15-bit `q`), so a kernel can use `128 * hi * scale` and skip the low limb's dp4a and its
+four loads, with no change to the packing.  Built as `IK2_LIMB_ONE` on the 4-row-pair kernel and measured:
+
+| | two limbs (default) | one limb |
+|---|---|---|
+| bench gate/up + swiglu | 96.0 us | 99.6 us |
+| bench down | 56.6 us | 57.4 us |
+| engine decode (same session, JIT) | 56.1 tok/s | 55.9 tok/s |
+| synthetic accuracy (max diff from the generic kernels, saturated SwiGLU outputs) | 0.11 | 15 |
+
+Slightly *slower* and visibly less accurate.  The limb kernels are bound by the weight traffic and the load latency of a lane-strided pass over the rows, not by the integer arithmetic or the activation record; halving the dp4a work moves nothing.  Backed out (no
+dead numerics-changing path in the tree).  What would still move the experts is a different weight access pattern (wider loads per lane feeding the light dp4a; the generic kernels' attempt failed on their heavy arithmetic, this kernel's is light), not the activation side.
