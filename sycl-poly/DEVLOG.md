@@ -599,3 +599,21 @@ four loads, with no change to the packing.  Built as `IK2_LIMB_ONE` on the 4-row
 
 Slightly *slower* and visibly less accurate.  The limb kernels are bound by the weight traffic and the load latency of a lane-strided pass over the rows, not by the integer arithmetic or the activation record; halving the dp4a work moves nothing.  Backed out (no
 dead numerics-changing path in the tree).  What would still move the experts is a different weight access pattern (wider loads per lane feeding the light dp4a; the generic kernels' attempt failed on their heavy arithmetic, this kernel's is light), not the activation side.
+
+## 27. Inkling decode: wide weight loads in the limb kernel (2026-11-25): slower in every form, not kept
+
+The limb kernels (section 25) read each weight row lane-strided: three 4-byte loads per 16-weight sub-block.  Three ways of reading the NVFP4 rows with wide loads, all producing the same outputs as the strided kernels
+(bench: a token's experts for 8 distinct experts a launch, `tests/decode_experts_bench`; the strided limb kernel with 4 row pairs a warp: gate/up 96 us, down 57 us, 7.34 ms a token):
+
+| form | gate/up | down | per token |
+|---|---|---|---|
+| a lane owns a contiguous 144-byte unit (4 blocks) = 16-byte loads, 9 lanes a row, 3 rows a warp, 256 registers; activation records from global | 149.5 us | 75.9 us | 10.8 ms |
+| the same with the records staged in SLM (3 vector loads a record) | 157 us | 85 us | 11.6 ms |
+| coalesced: a warp loads each row as adjacent 16-byte pieces into SLM, the strided arithmetic reads its words there (2 rows pairs a warp, 20 KB of SLM a work-group) | 146 us | 89 us | 11.3 ms |
+| the same with 4 row pairs a warp (41 KB of SLM) | 214 us | 145 us | 17.3 ms |
+
+Why: with a contiguous unit a lane the 16-byte load instruction touches one cache line per lane (27 lines, 16 of 64 bytes used each), where the strided kernel's lanes read adjacent sub-blocks that share lines, so the load count falls but the line traffic rises; the records a lane then
+needs are 4x as many (16 sub-blocks, not 4.5) and, staged or not, cost more than they save; the coalesced SLM staging gets the line traffic right but takes 20-41 KB of SLM a work-group, which cuts the warps in flight more than the 5x fewer global load instructions help.
+
+With the activation side (section 26) and the weight side both measured, the NVFP4 limb kernels are where this card's load path and occupancy put them (~250 GB/s of weights, 62% of a 400 GB/s ceiling) for any lane/row mapping I could write in SYCL; what remains is outside this kernel
+(fewer, larger work per launch, fusing the pack launch into the previous kernel, or a different quantization of what the experts read).
