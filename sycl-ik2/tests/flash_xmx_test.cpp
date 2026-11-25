@@ -7,11 +7,41 @@
 #include <cmath>
 #include <cstdio>
 #include <random>
+#include <string>
 #include <vector>
 
 static uint16_t h16(float f) { return sycl::bit_cast<uint16_t>(sycl::half(f)); }
 
-int main() {
+static void perf(int H, int KV, int Tq, int qpos0, int window, int extent, int n_split) {
+    auto &q = dpct::get_in_order_queue();
+    std::mt19937 rng(3); std::normal_distribution<float> nd(0.f, 1.f);
+    const int D = 128, KD = KV * D, q_ld = H * D, nk = qpos0 + Tq;
+    std::vector<uint16_t> hq((size_t) Tq * q_ld), hk((size_t) nk * KD), hv((size_t) nk * KD);
+    for (auto &x : hq) x = h16(nd(rng) * 0.6f); for (auto &x : hk) x = h16(nd(rng) * 0.6f); for (auto &x : hv) x = h16(nd(rng));
+    std::vector<float> hb((size_t) Tq * H * std::max(1, extent)), hs((size_t) Tq * H, 0.f); for (auto &x : hb) x = nd(rng) * 0.5f;
+    auto *dq = sycl::malloc_device<uint16_t>(hq.size(), q), *dk = sycl::malloc_device<uint16_t>(hk.size(), q), *dv = sycl::malloc_device<uint16_t>(hv.size(), q);
+    auto *db = sycl::malloc_device<float>(hb.size(), q), *dsink = sycl::malloc_device<float>(hs.size(), q);
+    const size_t scratch = (size_t) n_split * Tq * H * (D + 2) + 16; auto *dsc = sycl::malloc_device<float>(scratch, q); auto *dout = sycl::malloc_device<float>((size_t) Tq * q_ld, q);
+    q.memcpy(dq, hq.data(), hq.size() * 2); q.memcpy(dk, hk.data(), hk.size() * 2); q.memcpy(dv, hv.data(), hv.size() * 2); q.memcpy(db, hb.data(), hb.size() * 4); q.memcpy(dsink, hs.data(), hs.size() * 4).wait();
+    ik2::k::set_flash_xmx(true);
+    double best = 1e9;
+    for (int it = 0; it < 6; ++it) {
+        auto t0 = std::chrono::steady_clock::now();
+        ik2::k::attn_flash_f16(dq, q_ld, dk, dv, 0, H, KV, D, Tq, qpos0, 1.f / std::sqrt((float) D), extent ? db : nullptr, extent, window, dsink, dout, q_ld, dsc, scratch, n_split, &q);
+        q.wait_and_throw(); best = std::min(best, std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count());
+    }
+    const double keys = window < nk ? std::min<double>(window, qpos0 + Tq / 2.0) : qpos0 + Tq / 2.0;   // (average keys a query sees)
+    std::printf("perf H%d KV%d Tq%d qpos0 %d window %s extent %d split %d: %.2f ms  (%.2f TFLOP/s of QK+PV)\n", H, KV, Tq, qpos0, window > 1000000 ? "full" : std::to_string(window).c_str(), extent, n_split,
+                best * 1e3, 4.0 * H * D * Tq * keys / best * 1e-12);
+    sycl::free(dq, q); sycl::free(dk, q); sycl::free(dv, q); sycl::free(db, q); sycl::free(dsink, q); sycl::free(dsc, q); sycl::free(dout, q);
+}
+
+int main(int argc, char **argv) {
+    if (argc > 1 && std::string(argv[1]) == "perf") {   // Inkling-2-Mini's shapes, a chunk of 1024 queries into a 4000-token context
+        perf(24, 8, 1024, 3000, 1024, 1024, 1); perf(24, 8, 1024, 3000, 1 << 30, 1024, 1); perf(24, 8, 1024, 3000, 1 << 30, 1024, 3); perf(24, 8, 1024, 0, 1 << 30, 1024, 1);
+        if (argc > 2) { perf(24, 8, 1024, 3000, 1024, 0, 1); perf(24, 8, 1024, 3000, 1 << 30, 0, 1); }   // (no bias: what the relative bias costs)
+        return 0;
+    }
     auto &q = dpct::get_in_order_queue();
     std::mt19937 rng(5); std::normal_distribution<float> nd(0.f, 1.f);
     struct Cfg { int H, KV, Tq, qpos0, window, extent, n_split, kv_cap; } cfgs[] = {

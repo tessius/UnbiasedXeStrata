@@ -329,3 +329,24 @@ the SwiGLU fused.  A layer visit (128 experts x 64 tokens) 17.8 -> 13.4 ms, but 
 
 Where the prefill time is now: attention at long contexts (it grows with the context: ~4 s of a 4000-token prompt).  The next real gain is there (skip fully
 masked key tiles per sub-group; the sliding-window layers only need their window).
+
+## 14. Inkling prefill attention (2026-11-25), Arc Pro B60
+
+At 4000 tokens the XMX flash attention (section 12) was still ~4 of 6 s: the 320 sliding-window calls (window 1024) ran at ~1 TFLOP/s, the 64 full-attention
+calls at ~1.7.  `tests/flash_xmx_test.cpp perf` times Inkling's shapes (H = 24, KV = 8, a chunk of 1024 queries into a 4000-token context, relative bias 1024);
+in-kernel ablations (skip the tile load / S products / softmax / PV products) said where it went.  What changed, in order of effect (sliding / full, JIT):
+
+| step | sliding ms | full ms |
+|---|---|---|
+| section 12 kernel (4 sub-groups a work-group, 55 KB of SLM: 2 work-groups a core = one hardware thread an execution unit, nothing hides a stall) | 13.9 | 50.5 |
+| logits / probability staging padded (the softmax read 8-way bank-conflicted), K / V tile with 16-byte global loads and conflict-free SLM writes | 9.3 | 28.9 |
+| 16 sub-groups a work-group (128 queries): the K / V tile load is shared by 4x the queries, and more threads per core | 5.0 | 11.1 |
+| fast softmax path for fully visible 32-column runs (no masks, the bias as vector loads) | 5.3 | 10.3 |
+| (AOT build) | **3.4** | **11.0** |
+
+Dead ends: forcing `#pragma unroll` (already unrolled); the 4000-token numbers did not need more.  The relative bias costs only ~1 ms of 9; DPAS itself is nearly free
+(the cost is the fragment loads from SLM and the softmax between the two products, both latency, not throughput).
+
+Engine, 4000-token prompt: attention ~4 s -> ~0.85 s; prefill 684 -> **1325-1410 tok/s** (5.85 s -> 2.83 s, through the front end 6.4 s -> 3.1 s); 1024 tokens
+767 -> 1143 tok/s.  Same greedy tokens as before; 7 of 7 retrievals correct at 4k.  `tests/flash_xmx_test` against the emulated kernel: 7/7.
+What is left in a 4000-token prefill: the expert weight decode (decode_f16_nvfp4, ~1.1 s), attention ~0.85 s, small kernels.

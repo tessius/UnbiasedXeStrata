@@ -9,9 +9,10 @@
 // Each sub-group, for its 8 queries:  S[8x64] = Q K^T (4 x 8 mads of 8x16x16, F32 accumulate) -> stored in SLM -> online softmax by the lanes (2 lanes a
 // row, log2 domain, mask / window / relative bias exactly as the CUDA kernel) -> P (FP16) in SLM -> O[8x128] += P V (4 x 8 mads), O rescaled in place.
 namespace xmx = sycl::ext::oneapi::experimental::matrix;
-constexpr int kXNSG = 4, kXBM = 8 * kXNSG, kXBN = 64;
+constexpr int kXNSG = 16, kXBM = 8 * kXNSG, kXBN = 64, kXNT = 16 * kXNSG;   // (sub-groups a work-group, queries, keys a tile, threads)
 constexpr int kXKpLd = 68, kXVpLd = 132;   // (words a packed row: a pad against bank conflicts, and 64-byte aligned blocks)
-constexpr int kXPerSg = 8 * 128 * 2 + 8 * 64 * 4 + 8 * 64 * 2 + 8 * 4;   // Qs (half) + Ss (float) + Ps (half) + cs (float)
+constexpr int kXSsLd = 68, kXPsLd = 72;   // (floats / halves a row of the logits / probabilities: a pad against bank conflicts in the softmax, 16-byte aligned rows)
+constexpr int kXPerSg = 8 * 128 * 2 + 8 * kXSsLd * 4 + 8 * kXPsLd * 2 + 8 * 4;   // Qs (half) + Ss (float) + Ps (half) + cs (float)
 constexpr int kXSmem = 64 * kXKpLd * 4 + 32 * kXVpLd * 4 + kXNSG * kXPerSg;
 bool g_flash_xmx = !(std::getenv("IK2_FLASH_XMX") && !std::atoi(std::getenv("IK2_FLASH_XMX")));   // IK2_FLASH_XMX=0 (or set_flash_xmx(false)): the CUDA kernel's emulated path
 
@@ -32,8 +33,8 @@ __dpct_inline__ void attn_flash_xmx_kernel(
     uint8_t *mine = (uint8_t *) (Vp + 32 * kXVpLd) + sgi * kXPerSg;
     sycl::half *Qs = (sycl::half *) mine;
     float *Ss = (float *) (mine + 8 * 128 * 2);
-    sycl::half *Ps = (sycl::half *) (mine + 8 * 128 * 2 + 8 * 64 * 4);
-    float *cs = (float *) (mine + 8 * 128 * 2 + 8 * 64 * 4 + 8 * 64 * 2);
+    sycl::half *Ps = (sycl::half *) (mine + 8 * 128 * 2 + 8 * kXSsLd * 4);
+    float *cs = (float *) (mine + 8 * 128 * 2 + 8 * kXSsLd * 4 + 8 * kXPsLd * 2);
 
     const int i0 = (int) it.get_group(2) * kXBM;
     const int i_last = sycl::min(Tq, i0 + kXBM) - 1;
@@ -63,21 +64,30 @@ __dpct_inline__ void attn_flash_xmx_kernel(
     for (int t = t0; t < t1; ++t) {
         const int kt = k_lo + t * kXBN;
         sycl::group_barrier(it.get_group());   // (the last tile's readers are done)
-        // K: pairs of dims interleaved per key (VNNI); V: pairs of keys interleaved per dim
-        for (int c = tid; c < 64 * 64; c += 64) {
-            const int key = c >> 6, dp = c & 63, kp = kt + key;
+        // K: pairs of dims interleaved per key (VNNI); V: pairs of keys interleaved per dim.  16-byte global loads: a thread takes 8 dims of a key (K: lanes
+        // are consecutive keys, so the four SLM words it writes are one bank each across the lanes) or of two keys (V: lanes are consecutive 8-dim groups).
+        for (int c = tid; c < 64 * 16; c += kXNT) {
+            const int key = c & 63, q4 = c >> 6, kp = kt + key;
             const bool ok = kp < k_hi;
             const size_t pr = ok ? (kv_cap > 0 ? kp % kv_cap : kp) : 0;
-            Kp[dp * kXKpLd + key] = ok ? *(const uint32_t *) (kc + pr * KD + (size_t) g * 128 + dp * 2) : 0u;
+            const sycl::uint4 v = ok ? *(const sycl::uint4 *) (kc + pr * KD + (size_t) g * 128 + q4 * 8) : sycl::uint4(0, 0, 0, 0);
+            Kp[(q4 * 4 + 0) * kXKpLd + key] = v.x();
+            Kp[(q4 * 4 + 1) * kXKpLd + key] = v.y();
+            Kp[(q4 * 4 + 2) * kXKpLd + key] = v.z();
+            Kp[(q4 * 4 + 3) * kXKpLd + key] = v.w();
         }
-        for (int c = tid; c < 32 * 64; c += 64) {
-            const int pk = c >> 6, e = c & 63, ka = kt + 2 * pk, kb = ka + 1;
+        for (int c = tid; c < 32 * 16; c += kXNT) {
+            const int e4 = c & 15, pk = c >> 4, ka = kt + 2 * pk, kb = ka + 1;
             const bool oa = ka < k_hi, ob = kb < k_hi;
             const size_t pa = oa ? (kv_cap > 0 ? ka % kv_cap : ka) : 0, pb = ob ? (kv_cap > 0 ? kb % kv_cap : kb) : 0;
-            const uint32_t u0 = oa ? *(const uint32_t *) (vc + pa * KD + (size_t) g * 128 + e * 2) : 0u;
-            const uint32_t u1 = ob ? *(const uint32_t *) (vc + pb * KD + (size_t) g * 128 + e * 2) : 0u;
-            Vp[pk * kXVpLd + 2 * e] = (u0 & 0xFFFFu) | (u1 << 16);
-            Vp[pk * kXVpLd + 2 * e + 1] = (u0 >> 16) | (u1 & 0xFFFF0000u);
+            const sycl::uint4 ua = oa ? *(const sycl::uint4 *) (vc + pa * KD + (size_t) g * 128 + e4 * 8) : sycl::uint4(0, 0, 0, 0);
+            const sycl::uint4 ub = ob ? *(const sycl::uint4 *) (vc + pb * KD + (size_t) g * 128 + e4 * 8) : sycl::uint4(0, 0, 0, 0);
+            const uint32_t wa[4] = {ua.x(), ua.y(), ua.z(), ua.w()}, wb[4] = {ub.x(), ub.y(), ub.z(), ub.w()};
+            uint32_t *dst = Vp + pk * kXVpLd + e4 * 8;
+            for (int j = 0; j < 4; ++j) {
+                dst[2 * j] = (wa[j] & 0xFFFFu) | (wb[j] << 16);
+                dst[2 * j + 1] = (wa[j] >> 16) | (wb[j] & 0xFFFF0000u);
+            }
         }
         sycl::group_barrier(it.get_group());
 
@@ -90,19 +100,46 @@ __dpct_inline__ void attn_flash_xmx_kernel(
                 xmx::joint_matrix_load(sg, b, xmx_local((sycl::half *) (Kp + kk * 8 * kXKpLd + jn * 16)), 2 * kXKpLd);
                 xmx::joint_matrix_mad(sg, s, qa[kk], b, s);
             }
-            xmx::joint_matrix_store(sg, s, xmx_local(Ss + jn * 16), 64, xmx::layout::row_major);
+            xmx::joint_matrix_store(sg, s, xmx_local(Ss + jn * 16), kXSsLd, xmx::layout::row_major);
         }
         sycl::group_barrier(sg);
 
         // the softmax: this lane's row r, columns [32 hh, 32 hh + 32)
         float v[32], mx = -INFINITY;
-        for (int c = 0; c < 32; ++c) {
-            const int col = hh * 32 + c, kp = kt + col, dist = qp - kp;
-            float x = Ss[r * 64 + col] * sc;
-            if (extent > 0 && dist >= 0 && dist < extent && ir < Tq) x += bias[((size_t) ir * H + h) * extent + dist] * kLog2e;
-            x = (dist < 0 || kp < lo || ir >= Tq) ? -INFINITY : x;
-            v[c] = x;
-            mx = sycl::fmax(mx, x);
+        {
+            const int d0 = qp - (kt + hh * 32);   // the distance of this lane's first column; column c is d0 - c away
+            // the run of 32 columns is wholly visible (causal, inside the window) and, with a bias, wholly inside its extent: no masks, the bias as vector loads
+            const bool fast = ir < Tq && d0 - 31 >= 0 && d0 <= window - 1 && (extent == 0 || d0 < extent);
+            if (fast) {
+                if (extent > 0) {
+                    const float *brow = bias + ((size_t) ir * H + h) * extent + (d0 - 31);   // brow[i] is column 31 - i's bias
+#pragma unroll
+                    for (int j = 0; j < 8; ++j) {
+                        sycl::vec<float, 4> bv;
+                        bv.load(j, sycl::address_space_cast<sycl::access::address_space::global_space, sycl::access::decorated::no>(brow));
+#pragma unroll
+                        for (int i = 0; i < 4; ++i) {
+                            const int c = 31 - (4 * j + i);
+                            v[c] = Ss[r * kXSsLd + hh * 32 + c] * sc + bv[i] * kLog2e;
+                        }
+                    }
+                } else {
+#pragma unroll
+                    for (int c = 0; c < 32; ++c) v[c] = Ss[r * kXSsLd + hh * 32 + c] * sc;
+                }
+#pragma unroll
+                for (int c = 0; c < 32; ++c) mx = sycl::fmax(mx, v[c]);
+            } else {
+#pragma unroll
+                for (int c = 0; c < 32; ++c) {
+                    const int col = hh * 32 + c, kp = kt + col, dist = qp - kp;
+                    float x = Ss[r * kXSsLd + col] * sc;
+                    if (extent > 0 && dist >= 0 && dist < extent && ir < Tq) x += bias[((size_t) ir * H + h) * extent + dist] * kLog2e;
+                    x = (dist < 0 || kp < lo || ir >= Tq) ? -INFINITY : x;
+                    v[c] = x;
+                    mx = sycl::fmax(mx, x);
+                }
+            }
         }
         mx = sycl::fmax(mx, sycl::select_from_group(sg, mx, lane ^ 8));
         const float mn = sycl::fmax(m, mx);
@@ -110,10 +147,11 @@ __dpct_inline__ void attn_flash_xmx_kernel(
         const float u = mn == -INFINITY ? 0.0f : mn;
         m = mn;
         l *= cr;
+#pragma unroll
         for (int c = 0; c < 32; ++c) {
             const float p = sycl::exp2(v[c] - u);
             l += p;
-            Ps[r * 64 + hh * 32 + c] = (sycl::half) p;
+            Ps[r * kXPsLd + hh * 32 + c] = (sycl::half) p;
         }
         if (hh == 0) cs[r] = cr;
         sycl::group_barrier(sg);
@@ -123,7 +161,7 @@ __dpct_inline__ void attn_flash_xmx_kernel(
             { int row = 0; xmx::joint_matrix_apply(sg, o[j], [&](float &x) { x *= cs[row++]; }); }   // (an 8x16 accumulator: a lane holds column `lane`, rows 0..7 in order)
         for (int kk = 0; kk < 4; ++kk) {
             xmx::joint_matrix<sycl::sub_group, sycl::half, xmx::use::a, 8, 16, xmx::layout::row_major> pa;
-            xmx::joint_matrix_load(sg, pa, xmx_local(Ps + kk * 16), 64);
+            xmx::joint_matrix_load(sg, pa, xmx_local(Ps + kk * 16), kXPsLd);
             for (int j = 0; j < 8; ++j) {
                 xmx::joint_matrix<sycl::sub_group, sycl::half, xmx::use::b, 16, 16, xmx::layout::ext_intel_packed> b;
                 xmx::joint_matrix_load(sg, b, xmx_local((sycl::half *) (Vp + kk * 8 * kXVpLd + j * 16)), 2 * kXVpLd);
