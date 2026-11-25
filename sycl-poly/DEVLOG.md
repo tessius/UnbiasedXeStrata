@@ -214,3 +214,42 @@ lines out).  The front end is CPU code; it needed nothing from us except an engi
 
 Engines of UnbiasedStrata still missing on Intel: `strata-ik2` / `strata-inkling` (Inkling 2 Mini), `strata-dsv41` (DeepSeek V4.1), `strata-hy4`
 (Hy4-Flash) and `strata` (Qwen3.8-Flash-Next).  The next steps are in this order: Inkling (the one asked for), then the others as far as a 24 GB card allows.
+
+## 10. 2026-11-24: Inkling-2-Mini engine (`strata-ik2`) -> `sycl-ik2/` (in progress)
+
+The owner asked for the same usability as UnbiasedStrata, which includes Inkling 2 Mini.  UnbiasedStrata's Inkling engine for NVIDIA is
+`src/ik2` (Project Maya's engine, ~14,000 lines: `ik2_kernels.cu` 6,261, `ik2_main.cu` 6,082, `ik2_draft.cu` 537, a CPU engine `ik2_cpu*.cpp`).
+
+**Which file the engine reads.**  The first model downloaded (ggml-org's `Inkling-2-Mini-IQ4_NL.gguf`, 17.6 GB) is the llama.cpp-master layout
+(`general.architecture = inkling2_loop`, `block_count` = 24 layers, `loop.start/end/count`).  The engine reads PR #32187's layout (`inkling2.*`,
+`block_count` = 48 layer visits, `num_loops`, `loop.core_start/end`): neither `strata-poly` nor llama.cpp v1.0.0 nor `strata-ik2` loads the
+master layout.  Unsloth publishes both: its repo root is now the master layout and `Old_Support/` is the engine's.  Downloaded
+`Old_Support/Inkling-2-Mini-UD-Q4_K_XL.gguf_file` (17,629,759,456 bytes, verified against the Hub's size) and `Old_Support/mmproj-BF16.gguf_file`;
+`engine-layout/` has symlinks with the names the engine expects.
+
+**Migration.**  `sycl-ik2/tools/migrate_ik2.sh` (dpct 2025.3 over the three GPU files, then `fixups_ik2.py`, `fix_kernel_names_ik2.py`).  Counts: zero
+DPCT1013 (the precedence bug class of section 6.5 does not occur here), 3 unmigrated asm sites, 188 DPCT1098.  Fixes, in the order met:
+- **`__ldg`**: dpct rewrites `__ldg(p)` to `*(p)` and in 6 places dropped the vector cast of `__ldg((const float4*) p)`.  Cure: the sources get
+  `ik2_ldg(p)` (a wrapper, `src/ik2_ldg.dp.hpp`) before dpct runs, so no cast can be lost (212 calls; DPCT1098 count 0).
+- **FP8 (E4M3)**: the sm_89 hardware conversions do not exist; the file has a software path under `#else`.  dpct turned `__CUDA_ARCH__ >= 890` into
+  `DPCT_COMPATIBILITY_TEMP >= 890` (always true) and `!(...)` into `!X >= 890` (always false); both mangled tests are replaced (`#if 0` / and for the host
+  copies of those functions `#if 0`, which selects the software `#else` branch; a first attempt used `#if 1` there and was wrong).
+- **`cp.async`** (4/16-byte global->shared copies): plain synchronous copies; commit/wait are no-ops.  Loses the overlap of the next tile's loads, not correctness.
+- **Wrapper-macro**: `IK2_MMA_LAUNCH(W)` became a bare `{}` block used as `if (...) M(1); else ...`: wrapped in `do { } while (0)`.
+- Kernel names without template arguments (as in section 6): `fix_kernel_names_ik2.py` qualifies names in any enclosing template (5 sites).
+- Unnamed template arguments (DPCT1050): `grouped_expert_mma`'s defaulted `Q8 = false`, `mv_q8p_kernel`'s `StaticK = 0`.
+- `calculate_max_active_wg_per_xecore` (DPCT1111) without the kernels' shared-memory size: 0 (an upper bound; only the number of attention splits depends on it).
+- The host decode helper called `decode_value` without the IQ tables dpct had added as parameters: it has host copies (`h_iq3xxs_grid`, `h_iq4nl`).
+- `ik2_main.cu`'s CUDA runtime leftovers (events, host callbacks, pinned allocation, graph destroy, one `cublasGemmEx`): `src/ik2_leftovers.dp.hpp`
+  and one rewritten call.
+- **Tensor-core primitives** (`mma.sync.m16n8k16`, `ldmatrix.x4`, plain and `.trans`): dpct maps them to a 16x8x16 joint_matrix that Intel's
+  engine does not have.  Emulated with sub-group shuffles from PTX's register layouts (`src/ik2_mma_emul.dp.inc`, ~32 shuffles per mma); the unit
+  test `tests/mma_emul_test.cpp` (random operands laid out per the PTX layouts, compared with a CPU product and transpose) passes (20 trials, error < 1e-4).
+  Correct and slow: the XMX version is an open item.
+
+**State at the time of writing.**  Builds (JIT).  The engine parses the model (24 layers, 20 sliding, 128 experts / 8 a token, width 2304, looped core
+layers 6..17 x 3 = 48 visits, gate rank 64), puts the dense weights in VRAM and **every expert** (3,072 slots, 14.7 GiB; 17.5 s), then fails at the
+first forward: Intel's graphics compiler (IGC) **segfaults** while JIT-compiling `experts_gate_up_swiglu_g_kernel` (the plain grouped expert kernel;
+the tensor-core variant is off by default).  An ahead-of-time build crashes the same way ("longjmp causes uninitialized stack frame").  With the
+optimizer off (`SYCL_PROGRAM_COMPILE_OPTIONS=-cl-opt-disable`) the compile passes but the kernel does not finish in 8 minutes (3 tokens).
+`IK2_GRAPH=0` turns off the engine's graph recording.  Next: find what in that kernel IGC cannot compile (offline `ocloc` on its SPIR-V) and restructure it.

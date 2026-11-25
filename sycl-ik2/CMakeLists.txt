@@ -11,14 +11,16 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 add_compile_definitions(STRATA_VERSION="ik2-sycl")
 set(STRATA_SYCL_AOT "" CACHE STRING "AOT device for the GPU code, e.g. bmg-g21 (empty: SPIR-V, JIT at run time)")
-add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-fsycl;-fsycl-default-sub-group-size=32>" -fp-model=precise -w)
+# One device module per kernel: a launch compiles only its own kernel (startup is faster, and a kernel the GPU compiler cannot
+# build only fails when it is used, with the launcher in the backtrace).
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-fsycl;-fsycl-default-sub-group-size=32;-fsycl-device-code-split=per_kernel>" -fp-model=precise -w)
 add_link_options("SHELL:-Xspirv-translator --spirv-ext=+SPV_KHR_integer_dot_product")
 if(STRATA_SYCL_AOT)
   add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-fsycl-targets=spir64_gen>")
-  add_link_options(-fsycl -fsycl-default-sub-group-size=32 -fsycl-targets=spir64_gen -Xsycl-target-backend=spir64_gen
+  add_link_options(-fsycl -fsycl-default-sub-group-size=32 -fsycl-device-code-split=per_kernel -fsycl-targets=spir64_gen -Xsycl-target-backend=spir64_gen
                    "-device ${STRATA_SYCL_AOT} -options -cl-fp32-correctly-rounded-divide-sqrt")
 else()
-  add_link_options(-fsycl -fsycl-default-sub-group-size=32 -Xsycl-target-backend=spir64
+  add_link_options(-fsycl -fsycl-default-sub-group-size=32 -fsycl-device-code-split=per_kernel -Xsycl-target-backend=spir64
                    "-cl-fp32-correctly-rounded-divide-sqrt -ze-opt-greater-than-4GB-buffer-required")
 endif()
 find_package(Threads REQUIRED)
@@ -40,3 +42,7 @@ if(OpenMP_CXX_FOUND)
   target_compile_definitions(strata-ik2 PRIVATE IK2_HOST_AVX2=1)
   target_link_libraries(strata-ik2 PRIVATE OpenMP::OpenMP_CXX)
 endif()
+
+# the emulated tensor-core primitives against a CPU reference (needs the GPU): ik2_mma_emul_test
+add_executable(ik2_mma_emul_test tests/mma_emul_test.cpp)
+target_include_directories(ik2_mma_emul_test PRIVATE src)

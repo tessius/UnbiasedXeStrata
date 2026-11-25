@@ -52,6 +52,10 @@ def kernels(s):
     a = s.find("__dpct_inline__ void cp_async16(void *dst, const void *src, bool valid) {")
     b = s.find("// one 64-key tile of K and V (rows kt .. kt+63")
     if a >= 0 and b > a: s = s[:a] + CP_ASYNC + s[b:]
+    # NVIDIA tensor-core primitives -> shuffle emulation (MMA_EMUL); they sit just before the cp.async helpers
+    a = s.find("__dpct_inline__ void mma16816(")
+    b = s.find("// SYCL: cp.async is NVIDIA's")
+    if a >= 0 and b > a: s = s[:a] + '#include "ik2_mma_emul.dp.inc"   // SYCL: the tensor-core primitives, emulated (see that file)\n' + s[b:]
     # __byte_perm -> dpct's byte_level_permute (same selector semantics)
     s = s.replace("__byte_perm(", "dpct::byte_level_permute(")
     # ldmatrix's shared-window address: the NVPTX asm that used it is not built; give the dpct fallback a plain address

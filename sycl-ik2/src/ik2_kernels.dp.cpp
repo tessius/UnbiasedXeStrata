@@ -1313,52 +1313,11 @@ auto &sh = *sycl::ext::oneapi::group_local_memory_for_overwrite<float[kBlk]>(
 constexpr int kFaBN = 64, kFaD = 128, kFaLd = kFaD + 8;   // (row pad: conflict-free fragments/ldmatrix)
 constexpr float kLog2e = 1.4426950408889634f;
 
-__dpct_inline__ void mma16816(float *c, const uint32_t *a, uint32_t b0,
-                              uint32_t b1) {
-#if defined(__SYCL_DEVICE_ONLY__) && defined(__NVPTX__)
-    asm volatile("mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 "
-                 "{%0,%1,%2,%3}, {%4,%5,%6,%7}, {%8,%9}, "
-                 "{%0,%1,%2,%3};\n"
-                 : "+f"(c[0]), "+f"(c[1]), "+f"(c[2]), "+f"(c[3])
-                 : "r"(a[0]), "r"(a[1]), "r"(a[2]), "r"(a[3]), "r"(b0),
-                   "r"(b1));
-#else
-    {
-        volatile void *d_mat_frag_ct1[4] = {&c[0], &c[1], &c[2], &c[3]};
-        sycl::vec<uint32_t, 4> a_mat_frag_ct1(a[0], a[1], a[2], a[3]);
-        sycl::vec<uint32_t, 2> b_mat_frag_ct1(b0, b1);
-        sycl::vec<float, 4> c_mat_frag_ct1(c[0], c[1], c[2], c[3]);
-        dpct::experimental::matrix::mma<16, 8, 16, sycl::half, float>(
-            reinterpret_cast<volatile void **>(d_mat_frag_ct1), &a_mat_frag_ct1,
-            &b_mat_frag_ct1, &c_mat_frag_ct1);
-    }
-#endif
-}
-__dpct_inline__ void ldsm_x4_t(uint32_t &r0, uint32_t &r1, uint32_t &r2,
-                               uint32_t &r3, const void *p) {
-    auto a = p;
-#if defined(__SYCL_DEVICE_ONLY__) && defined(__NVPTX__)
-    asm volatile(
-        "ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%0,%1,%2,%3}, [%4];\n"
-        : "=r"(r0), "=r"(r1), "=r"(r2), "=r"(r3)
-        : "r"(a));
-#else
-    dpct::experimental::matrix::ldmatrix((uintptr_t)a, &r0, &r1, &r2, &r3,
-                                         true);
-#endif
-}
-__dpct_inline__ void ldsm_x4(uint32_t &r0, uint32_t &r1, uint32_t &r2,
-                             uint32_t &r3, const void *p) {
-    auto a = p;
-#if defined(__SYCL_DEVICE_ONLY__) && defined(__NVPTX__)
-    asm volatile(
-        "ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%0,%1,%2,%3}, [%4];\n"
-        : "=r"(r0), "=r"(r1), "=r"(r2), "=r"(r3)
-        : "r"(a));
-#else
-    dpct::experimental::matrix::ldmatrix((uintptr_t)a, &r0, &r1, &r2, &r3);
-#endif
-}
+#include "ik2_mma_emul.dp.inc"   // SYCL: the tensor-core primitives, emulated (see that file)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
 // SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
