@@ -1,6 +1,11 @@
 // src/ik2/ik2_kernels.cu - maya-ik2's kernels (the interface and the conventions: ik2_kernels.cuh).
 #include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
+#include <map>
+#include <chrono>
+#include <algorithm>
+#include <vector>
+#include <string>
 #include "ik2_kernels.dp.hpp"
 #include "ik2_iq_tables.h"
 
@@ -13,11 +18,27 @@
 namespace ik2::k {
 namespace {
 
+struct SyncStats {
+    std::map<std::string, std::pair<double, long>> t;
+    std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
+    ~SyncStats() {
+        std::vector<std::pair<double, std::string>> v;
+        double all = 0; for (auto &kv : t) { v.push_back({kv.second.first, kv.first}); all += kv.second.first; }
+        std::sort(v.rbegin(), v.rend());
+        if (v.empty()) return;
+        std::fprintf(stderr, "[ik2 time per launch name, %.3f s in all]\n", all);
+        for (size_t i = 0; i < v.size() && i < 24; ++i) std::fprintf(stderr, "  %7.1f ms %5.1f%% %6ld x  %s\n", v[i].first * 1e3, 100 * v[i].first / all, t[v[i].second].second, v[i].second.c_str());
+    }
+};
 void check(const char* what) {
-    static const bool sync_each = std::getenv("IK2_SYNC_CHECK") != nullptr;
-    if (sync_each) {
-        try { dpct::get_current_device().queues_wait_and_throw(); std::fprintf(stderr, "[ik2 done] %s\n", what); }
-        catch (const sycl::exception &ex) { std::fprintf(stderr, "[ik2 FAILED] %s: %s\n", what, ex.what()); std::exit(2); }
+    static const char *mode = std::getenv("IK2_SYNC_CHECK");
+    static SyncStats stats;
+    if (mode) {
+        try {
+            dpct::get_current_device().queues_wait_and_throw();
+            if (mode[0] == '2') { const auto now = std::chrono::steady_clock::now(); auto &e = stats.t[what]; e.first += std::chrono::duration<double>(now - stats.last).count(); ++e.second; stats.last = now; }
+            else std::fprintf(stderr, "[ik2 done] %s\n", what);
+        } catch (const sycl::exception &ex) { std::fprintf(stderr, "[ik2 FAILED] %s: %s\n", what, ex.what()); std::exit(2); }
     }
     /*
     DPCT1010: SYCL uses exceptions to report errors and does not use the
@@ -1317,42 +1338,6 @@ constexpr int kFaBN = 64, kFaD = 128, kFaLd = kFaD + 8;   // (row pad: conflict-
 constexpr float kLog2e = 1.4426950408889634f;
 
 #include "ik2_mma_emul.dp.inc"   // SYCL: the tensor-core primitives, emulated (see that file)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
 // SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed

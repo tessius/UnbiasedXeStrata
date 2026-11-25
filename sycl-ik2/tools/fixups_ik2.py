@@ -54,12 +54,36 @@ def kernels(s):
     s = re.sub(r"\ninline void (row_dot_multi|row_dot_pair_multi)\(", r"\n__attribute__((noinline)) void \1(", s)
     # IK2_SYNC_CHECK=1 (diagnostic): every launch's check("name") waits for the card and prints the name, so a hang or a device error
     # shows which kernel it was (CUDA's cudaGetLastError, which check() was written around, has no equivalent in SYCL).
-    s = s.replace("void check(const char* what) {\n", "void check(const char* what) {\n    static const bool sync_each = std::getenv(\"IK2_SYNC_CHECK\") != nullptr;\n"
-                  "    if (sync_each) {\n        try { dpct::get_current_device().queues_wait_and_throw(); std::fprintf(stderr, \"[ik2 done] %s\\n\", what); }\n"
-                  "        catch (const sycl::exception &ex) { std::fprintf(stderr, \"[ik2 FAILED] %s: %s\\n\", what, ex.what()); std::exit(2); }\n    }\n", 1) if "IK2_SYNC_CHECK" not in s else s
+    # IK2_SYNC_CHECK=2: no printing; the time from one check to the next (launch + the card's work, as the card is waited for) is added up
+    # per name and the table is printed at exit: where the time goes, per kernel.
+    if "IK2_SYNC_CHECK" not in s:
+        s = s.replace("void check(const char* what) {\n", """struct SyncStats {
+    std::map<std::string, std::pair<double, long>> t;
+    std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
+    ~SyncStats() {
+        std::vector<std::pair<double, std::string>> v;
+        double all = 0; for (auto &kv : t) { v.push_back({kv.second.first, kv.first}); all += kv.second.first; }
+        std::sort(v.rbegin(), v.rend());
+        if (v.empty()) return;
+        std::fprintf(stderr, "[ik2 time per launch name, %.3f s in all]\\n", all);
+        for (size_t i = 0; i < v.size() && i < 24; ++i) std::fprintf(stderr, "  %7.1f ms %5.1f%% %6ld x  %s\\n", v[i].first * 1e3, 100 * v[i].first / all, t[v[i].second].second, v[i].second.c_str());
+    }
+};
+void check(const char* what) {
+    static const char *mode = std::getenv("IK2_SYNC_CHECK");
+    static SyncStats stats;
+    if (mode) {
+        try {
+            dpct::get_current_device().queues_wait_and_throw();
+            if (mode[0] == '2') { const auto now = std::chrono::steady_clock::now(); auto &e = stats.t[what]; e.first += std::chrono::duration<double>(now - stats.last).count(); ++e.second; stats.last = now; }
+            else std::fprintf(stderr, "[ik2 done] %s\\n", what);
+        } catch (const sycl::exception &ex) { std::fprintf(stderr, "[ik2 FAILED] %s: %s\\n", what, ex.what()); std::exit(2); }
+    }
+""", 1)
     # dpct maps __shfl_*_sync(0xffffffff, ...) to its MASKED sub-group operations (DPCT1108, "experimental"); the full-mask forms are the
     # standard ones, built on select_from_group.  (Same replacement as sycl-poly's.)
     s = re.sub(r"dpct::experimental::(permute_sub_group_by_xor|shift_sub_group_left|shift_sub_group_right|select_from_sub_group)\(\s*0xffffffffu?,\s*", r"dpct::\1(", s)
+    if "#include <chrono>" not in s: s = s.replace("#include <algorithm>\n", "#include <algorithm>\n#include <chrono>\n#include <map>\n#include <string>\n#include <vector>\n", 1)   # (for check()'s statistics)
     # cp.async (see CP_ASYNC)
     a = s.find("__dpct_inline__ void cp_async16(void *dst, const void *src, bool valid) {")
     b = s.find("// one 64-key tile of K and V (rows kt .. kt+63")
