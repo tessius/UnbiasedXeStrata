@@ -56,3 +56,5 @@ differ.  XMX is the next prefill gain.  The AOT build drops the Xe-HPG and gener
 5. One `UR_RESULT_ERROR_DEVICE_LOST` every few runs, usually in the XMX layout probe at start or the first launch of a run (the
    process then hangs until its timeout).  Not understood; a retry works.
 6. Hand fixes were made to dpct output: re-migrating needs them re-applied (`tools/migrate_poly.sh`, `tools/fix_kernel_names.py`).
+
+**2026-11-25 Qwen prefill:** 442-446 tok/s direct on the engine with both old and clean-clone binaries (DEVLOG 29); the ~380 through the front end is unexplained. Start-up hangs (copy-engine faults in the kernel log) became frequent; cause open, retest after a reboot.

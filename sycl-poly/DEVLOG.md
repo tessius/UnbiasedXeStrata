@@ -628,3 +628,15 @@ A mistake worth keeping: a first Qwen check ran *while the Inkling server was st
 checked with `ps`, not by trusting that the `kill` matched.
 
 Docs: `sycl-ik2/README.md` (new), Inkling in the root README (build, model files from `unsloth/Inkling-2-Mini-GGUF` `Old_Support/`, measurements, what was and was not tested), Project Maya and the Inkling model in CREDITS / CONTRIBUTORS.
+
+## 29. Qwen prefill 380 vs 447 (2026-11-25)
+
+**The kernels did not get slower.**  The clean-clone binary and the old Nov-23 binary both give 442-446 tok/s on the 2,710-token facts prompt run directly on the engine
+(`strata-poly --tokens <ids> --max-new 60 --no-graphs --no-draft --max-context 4096`) whenever the run completes (446.3 clean; 445.8, 446.1, 436.8 old; 442.7 with `SYCL_UR_TRACE=2`).
+Two other direct runs read 348 and 357 (one batch, both binaries).  The ~380 seen through the front end (server mode, 2.6k-token prompts) was not re-measured in a good state, so whether the server path costs ~15% is **open**.
+
+**Start-up hang, much more frequent on 2026-11-25.**  Most `strata-poly` starts never reach "loaded in ...": stderr shows "the int8 XMX layout check did not run (... UR_RESULT_ERROR_DEVICE_LOST)", then the process sits in
+`Engine::alloc()` -> `event::wait` -> `urEventWait` (gdb stack).  Each hung run is followed in `journalctl -k` by `xe ... Engine memory CAT error: class=bcs` (the copy engine), "Fault response: Unsuccessful -ENOENT", an engine reset and "Timedout job ... in strata-poly".
+Ruled out: page cache/RAM (Qwen file fully cached, 28 GiB free), `STRATA_NO_XMX=1`, `--kv-whole`, `UR_L0_USE_COPY_ENGINE*=0`.  Standalone repros do not hang (10/10 each): a first-kernel + device-to-host copy, mmap + touching every page of the model file, reserving 22 GiB of GPU virtual address space (with and without mapping physical memory), spaced runs.
+One run under `SYCL_UR_TRACE=2` completed normally.  Not fixed; the hang is the "intermittent device-lost at start" of NOTES.md, now far more frequent, so the card/driver state is the main suspect (a GPU reset or reboot would tell; not done: the card drives the displays).
+Throughput numbers taken in this state should be repeated after a reboot.
