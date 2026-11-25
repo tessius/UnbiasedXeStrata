@@ -1490,7 +1490,7 @@ struct Work {
     float* wtr = nullptr;        // [S] the routing weight of each expert-sorted row
     float* wtr_h[2] = {nullptr, nullptr};
     // prefill attention: the relative bias of up to kRelbRows queries x heads, [rows * H][extent] (IK2_RELB=0: off)
-    static constexpr int kRelbRows = 512;
+    static constexpr int kRelbRows = 2048;
     float* relb = nullptr;
     int relb_ext = 0;
     uint16_t* lg16 = nullptr;   // the prefill attention's probabilities (FP16, lg_cap of them; aliases gu32)

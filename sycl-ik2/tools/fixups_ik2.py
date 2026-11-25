@@ -488,3 +488,6 @@ def pipe_main(s):
     s = s.replace(old_c, new_c, 1)
     return s
 edit("ik2_main.dp.cpp", pipe_main)
+
+# (Intel) the prefill attention's bias table covers 2048 queries a sub-call instead of 512 (200 MB instead of 50 MB): fewer, bigger flash calls; a 12,000-token prefill 6.43 -> 6.23 s.
+edit("ik2_main.dp.cpp", lambda s: s.replace("static constexpr int kRelbRows = 512;", "static constexpr int kRelbRows = 2048;", 1))

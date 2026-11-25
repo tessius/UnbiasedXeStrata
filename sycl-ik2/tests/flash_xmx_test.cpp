@@ -12,7 +12,7 @@
 
 static uint16_t h16(float f) { return sycl::bit_cast<uint16_t>(sycl::half(f)); }
 
-static void perf(int H, int KV, int Tq, int qpos0, int window, int extent, int n_split) {
+static double perf(int H, int KV, int Tq, int qpos0, int window, int extent, int n_split, bool quiet = false) {
     auto &q = dpct::get_in_order_queue();
     std::mt19937 rng(3); std::normal_distribution<float> nd(0.f, 1.f);
     const int D = 128, KD = KV * D, q_ld = H * D, nk = qpos0 + Tq;
@@ -30,15 +30,26 @@ static void perf(int H, int KV, int Tq, int qpos0, int window, int extent, int n
         ik2::k::attn_flash_f16(dq, q_ld, dk, dv, 0, H, KV, D, Tq, qpos0, 1.f / std::sqrt((float) D), extent ? db : nullptr, extent, window, dsink, dout, q_ld, dsc, scratch, n_split, &q);
         q.wait_and_throw(); best = std::min(best, std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count());
     }
+    if (quiet) { sycl::free(dq, q); sycl::free(dk, q); sycl::free(dv, q); sycl::free(db, q); sycl::free(dsink, q); sycl::free(dsc, q); sycl::free(dout, q); return best * 1e3; }
     const double keys = window < nk ? std::min<double>(window, qpos0 + Tq / 2.0) : qpos0 + Tq / 2.0;   // (average keys a query sees)
     std::printf("perf H%d KV%d Tq%d qpos0 %d window %s extent %d split %d: %.2f ms  (%.2f TFLOP/s of QK+PV)\n", H, KV, Tq, qpos0, window > 1000000 ? "full" : std::to_string(window).c_str(), extent, n_split,
                 best * 1e3, 4.0 * H * D * Tq * keys / best * 1e-12);
     sycl::free(dq, q); sycl::free(dk, q); sycl::free(dv, q); sycl::free(db, q); sycl::free(dsink, q); sycl::free(dsc, q); sycl::free(dout, q);
+    return best * 1e3;
 }
 
 int main(int argc, char **argv) {
+    if (argc > 1 && std::string(argv[1]) == "chunk") {   // one layer visit of a 4096-token chunk: the 8 sub-calls of 512 queries, sliding and full, by key-split count
+        for (int ns : {1, 2, 3, 4}) {
+            double sl = 0, fu = 0;
+            for (int q0 = 0; q0 < 4096; q0 += 512) { sl += perf(24, 8, 512, q0, 1024, 1024, ns, true); fu += perf(24, 8, 512, q0, 1 << 30, 1024, ns, true); }
+            std::printf("chunk split %d: sliding layer %.2f ms, full layer %.2f ms\n", ns, sl, fu);
+        }
+        return 0;
+    }
     if (argc > 1 && std::string(argv[1]) == "perf") {   // Inkling-2-Mini's shapes, a chunk of 1024 queries into a 4000-token context
-        perf(24, 8, 4096, 0, 1024, 1024, 1); perf(24, 8, 4096, 0, 1 << 30, 1024, 1); perf(24, 8, 4096, 4096, 1024, 1024, 1); perf(24, 8, 4096, 4096, 1 << 30, 1024, 1);   // (chunks of the engine's 4096 default: sliding / full, first / second chunk)
+        // what the engine really calls: sub-calls of kRelbRows = 512 queries (each after a GEMM that builds its bias table); sliding / full, early / late in a 4096-token chunk, and the key splits
+        for (int ns : {1, 2, 4}) { perf(24, 8, 512, 2048, 1024, 1024, ns); perf(24, 8, 512, 0, 1 << 30, 1024, ns); perf(24, 8, 512, 2048, 1 << 30, 1024, ns); perf(24, 8, 512, 3584, 1 << 30, 1024, ns); }
         if (argc > 2) { perf(24, 8, 1024, 3000, 1024, 0, 1); perf(24, 8, 1024, 3000, 1 << 30, 0, 1); }   // (no bias: what the relative bias costs)
         return 0;
     }

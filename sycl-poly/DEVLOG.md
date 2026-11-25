@@ -457,3 +457,20 @@ AOT: 6.0 / 10.2 / 6.9 / 27.6 ms (8.6-11.2 TFLOP/s, was ~4-5).
 
 Engine: 4000-token prefill 2.43 -> 2.10 s; 12,000 tokens 8.16 -> 6.44 s (-21%); same greedy tokens.  Through the front end 3988-token prompts prefill at ~1,710 tok/s (was ~1,490-1,510) and
 7,453-token prompts at ~1,655 (was ~1,410-1,470); 10 of 10 retrievals correct, decode 41.8 tok/s.  `tests/flash_xmx_test` against the emulated kernel: 7/7 (JIT and AOT).
+
+## 20. Inkling prefill attention: the logits pass (2026-11-25), Arc Pro B60
+
+Ablation of the flash kernel's softmax section at 256 registers (JIT, 4096-query shapes): skipping the *logits loop* (SLM read of S, scale, relative bias, mask, row max) saves 2.5-7 ms of 6.0 / 9.3 /
+6.2 / 24 ms, ~40% of the kernel; the S store to SLM, the exponent / probability stores and the O rescale are each 0.1-1 ms.  Tried, none faster (all kept the 7/7 comparison against the emulated
+kernel): 16-byte SLM loads of S and 16-byte stores of P (instead of 32 scalar loads and 2-byte stores), the 8 row factors held in registers once, the rescale skipped when no row's max moved
+(`any_of_group`), `native::exp2`, a tree reduction for the row max instead of a 32-long `fmax` chain, and the bias loads hoisted above the S products (+32 registers: slightly slower).  The loop is
+latency-bound (SLM, then the global bias loads), not instruction-bound, with < 4 threads an execution unit to cover it.
+
+What matters more: the real call size.  The engine does prefill attention in sub-calls of `Work::kRelbRows` queries, each after a GEMM that builds the relative-bias table ([rows * H][extent] floats, the
+kernel's biggest input); it was 512 rows, so the flash kernel (216-query blocks) saw 3 x 24 = 72 work-groups on 20 cores.  `tests/flash_xmx_test chunk` times a chunk's 8 sub-calls: the current
+kernel (27 sub-groups, no key split) is best of {8, 12, 16, 27} x {1..4 splits}: 10.4 ms a sliding layer visit, 16.9 ms a full one (a single 4096-query call: 5.3 ms sliding).  `kRelbRows` 2048
+(table 50 -> 200 MB): 12,000-token prefill 6.43 -> 6.23 s, 4000 tokens unchanged; 4096 is no better (400 MB).  Shipped: 2048.
+
+The ceiling: skipping the flash attention launches entirely (timing only) takes the 4000-token prefill from 2.07 to 1.84 s and the 12,000-token one from 6.25 to 5.29 s, i.e. the whole kernel is 11-15% of a
+prefill and the logits pass ~5%.  Only an in-kernel bias (bias = r . proj[dist], d_rel = 16: 5 extra products a tile on the matrix engine + an SLM gather, which also removes the table, its GEMM and the
+global loads) could remove most of it; not done.  Through the front end now: 3988-token prompts ~1,760 tok/s, 7,453-token ~1,717 (was ~1,710 / ~1,655); 10 of 10 retrievals correct, decode 41.5 tok/s.
