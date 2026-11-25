@@ -1414,6 +1414,10 @@ constexpr float kLog2e = 1.4426950408889634f;
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
 // item, not a correctness one.)
+// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
+// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
+// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
+// item, not a correctness one.)
 __dpct_inline__ void cp_async16(void *dst, const void *src, bool valid) {
     if (valid) *reinterpret_cast<sycl::uint4 *>(dst) = *reinterpret_cast<const sycl::uint4 *>(src);
     else *reinterpret_cast<sycl::uint4 *>(dst) = sycl::uint4(0, 0, 0, 0);

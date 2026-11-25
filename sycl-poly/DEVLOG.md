@@ -474,3 +474,31 @@ kernel (27 sub-groups, no key split) is best of {8, 12, 16, 27} x {1..4 splits}:
 The ceiling: skipping the flash attention launches entirely (timing only) takes the 4000-token prefill from 2.07 to 1.84 s and the 12,000-token one from 6.25 to 5.29 s, i.e. the whole kernel is 11-15% of a
 prefill and the logits pass ~5%.  Only an in-kernel bias (bias = r . proj[dist], d_rel = 16: 5 extra products a tile on the matrix engine + an SLM gather, which also removes the table, its GEMM and the
 global loads) could remove most of it; not done.  Through the front end now: 3988-token prompts ~1,760 tok/s, 7,453-token ~1,717 (was ~1,710 / ~1,655); 10 of 10 retrievals correct, decode 41.5 tok/s.
+
+## 21. Inkling decode (2026-11-25), Arc Pro B60
+
+Decode was 41.5 tok/s (24 ms a token).  In-situ cost of each group (temporary skip switches in the kernel launchers: outputs go stale but stay finite; 25.5 ms a token on the JIT build):
+
+| group | ms a token | share |
+|---|---|---|
+| expert kernels (gate/up + SwiGLU, down) | 11.4 | 45% |
+| attention decode (emulated-MMA kernel) | 4.0 | 16% |
+| `mv_q8p` (dense Q8 matvecs, ~113 a token) | 2.9 | 11% (~1 GB of weights a token: at the bandwidth floor) |
+| `mv_f16` (64 small matvecs a token) | 2.4 | 9% |
+| everything else (~800 small launches) | ~8.9 | the rest |
+
+**Shipped: the scalar decode attention by default** (`IK2_ATTN_MMA=0`; the engine's tensor-core path is the mma16816 emulation, slower here).  AOT, same tokens: decode 41.4 -> 45.0 tok/s at a short
+context, 33.1 -> 39.1 at a 4000-token context (+18%), 29.0 -> 36.6 at 12,000 (+26%).  Through the front end: 45 tok/s on short prompts, 38-39 after 4k-7.5k-token prompts; 10 of 10 retrievals correct.
+(Graph replay on or off (`IK2_GRAPH`) is 41.4 vs 41.2: decode is GPU-bound, not host-bound; a launch costs ~3 us.)
+
+**Tried on the expert kernels, none faster** (`tests/decode_experts_bench.cpp`: 8 distinct experts a launch in rotation, NVFP4, C = 2304, F = 1152; the generic kernels: gate/up 118 us = 203 GB/s,
+down 71 us = 168 GB/s, 9.07 ms a token, the card should do 400+ GB/s):
+- with the NVFP4 dot stubbed out (same loads, no decode arithmetic) they reach 89 / 51 us (269 / 233 GB/s): the arithmetic is ~25%, the loads' pattern most of the rest;
+- loads first (all 5 sub-blocks' weight words of a lane before using any): gate/up 157 us, slower (a first version of this change had a bug: the `else` covered only a declaration, so the old loop also ran
+  and the kernel did double work; after fixing it the result above stands);
+- wide loads (a lane owns 4 blocks = 144 contiguous bytes, 16-byte loads, 9 lanes a row, 3 rows a warp; down: 2 blocks, 8-byte loads) with a masked shuffle tree: correct (max diff at rounding level),
+  192 us (141 us with 256 registers) for gate/up, 75 us for down: slower.
+The floor for decode is ~4 ms of expert reads a token (1.7 GB); reaching it needs something other than a better load pattern (likely an int8 dot product with quantized activations, which changes the
+numerics: Inkling's router is full of near-ties).  Left alone.
+
+What else is in the 8.9 ms: ~800 small dependent launches (router, loop gates, norms, residual mixes, combine) at ~10 us each; fusing them is the lever, one kernel at a time.

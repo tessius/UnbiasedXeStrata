@@ -491,3 +491,15 @@ edit("ik2_main.dp.cpp", pipe_main)
 
 # (Intel) the prefill attention's bias table covers 2048 queries a sub-call instead of 512 (200 MB instead of 50 MB): fewer, bigger flash calls; a 12,000-token prefill 6.43 -> 6.23 s.
 edit("ik2_main.dp.cpp", lambda s: s.replace("static constexpr int kRelbRows = 512;", "static constexpr int kRelbRows = 2048;", 1))
+
+# (a loads-first rewrite of row_dot_2's NVFP4 branch was tried here and was slower: 157 vs 118 us; see DEVLOG)
+
+# (Intel) decode attention on the scalar kernels by default: the tensor-core path (mma16816 emulated with shuffles) is slower on this card, 18% slower decode at a 4000-token context
+# (33.1 vs 39.0 tok/s), slightly slower at short ones.  IK2_ATTN_MMA=1 brings the emulated path back.
+def attn_mma_default(s):
+    old = 'g_attn_mma = c.D == 128 && c.H / c.KV <= 8 ? (getenv("IK2_ATTN_MMA") ? std::atoi(getenv("IK2_ATTN_MMA")) : 1) : 0;'
+    if old not in s: return s
+    return s.replace(old, 'g_attn_mma = c.D == 128 && c.H / c.KV <= 8 ? (getenv("IK2_ATTN_MMA") ? std::atoi(getenv("IK2_ATTN_MMA")) : 0) : 0;', 1)
+edit("ik2_main.dp.cpp", attn_mma_default)
+
+# (decode's NVFP4 expert products with 16- / 8-byte loads were tried (9 lanes a row, 144-byte runs): correct, but slower than the generic kernels, 141-193 vs 118 us for gate/up; see DEVLOG)
