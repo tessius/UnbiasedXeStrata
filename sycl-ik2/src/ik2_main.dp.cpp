@@ -2415,14 +2415,50 @@ void run_prefill_moe(const Model& M, Layer& Ly, int l, int T, const uint16_t* xq
                 k::moe_gate_up_swiglu_xmx(d_tab, (int) tab.size(), max_cnt, sorted_input, C, F, Ly.eb[0], X.sg, X.su, c.gate_cap, c.up_cap, hid, g_s);
                 k::moe_down_xmx(d_tab, (int) tab.size(), max_cnt, hid, C, F, Ly.eb[0] + Ly.eb[1], sorted_out, g_s);
             } else {
-                for (int e : X.hit_exps) {
-                    const size_t offset = W.start[e];
-                    gate_up_product(e, sorted_input + offset * C, X.gu32 + offset * 2 * F);
+                static const int dec_group = std::min(16, std::max(1, getenv("IK2_DECODE_GROUP") ? atoi(getenv("IK2_DECODE_GROUP")) : 1));   // (opt-in: the decoded weights then leave the L2: slower)
+                const bool grouped = dec_group > 1 && Ly.ty[0] == k::kNVFP4 && Ly.ty[1] == k::kNVFP4 && Ly.ty[2] == k::kNVFP4 && Ly.ty[0] == Ly.ty[1];
+                static uint16_t *gw = nullptr, *dw = nullptr;   // (a group's decoded matrices: gate+up [G][2F][C], down [G][C][F])
+                if (grouped && !gw) {
+                    gw = (uint16_t*) sycl::malloc_device((size_t) dec_group * 2 * F * C * 2, g_s->get_device(), g_s->get_context());
+                    dw = (uint16_t*) sycl::malloc_device((size_t) dec_group * C * F * 2, g_s->get_device(), g_s->get_context());
+                }
+                const int nhit = (int) X.hit_exps.size();
+                if (grouped) {
+                    for (int i = 0; i < nhit; i += dec_group) {
+                        const int g = std::min(dec_group, nhit - i);
+                        const uint8_t* bl[16];
+                        for (int j = 0; j < g; ++j) bl[j] = X.slot_ptrs[X.hit_exps[i + j]];
+                        k::decode_f16_nvfp4_multi(bl, g, (size_t) 2 * F * C, gw, (size_t) 2 * F * C, g_s);
+                        for (int j = 0; j < g; ++j) {
+                            const int e = X.hit_exps[i + j];
+                            const size_t offset = W.start[e];
+                            gemm16(gw + (size_t) j * 2 * F * C, 2 * F, C, sorted_input + offset * C, W.cnt[e], X.gu32 + offset * 2 * F, 2 * F);
+                        }
+                    }
+                } else {
+                    for (int e : X.hit_exps) {
+                        const size_t offset = W.start[e];
+                        gate_up_product(e, sorted_input + offset * C, X.gu32 + offset * 2 * F);
+                    }
                 }
                 k::swiglu_cap_f32(X.gu32, S, F, X.sg, X.su, c.gate_cap, c.up_cap, sorted_input, g_s);
-                for (int e : X.hit_exps) {
-                    const size_t offset = W.start[e];
-                    down_product(e, sorted_input + offset * F, sorted_out + offset * C);
+                if (grouped) {
+                    for (int i = 0; i < nhit; i += dec_group) {
+                        const int g = std::min(dec_group, nhit - i);
+                        const uint8_t* bl[16];
+                        for (int j = 0; j < g; ++j) bl[j] = X.slot_ptrs[X.hit_exps[i + j]] + Ly.eb[0] + Ly.eb[1];
+                        k::decode_f16_nvfp4_multi(bl, g, (size_t) C * F, dw, (size_t) C * F, g_s);
+                        for (int j = 0; j < g; ++j) {
+                            const int e = X.hit_exps[i + j];
+                            const size_t offset = W.start[e];
+                            gemm16(dw + (size_t) j * C * F, C, F, sorted_input + offset * F, W.cnt[e], sorted_out + offset * C, C);
+                        }
+                    }
+                } else {
+                    for (int e : X.hit_exps) {
+                        const size_t offset = W.start[e];
+                        down_product(e, sorted_input + offset * F, sorted_out + offset * C);
+                    }
                 }
             }
             {
@@ -5502,7 +5538,7 @@ catch (sycl::exception const &exc) {
 
 int main(int argc, char** argv) {
     std::string model, toks, dump, draft_path, pictures_path;
-    int gen = 16, chunk = 2048, ctx = 262144, threads = 8, n_gpu = 1;
+    int gen = 16, chunk = 4096, ctx = 262144, threads = 8, n_gpu = 1;
     bool serve = false, serve_maya = true;   // (--serve: Maya's engine protocol; --serve-ik2: the @-line one)
     std::vector<int> eos_ids;                 // --eos a,b: the tokens a request ends at (Maya's protocol)
     double cache_gb = 60;
@@ -5565,7 +5601,7 @@ int main(int argc, char** argv) {
     }
     g_serve_note = serve && serve_maya;
     if (model.empty() || (toks.empty() && !serve))
-        die("usage: strata-ik2 --model FIRST.gguf (--tokens 1,2,3 [--gen N] | --serve) [--chunk 2048] [--ctx N] ...");
+        die("usage: strata-ik2 --model FIRST.gguf (--tokens 1,2,3 [--gen N] | --serve) [--chunk 4096] [--ctx N] ...");
     std::vector<int> prompt;
     for (const char* p = toks.c_str(); *p;) {
         prompt.push_back(std::atoi(p));

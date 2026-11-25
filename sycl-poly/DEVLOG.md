@@ -370,3 +370,24 @@ It ships as opt-in (`IK2_DECODE_LUT=1`); the default is the original kernel.
 What would help: fewer launches, not faster kernels: decode several experts' weights per launch into a few FP16 buffers and batch the GEMMs (oneMKL group
 `gemm_batch` accepts a different M per group), or the fused-dequant GEMM of section 13 with proper register blocking.  Together the expert path is
 ~0.4 s (decode) + ~0.3 s (GEMMs and glue) of a 2.8 s prefill; attention ~0.85 s; the rest is the dense GEMMs, loop gates and small kernels.
+
+## 16. Fewer expert decodes in prefill (2026-11-25), Arc Pro B60
+
+**Correction to section 15.**  I called the ~13,500 decode launches "launch latency".  A micro-test (`use_root_sync` or not, 16 to 4096 work-groups) puts a back-to-back
+launch at ~3 us, so the 0.42 s is GPU time: ~28 us a decode x 13,500.  The lever is how many decodes there are, not how fast each launches.
+
+**Tried: several experts' matrices per launch** (`decode_f16_nvfp4_multi`, `IK2_DECODE_GROUP=N`, up to 16, each into its own FP16 buffer, then the experts' GEMMs).  Fewer
+launches (-75% at N = 4, -88% at N = 8) but *slower*: 4000-token prefill 2.81 s -> 3.24 s (N = 4), 3.30 s (N = 8, 16).  The single reused FP16 buffer of the per-expert path
+stays in the L2 between the decode and its GEMM; a group's 40-170 MB of decoded weights spills to DRAM and is read back.  Kept as opt-in, default 1.  Same tokens.
+
+**Shipped: a bigger prefill chunk.**  The engine decodes every hit expert once a layer visit *per chunk*, so the chunk size (`--chunk`, default 2048; a looped model cannot use the
+engine's layer-major super-chunk mode, which is for n_pass == 1) sets the number of decodes.  Default now 4096.  Greedy tokens identical in every run.
+
+| prompt | chunk 1024 | 2048 (old default) | 4096 (new) | 8192 |
+|---|---|---|---|---|
+| 4000 tokens | 3.32 s | 2.80 s | **2.49 s** | |
+| 12000 tokens | | 9.39 s | **8.46 s** | 8.08 s |
+
+(4096 vs 2048: -11% and -10%; 8192 saves 4% more for ~1.2 GiB of VRAM, so not the default.)  At a 131,072-token context the 4096 chunk costs 0.3 GiB more K / V cache (the
+sliding layers keep window + chunk).  Through the front end: 3988-token prompts prefill at ~1490-1510 tok/s (was ~1325), a 7453-token prompt (two chunks) at ~1410-1470; 10 of 10
+retrievals correct, including items from before and after the chunk boundary; decode unchanged (41.8 tok/s).

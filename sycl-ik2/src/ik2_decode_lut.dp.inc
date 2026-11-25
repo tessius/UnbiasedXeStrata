@@ -33,3 +33,23 @@ void decode_f16_nvfp4_half(const uint8_t *blocks, size_t n, uint16_t *out, dpct:
 }
 bool g_decode_lut = std::getenv("IK2_DECODE_LUT") && std::atoi(std::getenv("IK2_DECODE_LUT"));   // opt-in (IK2_DECODE_LUT=1): ~25% faster in a loop, 21-36 us run to run, no gain end to end
 void set_decode_lut(bool on) { g_decode_lut = on; }
+
+// Several experts' NVFP4 matrices in ONE launch (prefill used to launch a decode per expert and matrix, ~13,500 small launches in a 4000-token prompt): matrix g of
+// the group -> out + g * out_stride.  decode_f16_nvfp4_kernel's arithmetic, so the output is identical.
+constexpr int kDecMultiMax = 16;
+struct DecMultiArgs { const uint8_t *blob[kDecMultiMax]; };
+void decode_f16_nvfp4_multi(const uint8_t *const *blobs, int ne, size_t n, uint16_t *out, size_t out_stride, dpct::queue_ptr s) {
+    DecMultiArgs a;
+    for (int i = 0; i < ne; ++i) a.blob[i] = blobs[i];
+    const size_t nsub = n / 16;
+    const unsigned gx = (unsigned) ((nsub + 255) / 256);
+    s->submit([&](sycl::handler &cgh) {
+        cgh.parallel_for<class decode_f16_nvfp4_multi_kernel_name>(
+            sycl::nd_range<3>(sycl::range(1, ne, gx) * sycl::range(1, 1, 256), sycl::range(1, 1, 256)),
+            [=](sycl::nd_item<3> it) [[sycl::reqd_sub_group_size(32)]] {
+                const int g = (int) it.get_group(1);
+                decode_f16_nvfp4_kernel(a.blob[g], nsub, out + (size_t) g * out_stride);
+            });
+    });
+    check("decode_f16_nvfp4");
+}
