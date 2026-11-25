@@ -391,3 +391,24 @@ engine's layer-major super-chunk mode, which is for n_pass == 1) sets the number
 (4096 vs 2048: -11% and -10%; 8192 saves 4% more for ~1.2 GiB of VRAM, so not the default.)  At a 131,072-token context the 4096 chunk costs 0.3 GiB more K / V cache (the
 sliding layers keep window + chunk).  Through the front end: 3988-token prompts prefill at ~1490-1510 tok/s (was ~1325), a 7453-token prompt (two chunks) at ~1410-1470; 10 of 10
 retrievals correct, including items from before and after the chunk boundary; decode unchanged (41.8 tok/s).
+
+## 17. Inkling prefill dense GEMMs (2026-11-25), Arc Pro B60: already at the matrix engine's speed, left alone
+
+A temporary profiler around `gemm16` (wait, time, key by N / K / T; not committed) on a 4000-token prefill (one 4096-token chunk), 2.73 s in all, GEMM time 0.83 s:
+
+| products | calls | ms | TFLOP/s |
+|---|---|---|---|
+| dense (q/k/v/o, gate, projections), T = 4000, N >= 1000 | 486 | 261 | **74.5** |
+| dense, router (N 128) and sink (N 24) | 112 | 21 | 6.9 |
+| experts of the batched layers, T 64..2999 | 3,408 | 380 | 38.9 |
+| tiny T (the decode step, cold experts) | 4,424 | 163 | 3.4 |
+
+The dense GEMMs are oneMKL's: N8576 x K2304 x T4000 in 2.5 ms (63 TFLOP/s), N2304 x K3072 in 0.71 ms (79), N3456 in 0.82 ms (77): about three quarters of the card's FP16 matrix peak.
+Their FP16 weight decode (Q8 -> FP16 before each GEMM) is 24 ms in all (caching the FP16 weights would cost ~2.2 GiB of VRAM for that).  The only slow dense shapes are the router
+and sink products (21 ms, 0.8% of the prefill).  Nothing worth a change; nothing was committed to the engine.
+
+Mistake avoided: the per-kernel `IK2_SYNC_CHECK=2` table charges the time since the previous launch to a kernel, so the element-wise kernels after a GEMM (swiglu_cap_f32, conv4_res,
+attn_res) look slow because they include the GEMM before them.  Read GEMM cost from a GEMM-level profile.
+
+Where a 4000-token prefill's 2.7 s goes now (approximately): GEMMs 0.83 s (dense 0.28, experts 0.54), expert NVFP4 weight decode 0.4, attention 0.85 (section 14), the rest small kernels.
+The expert GEMMs (39 TFLOP/s on small, ragged token counts, plus the decode that feeds them) are the largest remaining piece; the fused-dequant kernel of section 13 is the way in.
