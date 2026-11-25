@@ -617,3 +617,14 @@ needs are 4x as many (16 sub-blocks, not 4.5) and, staged or not, cost more than
 
 With the activation side (section 26) and the weight side both measured, the NVFP4 limb kernels are where this card's load path and occupancy put them (~250 GB/s of weights, 62% of a 400 GB/s ceiling) for any lane/row mapping I could write in SYCL; what remains is outside this kernel
 (fewer, larger work per launch, fusing the pack launch into the previous kernel, or a different quantization of what the experts read).
+
+## 28. Clean-clone build and docs (2026-11-25)
+
+`git clone --branch intel-poly-sycl` of the repository (the `third_party/llama.cpp` submodule's files copied in, no network), then `make intel -j8` in the clone: **built all three binaries** (`unbiased-strata`, `strata-poly`, `strata-ik2`), AOT for bmg-g21 (the log is
+`docs/logs/clean-clone-make-intel-2026-11-25.log`).  `make intel-test` there: exit 0, the poly tests and the six sycl-ik2 tests (results: `docs/logs/clean-clone-intel-test-results-2026-11-25.log`).  `make intel-test` now builds and runs the sycl-ik2 tests too.
+Run from those binaries, one model at a time: Inkling 10 of 10 retrievals, ~1,900 tok/s prefill, 47-57 tok/s decode; Qwen 3 of 3 retrievals (decode 33 tok/s, prefill ~380 tok/s: below the 2026-11-23 figures, see NOTES.md).
+
+A mistake worth keeping: a first Qwen check ran *while the Inkling server was still up* (my cleanup `kill` pattern did not match its process), the two shared the 24 GB card, and Qwen decoded at 2.6 tok/s.  Servers are now stopped by exact PID, and "no servers running" is
+checked with `ps`, not by trusting that the `kill` matched.
+
+Docs: `sycl-ik2/README.md` (new), Inkling in the root README (build, model files from `unsloth/Inkling-2-Mini-GGUF` `Old_Support/`, measurements, what was and was not tested), Project Maya and the Inkling model in CREDITS / CONTRIBUTORS.

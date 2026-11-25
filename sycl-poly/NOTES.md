@@ -21,6 +21,14 @@ Qwen3.6-35B-A3B UD-Q4_K_XL (Unsloth), all 10,240 experts in VRAM (18.3 GiB), `--
 - **Decode** 82 tok/s on short answers; 49 tok/s on a 472-token story (`--no-draft`), 69 with the draft head, ~100 on counting.
 - Only Qwen3.6 was run. GLM / Gemma / DeepSeek / LFM2 compile, are untested.
 
+## Status (2026-11-25): clean build from a fresh clone, and the Inkling engine
+- `git clone` of the committed branch + `make intel` (AOT for the Arc Pro B60, about 20 minutes with `-j8`) builds the front end, `strata-poly` and `strata-ik2` into `build-intel/bin/`; `make intel-test` passes
+  (the three poly tests and the six `sycl-ik2` tests).  Logs: `docs/logs/clean-clone-*-2026-11-25.log`.
+- From those binaries: Inkling-2-Mini through `--engine strata-ik2` (by name): 10 of 10 retrievals at ~4k and ~7.5k tokens, prefill ~1,900 tok/s, decode 47-57 tok/s; Qwen3.6 through `--engine strata-poly`: 3 of 3 retrievals at 2.6k tokens.
+- **Not reconciled:** that Qwen run measured prefill ~380 tok/s and decode 33 tok/s (80-token answer, no draft head) *through the front end*, against the 447 tok/s and 49-82 tok/s recorded on 2026-11-23 (engine run directly).  The card's clocks drift ~3% between
+  sessions and the front end adds work, but that does not explain 15%; not investigated.  Treat the 2026-11-23 numbers as unverified until re-measured the same way.
+- Inkling status, switches and measurements: [`../sycl-ik2/README.md`](../sycl-ik2/README.md).  The other UnbiasedStrata engines (`strata` Flash-Next, `strata-dsv41`, `hy4flash`) are not ported.
+
 ## Unit tests (build targets, run by hand; each compares a kernel with a CPU reference)
 `poly_gdn_q_test` (gated delta rule, 300 stateful steps), `poly_attend_q_test` (attend(), head 256, 16 context lengths),
 `poly_rope_q_test` (head_norm_rope, 700 positions).  The gdn test is what found the bug below.
