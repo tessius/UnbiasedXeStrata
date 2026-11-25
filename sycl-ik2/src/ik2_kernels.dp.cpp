@@ -825,7 +825,7 @@ __dpct_inline__ void attn_res_warp0_softmax(float sh_red[][kResMax * 4],
     }
 }
 
-constexpr int kResGroup = 12;
+constexpr int kResGroup = 4;
 template <bool FUSED_RMS, int BLOCK_THREADS>
 /*
 DPCT1110: The total declared local variable size in device function
@@ -1348,98 +1348,6 @@ constexpr int kFaBN = 64, kFaD = 128, kFaLd = kFaD + 8;   // (row pad: conflict-
 constexpr float kLog2e = 1.4426950408889634f;
 
 #include "ik2_mma_emul.dp.inc"   // SYCL: the tensor-core primitives, emulated (see that file)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
-// SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
-// invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
-// reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
-// item, not a correctness one.)
 // SYCL: cp.async is NVIDIA's asynchronous global-to-shared copy.  Here it is a plain copy that finishes before it returns (the
 // invalid case zero-fills, as cp.async's src-size 0 does), so commit/wait have nothing to do: every caller waits and then
 // reaches a barrier before reading the tile.  (The overlap of the next tile's loads with this tile's compute is lost: a speed
@@ -3720,20 +3628,21 @@ __dpct_inline__ void nv_input(const float *x, const uint16_t *h, int K,
                      item_ct1.get_group(1), q8);
 }
 
+// byte -> (value of its low nibble, value of its high nibble) as signed int8, the doubled E2M1 values {0, 1, 2, 3, 4, 6, 8, 12} with their signs   (nv_limb_lut)
+__dpct_inline__ uint16_t nv_limb_lut_entry(int b) {
+    const int mag[8] = {0, 1, 2, 3, 4, 6, 8, 12};
+    const int lo = (b & 8) ? -mag[b & 7] : mag[b & 7], hi = (b & 0x80) ? -mag[(b >> 4) & 7] : mag[(b >> 4) & 7];
+    return (uint16_t) (((uint32_t) lo & 0xFFu) | (((uint32_t) hi & 0xFFu) << 8));
+}
 __dpct_inline__ float nv_limb_dot(const uint8_t *row, int sub,
-                                  const NvInput &x) {
+                                  const NvInput &x, const uint16_t *lut) {
     const uint8_t* b = row + 36 * (sub / 4);
     const uint32_t* words = (const uint32_t*)(b + 4 + 8 * (sub % 4));
     int hi = 0, lo = 0;
 #pragma unroll
     for (int j = 0; j < 4; ++j) {
         const uint32_t nib = words[j / 2] >> (16 * (j % 2));
-        const uint32_t pos =
-            dpct::byte_level_permute(0x03020100, 0x0c080604, nib);
-        const uint32_t neg =
-            dpct::byte_level_permute(0xfdfeff00, 0xf4f8fafc, nib);
-        const int val =
-            dpct::byte_level_permute(pos, neg, 0x3210 | ((nib & 0x8888) >> 1));
+        const int val = (int) ((uint32_t) lut[nib & 0xFFu] | ((uint32_t) lut[(nib >> 8) & 0xFFu] << 16));
         hi = dpct::dp4a(val, x.high[j], hi);
         lo = dpct::dp4a(val, x.low[j], lo);
     }
@@ -3759,6 +3668,9 @@ __dpct_inline__ void nv_limb_mv(
     int F, const float *sg, const float *su, float gcap, float ucap,
     uint16_t *hidden, float *y) {
     auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    auto &lut = *sycl::ext::oneapi::group_local_memory_for_overwrite<uint16_t[256]>(sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    for (int i = (int) item_ct1.get_local_id(2); i < 256; i += (int) item_ct1.get_local_range(2)) lut[i] = nv_limb_lut_entry(i);
+    item_ct1.barrier();
     const int lane = item_ct1.get_local_id(2) % 32,
               warp = item_ct1.get_local_id(2) / 32,
               slot = item_ct1.get_group(1);
@@ -3774,8 +3686,8 @@ __dpct_inline__ void nv_limb_mv(
     float a = 0, b = 0;
     for (int s = lane; s < K / 16; s += 32) {
         const NvInput z = xp[s];
-        a += Q8 ? q8_limb_dot(row, s, z) : nv_limb_dot(row, s, z);
-        b += Q8 ? q8_limb_dot(second, s, z) : nv_limb_dot(second, s, z);
+        a += Q8 ? q8_limb_dot(row, s, z) : nv_limb_dot(row, s, z, lut);
+        b += Q8 ? q8_limb_dot(second, s, z) : nv_limb_dot(second, s, z, lut);
     }
     a = wsum(a);
     b = wsum(b);
@@ -7392,7 +7304,7 @@ void launch_attn_res(const ResStates &states, int n, const float *q, int nq,
                                          dpct_kernel_scalar<512>>>(
             sycl::nd_range<3>(g * sycl::range(1, 1, 512),
                               sycl::range(1, 1, 512)),
-            sycl::ext::oneapi::experimental::properties{sycl::ext::oneapi::experimental::use_root_sync, sycl::ext::intel::experimental::grf_size<256>},
+            exp_props,
             [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(32)]] {
                 attn_res_vec4_kernel<FUSED_RMS, 512>(states, n, q, nq, T, C,
                                                      res_eps, rms_eps, out,

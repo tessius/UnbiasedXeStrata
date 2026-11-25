@@ -544,3 +544,27 @@ ten varied prompts, temperature 0, ~120 tokens each, reference build against new
 (Run it before and after any change that reorders sums; identical or near-tie divergence is the expected outcome, repeated garbage is not.)
 
 Not done: `attn_decode` split (7 us), `loop_gates (apply)` (6), `moe_combine_conv`, `rms_multi` are small already; `prep_qkv`'s head warps and `attn_res`' two passes are the next-longest chains.
+
+## 24. Inkling decode: the expert kernels (2026-11-25), Arc Pro B60
+
+The generic expert kernels (gate/up + SwiGLU 118 us, down 71 us, 9.07 ms a token at ~200 GB/s: `tests/decode_experts_bench`) resisted three restructurings (section 21: loads first, wide loads, ...).  What worked is a path the
+engine already had and nobody had run here: **`IK2_EXPERT_LIMB`**, the NVFP4 experts as *int8 dot products* (dp4a) over a two-limb int8 copy of the activations (`nv_input` / `pack_limbs`: two signed bytes and one FP32 scale a
+16 values, ~14 bits).  As ported it was *slower* than the generic kernels (LIMB=1: 38.7 tok/s, 2: 43.7, 3: 33.6 vs 52.5): `nv_limb_dot` expanded each 4-nibble group to int8x4 with three `dpct::byte_level_permute` calls, which on
+Intel are four variable 64-bit shifts each.  The activations' byte order already follows the nibbles, so the expansion is **two lookups in a 256-entry SLM table** (byte -> its two nibbles as signed int8, the doubled E2M1 values
+{0, 1, 2, 3, 4, 6, 8, 12}), filled once a work-group.  Then (same session, AOT):
+
+| `IK2_EXPERT_LIMB` | short ctx | 4000-token ctx | 12,000-token ctx |
+|---|---|---|---|
+| 0 (generic kernels) | 52.7 tok/s | 44.7 | 41.6 |
+| **3 (gate/up + down on int8 dots; the new default)** | **56.8** | **47.7** | **44.0** |
+
+(+7.8%, +6.6%, +6%.)  The 4 visits with Q8_0 experts keep the generic kernels.  **Numerics are the better news**: the limb path reproduces the *original* reference build's greedy answers on 10 of 10 prompts of
+`docs/validate/ab_greedy.py` (the reordered-sum small-kernel changes of section 23 had moved one answer at a near-tie: "cream or milk" -> "cream or coconut milk"; limb brings it back), and the `--tokens 1,2,3` smoke test is back
+to `90 16 92 1 ...`.  `IK2_EXPERT_LIMB=0` restores the generic kernels.  Retrieval 10 of 10; through the front end ~55-56 tok/s on short prompts, 45-47 after 4k-7.5k-token prompts.
+
+**Tried on the limb kernels, no gain** (always compared with a baseline from the *same session*: the card's clocks drift ~3% between sessions, which made two experiments look slower than they were until the baseline was re-run):
+the activation records staged in SLM (neutral), the 36-byte record padded to 48 / 16-byte aligned for vector loads (neutral), 4 copies of the table at staggered banks (slower: 51.3 vs 54.9, the fill), 8 or 16 warps a work-group
+(54.4 / 54.1 vs 54.8), the table as a compile-time constant array (much slower: 44.5, random 2-byte constant loads).  The kernel is per sub-block lane-strided like the generic ones; the table lookups and the dp4a are no longer its cost.
+
+What is left in the experts (~7 ms of a ~18 ms token): the limb kernels at ~84 us a launch.  The ideas that remain are the int8 *activation* side (one limb instead of two: half the dp4a, ~7 bits: a numerics change) and
+splitting rows over more of the card; neither done.

@@ -676,3 +676,50 @@ def route_rank_vec(s):
     }"""
     return s.replace(old, new, 1)
 edit("ik2_kernels.dp.cpp", route_rank_vec)
+
+# The limb kernels (IK2_EXPERT_LIMB: NVFP4 experts by int8 dot products over a two-limb int8 copy of the activations) expanded each four-nibble group to int8x4 with three byte_level_permute calls
+# (four variable 64-bit shifts each on Intel).  A 256-entry SLM table (byte -> its two nibbles as signed int8) does it in two lookups; the activations' byte order already follows the nibbles.
+def limb_lut(s):
+    if "nv_limb_lut" in s: return s
+    old = """__dpct_inline__ float nv_limb_dot(const uint8_t *row, int sub,
+                                  const NvInput &x) {"""
+    assert old in s, "nv_limb_dot not found"
+    s = s.replace(old, """// byte -> (value of its low nibble, value of its high nibble) as signed int8, the doubled E2M1 values {0, 1, 2, 3, 4, 6, 8, 12} with their signs   (nv_limb_lut)
+__dpct_inline__ uint16_t nv_limb_lut_entry(int b) {
+    const int mag[8] = {0, 1, 2, 3, 4, 6, 8, 12};
+    const int lo = (b & 8) ? -mag[b & 7] : mag[b & 7], hi = (b & 0x80) ? -mag[(b >> 4) & 7] : mag[(b >> 4) & 7];
+    return (uint16_t) (((uint32_t) lo & 0xFFu) | (((uint32_t) hi & 0xFFu) << 8));
+}
+__dpct_inline__ float nv_limb_dot(const uint8_t *row, int sub,
+                                  const NvInput &x, const uint16_t *lut) {""", 1)
+    old2 = s[s.index("        const uint32_t pos =\n            dpct::byte_level_permute(0x03020100, 0x0c080604, nib);"):s.index("        hi = dpct::dp4a(val, x.high[j], hi);")]
+    s = s.replace(old2, "        const int val = (int) ((uint32_t) lut[nib & 0xFFu] | ((uint32_t) lut[(nib >> 8) & 0xFFu] << 16));\n", 1)
+    # the kernel: fill the table before anything returns, pass it on
+    old3 = """    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    const int lane = item_ct1.get_local_id(2) % 32,
+              warp = item_ct1.get_local_id(2) / 32,
+              slot = item_ct1.get_group(1);
+    const int K = Gate ? C : F, N = Gate ? F : C;"""
+    assert old3 in s, "nv_limb_mv head not found"
+    s = s.replace(old3, """    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    auto &lut = *sycl::ext::oneapi::group_local_memory_for_overwrite<uint16_t[256]>(sycl::ext::oneapi::this_work_item::get_work_group<3>());
+    for (int i = (int) item_ct1.get_local_id(2); i < 256; i += (int) item_ct1.get_local_range(2)) lut[i] = nv_limb_lut_entry(i);
+    item_ct1.barrier();
+    const int lane = item_ct1.get_local_id(2) % 32,
+              warp = item_ct1.get_local_id(2) / 32,
+              slot = item_ct1.get_group(1);
+    const int K = Gate ? C : F, N = Gate ? F : C;""", 1)
+    s = s.replace("a += Q8 ? q8_limb_dot(row, s, z) : nv_limb_dot(row, s, z);", "a += Q8 ? q8_limb_dot(row, s, z) : nv_limb_dot(row, s, z, lut);", 1)
+    s = s.replace("b += Q8 ? q8_limb_dot(second, s, z) : nv_limb_dot(second, s, z);", "b += Q8 ? q8_limb_dot(second, s, z) : nv_limb_dot(second, s, z, lut);", 1)
+    return s
+edit("ik2_kernels.dp.cpp", limb_lut)
+
+# (Intel) the int8 limb path for NVFP4 experts by default (gate/up = 1, down = 2): with the byte -> int8 table it is faster than the generic kernels (56.7 vs 52.4 tok/s) and nearer the
+# reference numerics (two int8 limbs of the activations: ~14 bits).  IK2_EXPERT_LIMB=0 restores the generic kernels.
+edit("ik2_main.dp.cpp", lambda s: s.replace('static const int limb = getenv("IK2_EXPERT_LIMB") ? atoi(getenv("IK2_EXPERT_LIMB")) : 0;', 'static const int limb = getenv("IK2_EXPERT_LIMB") ? atoi(getenv("IK2_EXPERT_LIMB")) : 3;', 1))
+
+# (staging the limb kernels' activation records in SLM was tried here: slower, 54.6 vs 56.7 tok/s; see DEVLOG)
+
+# (padding NvInput to 48 bytes / 16-byte aligned for vector loads was tried here: slower, 54.9 vs 56.7 tok/s; see DEVLOG)
+
+# (a larger work-group for the limb kernels (8 / 16 warps instead of 4) was tried here: slightly slower, 54.4 / 54.1 vs 54.8 tok/s; see DEVLOG)

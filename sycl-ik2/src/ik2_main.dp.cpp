@@ -3345,7 +3345,7 @@ void fast_token_launches(Model& M, Work& W, OutMode out_mode) {
         k::mv_f16(Ly.router16, c.E, C, W.xq, W.rlog, g_s);
         int* rtop = W.route_d;
         float* rw = (float*) (W.route_d + c.K);
-        static const int limb = getenv("IK2_EXPERT_LIMB") ? atoi(getenv("IK2_EXPERT_LIMB")) : 0;
+        static const int limb = getenv("IK2_EXPERT_LIMB") ? atoi(getenv("IK2_EXPERT_LIMB")) : 3;
         const bool q8_gate = Ly.ty[0] == k::kQ8_0 && Ly.ty[1] == k::kQ8_0;
         const bool fast_gate =
             C % 64 == 0 && (((limb & 1) && Ly.ty[0] == k::kNVFP4 && Ly.ty[1] == k::kNVFP4) || ((limb & 4) && q8_gate));
