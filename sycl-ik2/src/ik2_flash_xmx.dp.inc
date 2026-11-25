@@ -9,10 +9,11 @@
 // Each sub-group, for its 8 queries:  S[8x64] = Q K^T (4 x 8 mads of 8x16x16, F32 accumulate) -> stored in SLM -> online softmax by the lanes (2 lanes a
 // row, log2 domain, mask / window / relative bias exactly as the CUDA kernel) -> P (FP16) in SLM -> O[8x128] += P V (4 x 8 mads), O rescaled in place.
 namespace xmx = sycl::ext::oneapi::experimental::matrix;
-constexpr int kXNSG = 16, kXBM = 8 * kXNSG, kXBN = 64, kXNT = 16 * kXNSG;   // (sub-groups a work-group, queries, keys a tile, threads)
+constexpr int kXNSG = 27, kXBM = 8 * kXNSG, kXBN = 64, kXNT = 16 * kXNSG;   // (sub-groups a work-group, queries, keys a tile, threads)
 constexpr int kXKpLd = 68, kXVpLd = 132;   // (words a packed row: a pad against bank conflicts, and 64-byte aligned blocks)
 constexpr int kXSsLd = 68, kXPsLd = 72;   // (floats / halves a row of the logits / probabilities: a pad against bank conflicts in the softmax, 16-byte aligned rows)
-constexpr int kXPerSg = 8 * 128 * 2 + 8 * kXSsLd * 4 + 8 * kXPsLd * 2 + 8 * 4;   // Qs (half) + Ss (float) + Ps (half) + cs (float)
+constexpr int kXWork = 8 * kXSsLd * 4 + 8 * kXPsLd * 2 + 8 * 4;   // Ss (float) + Ps (half) + cs (float)
+constexpr int kXPerSg = kXWork > 8 * 128 * 2 ? kXWork : 8 * 128 * 2;   // (Qs, 2 KB, is dead once its fragments are loaded: the logits / probabilities use its room)
 constexpr int kXSmem = 64 * kXKpLd * 4 + 32 * kXVpLd * 4 + kXNSG * kXPerSg;
 bool g_flash_xmx = !(std::getenv("IK2_FLASH_XMX") && !std::atoi(std::getenv("IK2_FLASH_XMX")));   // IK2_FLASH_XMX=0 (or set_flash_xmx(false)): the CUDA kernel's emulated path
 
@@ -32,9 +33,9 @@ __dpct_inline__ void attn_flash_xmx_kernel(
     uint32_t *Vp = Kp + 64 * kXKpLd;
     uint8_t *mine = (uint8_t *) (Vp + 32 * kXVpLd) + sgi * kXPerSg;
     sycl::half *Qs = (sycl::half *) mine;
-    float *Ss = (float *) (mine + 8 * 128 * 2);
-    sycl::half *Ps = (sycl::half *) (mine + 8 * 128 * 2 + 8 * kXSsLd * 4);
-    float *cs = (float *) (mine + 8 * 128 * 2 + 8 * kXSsLd * 4 + 8 * kXPsLd * 2);
+    float *Ss = (float *) mine;
+    sycl::half *Ps = (sycl::half *) (mine + 8 * kXSsLd * 4);
+    float *cs = (float *) (mine + 8 * kXSsLd * 4 + 8 * kXPsLd * 2);
 
     const int i0 = (int) it.get_group(2) * kXBM;
     const int i_last = sycl::min(Tq, i0 + kXBM) - 1;
@@ -57,6 +58,7 @@ __dpct_inline__ void attn_flash_xmx_kernel(
     sycl::group_barrier(sg);
     xmx::joint_matrix<sycl::sub_group, sycl::half, xmx::use::a, 8, 16, xmx::layout::row_major> qa[8];
     for (int kk = 0; kk < 8; ++kk) xmx::joint_matrix_load(sg, qa[kk], xmx_local(Qs + kk * 16), 128);
+    sycl::group_barrier(sg);   // (the fragments are in registers: Qs's room is the logits' from here)
     xmx::joint_matrix<sycl::sub_group, float, xmx::use::accumulator, 8, 16> o[8];
     for (int j = 0; j < 8; ++j) xmx::joint_matrix_fill(sg, o[j], 0.0f);
     float m = -INFINITY, l = 0.0f;   // this lane's row: running max (log2 units), and the sum of its half of the columns
@@ -91,6 +93,10 @@ __dpct_inline__ void attn_flash_xmx_kernel(
         }
         sycl::group_barrier(it.get_group());
 
+        // a tile none of this sub-group's 8 queries can see (past its last query, or before its first one's window) costs nothing but the barriers: the work-group's key
+        // range is set by all its queries, so in a sliding-window layer a sub-group would otherwise run ~20% more tiles than it needs (fully masked: the same result)
+        const int q_first = qpos0 + wi, q_last = qpos0 + sycl::min(wi + 7, Tq - 1);
+        if (wi < Tq && kt <= q_last && kt + kXBN - 1 >= q_first - window + 1) {
         // S = Q K^T
         for (int jn = 0; jn < 4; ++jn) {
             xmx::joint_matrix<sycl::sub_group, float, xmx::use::accumulator, 8, 16> s;
@@ -169,6 +175,7 @@ __dpct_inline__ void attn_flash_xmx_kernel(
             }
         }
         sycl::group_barrier(sg);   // (Ss / Ps / cs are rewritten next tile)
+        }
     }
 
     // the split's partials: o_part [split][Tq][H][D], ml_part [split][Tq][H]
@@ -193,6 +200,7 @@ void attn_flash_xmx_launch(const uint16_t *q16, int q_ld, const uint16_t *kc, co
         sycl::local_accessor<uint8_t, 1> sm(sycl::range(kXSmem), cgh);
         cgh.parallel_for<class ik2_flash_xmx_kernel_name>(
             sycl::nd_range<3>(sycl::range(n_split, H, nqb) * sycl::range(1, 1, 16 * kXNSG), sycl::range(1, 1, 16 * kXNSG)),
+            sycl::ext::oneapi::experimental::properties{sycl::ext::intel::experimental::grf_size<256>},   // (the Q fragments, 8 accumulators and the logits spill at 128 registers: 2x slower; SLM limits a core to < 4 threads an EU anyway)
             [=](sycl::nd_item<3> it) [[sycl::reqd_sub_group_size(16)]] {
                 attn_flash_xmx_kernel(q16, q_ld, kc, vc, kv_cap, H, KV, Tq, qpos0, qk_scale, bias, extent, window, n_split, o_part, ml_part,
                                       sm.get_multi_ptr<sycl::access::decorated::no>().get(), it);

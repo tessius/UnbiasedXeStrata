@@ -434,3 +434,26 @@ the engine's experts sit around 250.  What I tried or measured:
 
 What would still help: a GEMM that dequantizes NVFP4 in SLM and keeps a *whole expert's* tokens in one work-group (T ~ 256 x K of FP16 activations does not fit registers; it needs the
 A-fragment loads of section 13 solved).  The ceiling is ~0.25 s of a 2.5 s prefill (expert GEMMs 0.38 s at 39 TFLOP/s -> 0.2 s at ~75).
+
+## 19. Inkling prefill attention, round 2 (2026-11-25), Arc Pro B60
+
+The engine's prefill chunk is now 4096 (section 16), so `tests/flash_xmx_test.cpp perf` times 4096-query chunks (first chunk / second chunk, sliding window 1024 / full, H = 24, KV = 8, bias 1024).  JIT:
+
+| change | sliding, chunk 1 | full, chunk 1 | sliding, chunk 2 | full, chunk 2 |
+|---|---|---|---|---|
+| section 14 kernel (16 sub-groups a work-group) | 11.9 ms | 26.0 | 13.5 | 77.4 |
+| Qs aliased with the logits staging (3.4 KB a sub-group instead of 5.2), 27 sub-groups a work-group (SLM-limited, 125 KB) | 9.2 | 17.3 | 10.4 | 52.5 |
+| (sub-groups skip tiles none of their 8 queries can see: no change, the kernel is not bound by that work) | 9.1 | 17.4 | 10.4 | 51.0 |
+| **256 registers a thread** (`grf_size<256>`) | **5.3** | **8.4** | **6.2** | **22.2** |
+
+The last row is the finding: ablating the kernel showed tile loads + barriers ~1-2 ms but the per-sub-group compute ~8 of 9.8, and per softmax element ~280 cycles, far more than the
+arithmetic.  The Q fragments (8 x 4 registers), 8 output accumulators (64) and the 32-element logit array do not fit the default 128 registers: the kernel was spilling to scratch.  256
+registers halve the threads an execution unit can hold, but 27 sub-groups a core is under 4 threads an EU anyway (SLM-bound), so occupancy is unchanged: 1.8-2.5x.  (Check any
+hand-written XMX kernel with several accumulators for spills first; the section-13 MoE kernel already set 256.)
+
+Remaining split of the 21 ms case (ablation at 256 registers): S products ~3 ms, PV products ~4 ms (one SLM fragment load a product: a sub-group has one 8-query block, so a fragment
+is used once; 2 blocks a sub-group would reuse it but need ~190 registers of accumulators + Q fragments), exponent / probability pass ~1 ms, logits + stores + rescale ~6 ms, tile loads ~4 ms.
+AOT: 6.0 / 10.2 / 6.9 / 27.6 ms (8.6-11.2 TFLOP/s, was ~4-5).
+
+Engine: 4000-token prefill 2.43 -> 2.10 s; 12,000 tokens 8.16 -> 6.44 s (-21%); same greedy tokens.  Through the front end 3988-token prompts prefill at ~1,710 tok/s (was ~1,490-1,510) and
+7,453-token prompts at ~1,655 (was ~1,410-1,470); 10 of 10 retrievals correct, decode 41.8 tok/s.  `tests/flash_xmx_test` against the emulated kernel: 7/7 (JIT and AOT).

@@ -38,7 +38,7 @@ static void perf(int H, int KV, int Tq, int qpos0, int window, int extent, int n
 
 int main(int argc, char **argv) {
     if (argc > 1 && std::string(argv[1]) == "perf") {   // Inkling-2-Mini's shapes, a chunk of 1024 queries into a 4000-token context
-        perf(24, 8, 1024, 3000, 1024, 1024, 1); perf(24, 8, 1024, 3000, 1 << 30, 1024, 1); perf(24, 8, 1024, 3000, 1 << 30, 1024, 3); perf(24, 8, 1024, 0, 1 << 30, 1024, 1);
+        perf(24, 8, 4096, 0, 1024, 1024, 1); perf(24, 8, 4096, 0, 1 << 30, 1024, 1); perf(24, 8, 4096, 4096, 1024, 1024, 1); perf(24, 8, 4096, 4096, 1 << 30, 1024, 1);   // (chunks of the engine's 4096 default: sliding / full, first / second chunk)
         if (argc > 2) { perf(24, 8, 1024, 3000, 1024, 0, 1); perf(24, 8, 1024, 3000, 1 << 30, 0, 1); }   // (no bias: what the relative bias costs)
         return 0;
     }
