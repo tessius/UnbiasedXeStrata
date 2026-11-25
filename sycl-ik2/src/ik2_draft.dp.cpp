@@ -256,16 +256,14 @@ __dpct_inline__ void draft_shortlist(const float *base, int ld, int vocab,
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        float v = dpct::experimental::shift_sub_group_left(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), val,
+        float v = dpct::shift_sub_group_left(sycl::ext::oneapi::this_work_item::get_sub_group(), val,
             step);
         /*
         DPCT1108: '__shfl_down_sync' was migrated with the experimental
         feature masked sub_group function which may not be supported by all
         compilers or runtimes. You may need to adjust the code.
         */
-        int j = dpct::experimental::shift_sub_group_left(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), idx,
+        int j = dpct::shift_sub_group_left(sycl::ext::oneapi::this_work_item::get_sub_group(), idx,
             step);
         if (v > val || (v == val && j < idx)) val = v, idx = j;
     }
@@ -311,8 +309,7 @@ runtimes. You may need to adjust the code.
 */
 #pragma unroll
     for (int step = 16; step; step >>= 1) dot +=
-        dpct::experimental::shift_sub_group_left(
-            0xffffffff, sycl::ext::oneapi::this_work_item::get_sub_group(), dot,
+        dpct::shift_sub_group_left(sycl::ext::oneapi::this_work_item::get_sub_group(), dot,
             step);
     if (lane == 0) scores[i] =
         dot + base[token] +
@@ -333,7 +330,7 @@ uint16_t* up16(Drafter* d, const std::vector<uint16_t>& v) {
     synchronization behavior.
     */
     cu(DPCT_CHECK_ERROR(
-           dpct::get_in_order_queue().memcpy(p, v.data(), v.size() * 2)),
+           dpct::get_in_order_queue().memcpy(p, v.data(), v.size() * 2).wait()),
        "upload");
     d->vram += v.size() * 2;
     return p;
@@ -349,7 +346,7 @@ float* up32(Drafter* d, const std::vector<uint16_t>& v) {
     synchronization behavior.
     */
     cu(DPCT_CHECK_ERROR(
-           dpct::get_in_order_queue().memcpy(p, f.data(), f.size() * 4)),
+           dpct::get_in_order_queue().memcpy(p, f.data(), f.size() * 4).wait()),
        "upload");
     d->vram += f.size() * 4;
     return p;
@@ -458,7 +455,7 @@ Drafter *load(const std::string &path, int C, int ctx,
         to ensure synchronization behavior.
         */
         cu(DPCT_CHECK_ERROR(dpct::get_in_order_queue().memcpy(
-               d->alpha, a.data(), a.size() * 4)),
+               d->alpha, a.data(), a.size() * 4).wait()),
            "alpha");
     }
     const int local_ids[] = {0, 1, 3, 4};
@@ -557,7 +554,7 @@ void fold(Drafter* d, const uint16_t* lm_f16, int n_rows) {
     synchronization behavior.
     */
     cu(DPCT_CHECK_ERROR(dpct::get_in_order_queue().memcpy(
-           dht, ht.data(), ht.size() * sizeof(float))),
+           dht, ht.data(), ht.size() * sizeof(float)).wait()),
        "fold");
     /*
     DPCT1114: cudaMemcpy is migrated to asynchronization memcpy, assuming in
@@ -566,7 +563,7 @@ void fold(Drafter* d, const uint16_t* lm_f16, int n_rows) {
     synchronization behavior.
     */
     cu(DPCT_CHECK_ERROR(dpct::get_in_order_queue().memcpy(
-           dhb, hb.data(), hb.size() * sizeof(float))),
+           dhb, hb.data(), hb.size() * sizeof(float)).wait()),
        "fold");
     const int chunk = std::min(kFoldChunk, std::max(1, n_rows));
     float* dlm = dalloc<float>((size_t) chunk * C);

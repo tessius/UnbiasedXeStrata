@@ -48,6 +48,18 @@ def kernels(s):
     s = s.replace("0 + dpct_placeholder /* total share local memory size */", "0 /* SYCL: shared-memory size not queried: an upper bound */")
     # the host-only decode: dpct threaded the codebook tables through as parameters; the host has its own copies of them
     s = s.replace("out[i] = decode_value(type, blocks, i);", "out[i] = decode_value(type, blocks, i, h_iq3xxs_grid, h_iq4nl);")
+    # Intel's graphics compiler crashes (a segfault inside IGC, offline too) on experts_gate_up_swiglu_g_kernel, where row_dot_multi and
+    # row_dot_pair_multi - a runtime switch over every quant type, each branch unrolled over 8 tokens - are inlined for 1, 2, 4 and 8 tokens.
+    # Only -cl-opt-disable compiles it.  Keeping those two out of line makes each compile unit a fraction of the size.
+    s = re.sub(r"\ninline void (row_dot_multi|row_dot_pair_multi)\(", r"\n__attribute__((noinline)) void \1(", s)
+    # IK2_SYNC_CHECK=1 (diagnostic): every launch's check("name") waits for the card and prints the name, so a hang or a device error
+    # shows which kernel it was (CUDA's cudaGetLastError, which check() was written around, has no equivalent in SYCL).
+    s = s.replace("void check(const char* what) {\n", "void check(const char* what) {\n    static const bool sync_each = std::getenv(\"IK2_SYNC_CHECK\") != nullptr;\n"
+                  "    if (sync_each) {\n        try { dpct::get_current_device().queues_wait_and_throw(); std::fprintf(stderr, \"[ik2 done] %s\\n\", what); }\n"
+                  "        catch (const sycl::exception &ex) { std::fprintf(stderr, \"[ik2 FAILED] %s: %s\\n\", what, ex.what()); std::exit(2); }\n    }\n", 1) if "IK2_SYNC_CHECK" not in s else s
+    # dpct maps __shfl_*_sync(0xffffffff, ...) to its MASKED sub-group operations (DPCT1108, "experimental"); the full-mask forms are the
+    # standard ones, built on select_from_group.  (Same replacement as sycl-poly's.)
+    s = re.sub(r"dpct::experimental::(permute_sub_group_by_xor|shift_sub_group_left|shift_sub_group_right|select_from_sub_group)\(\s*0xffffffffu?,\s*", r"dpct::\1(", s)
     # cp.async (see CP_ASYNC)
     a = s.find("__dpct_inline__ void cp_async16(void *dst, const void *src, bool valid) {")
     b = s.find("// one 64-key tile of K and V (rows kt .. kt+63")
@@ -71,3 +83,26 @@ def main_cpp(s):
     s = re.sub(r"CB\(cublasGemmEx\(([^;]*?dpct::compute_type::f32_standard), -1\)\);", r"CB(DPCT_CHECK_ERROR(dpct::blas::gemm(\1)));", s, flags=re.S)
     return s
 edit("ik2_main.dp.cpp", main_cpp)
+
+def draft_cpp(s):
+    return re.sub(r"dpct::experimental::(permute_sub_group_by_xor|shift_sub_group_left|shift_sub_group_right|select_from_sub_group)\(\s*0xffffffffu?,\s*", r"dpct::\1(", s)
+edit("ik2_draft.dp.cpp", draft_cpp)
+
+# CUDA's cudaMemcpy / cudaMemset (no "Async") are synchronous with respect to the host: the caller may free or reuse the host buffer
+# at once (dev_f32(host_f32(...)) frees a temporary vector).  dpct turned them into get_in_order_queue().memcpy(...), which does not
+# wait (DPCT1124): the GPU then copied from freed memory (NaN norm weights, 1.9e28).  Wait after each.
+def sync_default_queue(s):
+    out, i, n = [], 0, 0
+    pat = re.compile(r"get_in_order_queue\(\)\s*\.(memcpy|memset)\(")
+    while True:
+        m = pat.search(s, i)
+        if not m: out.append(s[i:]); break
+        depth, j = 1, m.end()
+        while depth and j < len(s):
+            depth += (s[j] == "(") - (s[j] == ")"); j += 1
+        out.append(s[i:j])
+        if not re.match(r"\s*\.wait\(\)", s[j:]): out.append(".wait()"); n += 1
+        i = j
+    return re.sub(r"\.wait\(\)(\s*)\.wait\(\)", r".wait()", "".join(out))   # (a first version of this fix doubled some)
+for _name in ("ik2_main.dp.cpp", "ik2_draft.dp.cpp", "ik2_kernels.dp.cpp"):
+    edit(_name, sync_default_queue)

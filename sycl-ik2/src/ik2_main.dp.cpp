@@ -537,7 +537,7 @@ bool upload_planar(Mat &m, const std::vector<const uint8_t *> &parts,
     is not pageable, call wait() on event return by memcpy API to ensure
     synchronization behavior.
     */
-    CU(DPCT_CHECK_ERROR(dpct::get_in_order_queue().memcpy(m.q8, q.data(), n)));
+    CU(DPCT_CHECK_ERROR(dpct::get_in_order_queue().memcpy(m.q8, q.data(), n).wait()));
     /*
     DPCT1114: cudaMemcpy is migrated to asynchronization memcpy, assuming in
     the original code the source host memory is pageable memory. If the memory
@@ -545,7 +545,7 @@ bool upload_planar(Mat &m, const std::vector<const uint8_t *> &parts,
     synchronization behavior.
     */
     CU(DPCT_CHECK_ERROR(
-        dpct::get_in_order_queue().memcpy(m.q8d, d.data(), n / 32 * 2)));
+        dpct::get_in_order_queue().memcpy(m.q8d, d.data(), n / 32 * 2).wait()));
     return true;
 }
 catch (sycl::exception const &exc) {
@@ -581,7 +581,7 @@ Mat load_mat(const Shards &S, const std::string &n, int N, int Kd) try {
     synchronization behavior.
     */
     CU(DPCT_CHECK_ERROR(
-        dpct::get_in_order_queue().memcpy(g_stage, S.data(n), nb)));
+        dpct::get_in_order_queue().memcpy(g_stage, S.data(n), nb).wait()));
     m.f16 = dalloc<uint16_t>((size_t) N * Kd);
     k::decode_f16(m.type, g_stage, (size_t) N * Kd, m.f16, g_s);
     CU(DPCT_CHECK_ERROR(g_s->wait()));
@@ -772,7 +772,7 @@ bool try_load_fused_raw(const Shards &S, const std::vector<MatPart> &parts,
         to ensure synchronization behavior.
         */
         CU(DPCT_CHECK_ERROR(dpct::get_in_order_queue().memcpy(
-            out.raw + off, S.data(pt.name), nb)));
+            out.raw + off, S.data(pt.name), nb).wait()));
         off += nb;
     }
     return true;
@@ -863,7 +863,7 @@ float *dev_f32(const std::vector<float> &v) try {
     synchronization behavior.
     */
     CU(DPCT_CHECK_ERROR(
-        dpct::get_in_order_queue().memcpy(p, v.data(), v.size() * 4)));
+        dpct::get_in_order_queue().memcpy(p, v.data(), v.size() * 4).wait()));
     return p;
 }
 catch (sycl::exception const &exc) {
@@ -881,7 +881,7 @@ uint16_t *dev_f16(const std::vector<float> &v) try {
     synchronization behavior.
     */
     CU(DPCT_CHECK_ERROR(
-        dpct::get_in_order_queue().memcpy(g_stage, v.data(), nb)));
+        dpct::get_in_order_queue().memcpy(g_stage, v.data(), nb).wait()));
     uint16_t* p = dalloc<uint16_t>(v.size());
     k::to_f16((const float*) g_stage, v.size(), p, g_s);
     CU(DPCT_CHECK_ERROR(g_s->wait()));
@@ -910,7 +910,7 @@ uint16_t *exact_bf16(const std::vector<float> &values) try {
     synchronization behavior.
     */
     CU(DPCT_CHECK_ERROR(dpct::get_in_order_queue().memcpy(
-        device, bits.data(), bits.size() * sizeof(uint16_t))));
+        device, bits.data(), bits.size() * sizeof(uint16_t)).wait()));
     return device;
 }
 catch (sycl::exception const &exc) {
@@ -3482,7 +3482,7 @@ void block_init(Model &M) try {
     synchronization behavior.
     */
     CU(DPCT_CHECK_ERROR(dpct::get_in_order_queue().memcpy(
-        g_blk.recs, recs.data(), recs.size() * sizeof(k::ConvRec))));
+        g_blk.recs, recs.data(), recs.size() * sizeof(k::ConvRec)).wait()));
     g_blk.ready = true;
 }
 catch (sycl::exception const &exc) {

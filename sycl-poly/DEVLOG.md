@@ -247,9 +247,26 @@ DPCT1013 (the precedence bug class of section 6.5 does not occur here), 3 unmigr
   test `tests/mma_emul_test.cpp` (random operands laid out per the PTX layouts, compared with a CPU product and transpose) passes (20 trials, error < 1e-4).
   Correct and slow: the XMX version is an open item.
 
-**State at the time of writing.**  Builds (JIT).  The engine parses the model (24 layers, 20 sliding, 128 experts / 8 a token, width 2304, looped core
-layers 6..17 x 3 = 48 visits, gate rank 64), puts the dense weights in VRAM and **every expert** (3,072 slots, 14.7 GiB; 17.5 s), then fails at the
-first forward: Intel's graphics compiler (IGC) **segfaults** while JIT-compiling `experts_gate_up_swiglu_g_kernel` (the plain grouped expert kernel;
-the tensor-core variant is off by default).  An ahead-of-time build crashes the same way ("longjmp causes uninitialized stack frame").  With the
-optimizer off (`SYCL_PROGRAM_COMPILE_OPTIONS=-cl-opt-disable`) the compile passes but the kernel does not finish in 8 minutes (3 tokens).
-`IK2_GRAPH=0` turns off the engine's graph recording.  Next: find what in that kernel IGC cannot compile (offline `ocloc` on its SPIR-V) and restructure it.
+**Debugging the hang, in the order it went (2026-11-24 / 25).**  Each step is something that looked like the cause and was or was not:
+1. IGC (Intel's graphics compiler) segfaulted on `experts_gate_up_swiglu_g_kernel`, in JIT and in AOT (offline `ocloc`, 14 s to crash).  With
+   `-fsycl-device-code-split=per_kernel` (a module per kernel) exactly **1 of 202** modules crashed; only `-cl-opt-disable` compiled it.  Cause:
+   `row_dot_multi` / `row_dot_pair_multi` are a runtime switch over every quant type, each branch unrolled over 8 tokens, inlined for 1, 2, 4 and 8
+   tokens.  Fix: `__attribute__((noinline))` on those two: all 202 modules compile (fixups_ik2.py).
+2. `GPU HANG detected` in the expert kernels.  The 29 masked sub-group shuffles (`dpct::experimental::permute_sub_group_by_xor(0xffffffff, ...)`)
+   became the unmasked `dpct::` forms (as in sycl-poly): the gate/up kernel then finished.  (Not the whole story, see 4.)
+3. `IK2_SYNC_CHECK=1` (a diagnostic added to `check()`: wait for the card after each launch and print the name) showed the failing kernel was
+   *random*: a different layer each run, once the very first trivial kernel after a hang (a hung GPU needs ~20-30 s to come back; wait between runs).
+   A synthetic reproducer (`tests/experts_down_test.cpp`: 500 launches x 8 configurations of `experts_down_g` on random NVFP4/Q8_0 data) never hung: the
+   kernel was not the problem.
+4. Printing the engine's real arguments (the groups the host builds for the GPU) showed `top[] = 128` for all 24 slots: expert id 128 does not exist
+   (0..127), so the host indexed its pointer table out of bounds and sent garbage pointers: that was the hang.  The routing kernel returns 128 when all
+   router scores are NaN, so the layer's input was bad.  A NaN scan of each stage of layer 0 (`--dump`, then temporary taps) found the first bad tensor:
+   the **normalization weights** (`attn_norm`, 31 NaN, max 1.9e28).  `rms_f16` itself is correct (`tests/rms_test.cpp`).
+5. Root cause: `dev_f32(host_f32(...))` copies from a **temporary** `std::vector` with `dpct::get_in_order_queue().memcpy(...)` and does not wait.  CUDA's
+   plain `cudaMemcpy` (no `Async`) is synchronous for the host; dpct's translation is not (DPCT1124 says so).  The vector was freed before the GPU
+   read it.  Fix: `.wait()` after every default-queue `memcpy`/`memset` (`sync_default_queue` in fixups_ik2.py; 15 sites).  Every symptom above followed from it.
+
+**Result (2026-11-25), Arc Pro B60, Unsloth `Inkling-2-Mini-UD-Q4_K_XL.gguf` (the engine's layout), every expert in VRAM (3,072 slots, 14.7 GiB):**
+through the front end: "What is the capital of France? Answer in one sentence." -> "The capital of France is Paris."; "17 * 23, just the number" -> "391";
+a coherent haiku.  Decode ~8-9 tok/s (graphs on or off, token-identical), which is slow: the next item.  The kernel pieces are tested
+(`tests/mma_emul_test.cpp`, `rms_test.cpp`, `experts_down_test.cpp`); the engine's `--dump` comparison against its reference (`tools/ik2_compare.py`) is not yet run.
