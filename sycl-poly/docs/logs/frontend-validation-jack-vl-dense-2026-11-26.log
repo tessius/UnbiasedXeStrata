@@ -1,0 +1,11 @@
+== start: /mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel/bin/unbiased-strata --engine strata-poly -m Jack-3.8-27B-V2-VL-16GB-VRAM.gguf --mmproj mmproj-Qwen3.8-27B-BF16.gguf
+{"status":"ok","busy":false,"service":"strata","loaded":true,"model":"/mnt/ai_data/models/jack-3.8-27b-v2-vl/Jack-3.8-27B-V2-VL-16GB-VRAM.gguf","max_context":8192}
+ok   chat: '<workspace_state>\nThe user asks for the capital of France. The request requires a one-sentence response.\n\n<grounded_source>\nGeneral geographic knowledge: The capital of France is Paris.\n</grounded_source>\n<anchor_fact ID="COUNTRY">France</anchor', 12.1 tok/s
+ok   streaming: 44 events, text '<workspace_state>\nTask: Count from 1 to 10.\nObjective: Generate the sequence of integers from 1 to 10 inclusive.\nUnresolved Question: None.'
+ok   retrieval at 2.7k tokens is exact: prompt 4233 tokens, prefill 393 tok/s, decode 13.1 tok/s
+ok   long generation: 362 tokens, decode 12.0 tok/s
+ok   thinking mode splits reasoning from the answer: 3087 chars of reasoning, answer ''
+ok   tool call: {"name": "get_weather", "arguments": "{\"city\":\"Paris\"}"}
+ok   vision (green left, red right, white bar): <workspace_state>
+task: identify left and right colors and confirm presence of a horizontal bar in t
+front end checks: PASS
