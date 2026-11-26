@@ -1017,6 +1017,8 @@ float Engine::shape_f(const char* key) const {
 void Engine::load_shape() {
     const MetaValue* nextn = meta_in(*gg_, "nextn_predict_layers");
     n_layer_ = shape_i("block_count") - (nextn ? (int) nextn->u : 0);
+    // a dense model (no experts) runs without the block that guesses ahead: that block is built around a layer's experts
+    if (!meta_in(*gg_, "expert_count") && meta_in(*gg_, "feed_forward_length")) opt_.draft = false;
     if (opt_.draft && opt_.window != 1) {
         const std::string probe = blk(n_layer_, "nextn.eh_proj.weight");
         if (nextn && nextn->u == 1 && gg_->find(probe)) block_ = gg_.get();
@@ -1035,17 +1037,24 @@ void Engine::load_shape() {
     const TensorInfo* te = gg_->find("token_embd.weight");
     n_vocab_ = vocab ? (int) vocab->u : te && te->shape.size() == 2 ? (int) te->shape[1] : 0;
     rms_eps_ = shape_f("attention.layer_norm_rms_epsilon");
-    n_expert_ = shape_i("expert_count");
-    n_used_ = shape_i("expert_used_count");
-    n_ff_exp_ = shape_i("expert_feed_forward_length");
-    const MetaValue* shexp = meta_in(*gg_, "expert_shared_feed_forward_length");
-    n_ff_shexp_ = shexp ? (int) shexp->u : n_ff_exp_;
+    if (!meta_in(*gg_, "expert_count") && meta_in(*gg_, "feed_forward_length")) {
+        // A dense model (Qwen3.8-27B): no experts.  The architecture's class loads its FFN as the "shared" one (Layer::sh_*, n_ff_shexp_ wide) and runs it
+        // in layer_head(); every MoE path is off (n_moe_ stays 0, no layer has `moe`).
+        n_expert_ = n_used_ = n_ff_exp_ = 0;
+        n_ff_ = n_ff_shexp_ = shape_i("feed_forward_length");
+    } else {
+        n_expert_ = shape_i("expert_count");
+        n_used_ = shape_i("expert_used_count");
+        n_ff_exp_ = shape_i("expert_feed_forward_length");
+        const MetaValue* shexp = meta_in(*gg_, "expert_shared_feed_forward_length");
+        n_ff_shexp_ = shexp ? (int) shexp->u : n_ff_exp_;
+    }
 
     auto need = [](bool ok, const char* what) {
         if (!ok) throw std::runtime_error(std::string("unsupported model: ") + what);
     };
     need(n_layer_ > 0 && n_embd_ > 0 && n_embd_ % 32 == 0 && n_vocab_ > 0, "bad block_count or embedding_length");
-    need(n_used_ >= 1 && n_used_ <= kMaxUsed && n_used_ <= n_expert_, "bad expert_used_count");
+    need(n_expert_ == 0 || (n_used_ >= 1 && n_used_ <= kMaxUsed && n_used_ <= n_expert_), "bad expert_used_count");
 
     // a block from another file must be this model's: a pruned model's has fewer experts to choose among
     if (block_ && block_ != gg_.get()) {
@@ -1120,7 +1129,7 @@ std::unique_ptr<Engine> Engine::open(const Options &o) try {
         throw std::runtime_error("--kv q8_0 is only supported for qwen35moe models in v1; this is a '" + name + "' model");
     const auto make = [&]() -> std::unique_ptr<Engine> {
         if (name == "glm5-next" || name == "glm5next") return std::make_unique<Glm5Next>();   // Unsloth: no hyphen
-        if (name == "qwen35moe") return std::make_unique<Qwen35>();
+        if (name == "qwen35moe" || name == "qwen35") return std::make_unique<Qwen35>();
         if (name == "gemma4") return std::make_unique<Gemma4>();
         if (name == "deepseek4") return std::make_unique<DeepSeek4>();
         if (name == "lfm2moe") return std::make_unique<Lfm2Moe>();
@@ -2146,6 +2155,7 @@ void Engine::alloc() {
         }
         one_expert = std::max(one_expert, 2 * L.gu_bytes + L.d_bytes);
     }
+    if (n_expert_ == 0 && rows_ >= opt_.stage_rows) tiles = true;   // a dense model: its matrices' prompt batches (lin()) take the matrix tiles
     if (tiles) mmq_ = std::make_unique<Mmq>();
 
     shared_scratch();   // the first pass only counts

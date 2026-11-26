@@ -1,11 +1,11 @@
 # UnbiasedXeStrata
 
 **[UnbiasedStrata](https://github.com/robertkarl/UnbiasedStrata) with Intel GPU support**, taken from
-[XeStrata](https://github.com/MistVVK/XeStrata).  Runs two of UnbiasedStrata's engines on Intel Arc GPUs through SYCL: `strata-poly` (Qwen3.6 and other models) and `strata-ik2` (**Inkling-2-Mini**).
+[XeStrata](https://github.com/MistVVK/XeStrata).  Runs two of UnbiasedStrata's engines on Intel Arc GPUs through SYCL: `strata-poly` (Qwen3.6-35B-A3B, and the dense **Qwen3.8-27B** family) and `strata-ik2` (**Inkling-2-Mini**).
 
-> **Experimental.**  Written and tested on one machine, **2026-11-23 to 2026-11-25**: an Intel Arc Pro B60 (24 GB), two models (Qwen3.6-35B-A3B `UD-Q4_K_XL`
-> on `strata-poly`; Inkling-2-Mini `UD-Q4_K_XL` on `strata-ik2`).  Other models, other Intel GPUs, multi-GPU and CUDA graphs are untested.  UnbiasedStrata's other engines
-> (`strata` Flash-Next, `strata-dsv41`, `hy4flash`, the Metal ones) are **not ported**.
+> **Experimental.**  Written and tested on one machine, **2026-11-23 to 2026-11-26**: an Intel Arc Pro B60 (24 GB), models Qwen3.6-35B-A3B `UD-Q4_K_XL` and Qwen3.8-27B (dense, five community
+> quantizations, one validated in full) on `strata-poly`, and Inkling-2-Mini `UD-Q4_K_XL` on `strata-ik2`.  Other models, other Intel GPUs, multi-GPU and CUDA graphs are untested.  UnbiasedStrata's other engines
+> (`strata` Flash-Next, `strata-dsv41`, `hy4flash`, the Metal ones) are **not ported** (their models are 76-265 GB; see [`sycl-poly/NOTES.md`](sycl-poly/NOTES.md)).
 > The original UnbiasedStrata README (NVIDIA/CUDA build) is kept, unchanged, as [`README.upstream.md`](README.upstream.md).
 > Not affiliated with or endorsed by the authors of UnbiasedStrata, XeStrata, Strata, Project Maya, llama.cpp or Intel.
 
@@ -14,6 +14,13 @@
 | Prefill | ~1,765 tok/s (2,700-token prompt; 447 before the matrix engine was enabled) |
 | Decode | ~72 tok/s without the draft head, ~95 with it (short answers; varies with the answer's length) |
 | Correctness | exact on retrieval at 2.7k tokens and on counting 1..200; kernel unit tests against CPU references pass |
+
+| Qwen3.8-27B (dense) `Q4_K_M`, 16.8 GB, on the same card | |
+|---|---|
+| Prefill | ~350 tok/s (2,700-token prompt) |
+| Decode | ~21 tok/s (the card's memory bandwidth reads the 16.8 GB once a token) |
+| Correctness | teacher-forced counting 10/10, retrieval exact at 334 and 2,710 tokens, counting 1..200 exact; 6 of 10 greedy answers identical to llama.cpp's SYCL server on the same file, the others fluent near-ties |
+| Also loads and answers | `Qwen3.8-27B-Uncensored-Q5_K_M`, `Huihui-Qwen3.8-27B-abliterated-UD-IQ4_XS`, `Jack-3.8-27B-Coder-16GB-VRAM`, `Jack-3.8-27B-V2-VL-16GB-VRAM` (text only: vision untested); no draft head on dense models |
 
 | Inkling-2-Mini on an Arc Pro B60, all experts in VRAM (`strata-ik2`) | |
 |---|---|
@@ -59,7 +66,7 @@ not available.  **Conclusion: not worth it.**  We dropped it (nothing from that 
 
 **What we did instead: migrate `strata-poly` from scratch.**  dpct over `src/poly` and the few Strata kernels it calls, then by-hand fixes to
 what dpct got wrong; a real SYCL implementation of the prompt-path matrix product (`Mmq`) built on XeStrata's tiles; an ahead-of-time
-build for Battlemage so it starts in seconds.  Prefill went from 178 tok/s (stub `Mmq`) to ~447 on dp4a, then to ~1,395 with the Intel matrix engine (XMX) enabled and tuned (2026-11-25/26, `sycl-poly/DEVLOG.md` sections 30-33).
+build for Battlemage so it starts in seconds.  Prefill went from 178 tok/s (stub `Mmq`) to ~447 on dp4a, then to ~1,765 with the Intel matrix engine (XMX) enabled and tuned (2026-11-25/26, `sycl-poly/DEVLOG.md` sections 30-33).
 
 **The bug that mattered.**  The first working build gave right answers to short prompts and garbage after about 90 tokens.
 It was not in the new `Mmq`.  CPU-reference unit tests for the attention, RoPE and gated-delta-rule kernels found it: dpct had

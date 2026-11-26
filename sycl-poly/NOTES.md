@@ -60,3 +60,10 @@ so the probe and the XMX tile kernels ran at 32 lanes (DEVLOG 30).  `poly_mmq_xm
 **2026-11-25 Qwen prefill:** 442-446 tok/s direct on the engine with both old and clean-clone binaries (DEVLOG 29); the ~380 through the front end is unexplained. Start-up hangs (copy-engine faults in the kernel log) became frequent; cause open, retest after a reboot.
 
 **2026-11-25 (later):** the start-up hang was an async `h2d` of freed temporaries; fixed with `.wait()` (DEVLOG 29). Prefill now 460 tok/s, decode 71 tok/s on the 2,710-token prompt. The front-end ~380 figure was a symptom of the same bug: re-measured at ~480 tok/s.
+
+## The other UnbiasedStrata engines (assessed 2026-11-26): not ported, and why
+- `strata` (Flash-Next, `src/qwen35` + the CUDA kernels in `src/kernels`, ~31,700 lines): its model, Qwen3.8-Flash-Next, is 76 GB at IQ3_XXS (47.0 + 28.8 GB; IQ2_XS has 35.5 GB of experts alone), against 24 GB of VRAM and 31 GB of RAM here with the files on a hard disk.
+  The dense Qwen3.8-27B models that this engine also runs are covered by `strata-poly` since DEVLOG section 34.
+- `strata-dsv41` (DeepSeek-V4.1-Flash, ~20,000 lines of CUDA): 121-155 GB of weights plus a 110 GB Engram table read for every token.  Not runnable on this machine, whatever the port.
+- `hy4flash` (Tencent Hy4-Flash, native SQ packs): 62-114 GB plus the Engram shard.  Same.
+A port would be a dpct migration like `sycl-poly`'s and `sycl-ik2`'s, but nothing here could run it, so none was started.

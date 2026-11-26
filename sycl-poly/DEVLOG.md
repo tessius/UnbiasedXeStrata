@@ -700,3 +700,15 @@ retrieval exact, counting exact, decode 71-72 (96-100 with the draft head).  XeS
 Also tried on the bench and not kept: Q4_K / Q5_K block decode with vector loads (two 16-byte loads for the nibbles, the scale bytes as three words, d / dmin as one word): Q4_K gate/up 1,110-1,150 -> 983-1,001 us, down and Q5_K unchanged within the card's
 clock noise (+-5%): not worth the changed decode.  What is left in the tile (bench, Q4_K gate/up, 64 rows an expert: ~17 int8 TOPS of ~200 peak): decode ALU, the products (22%) and the scale epilogue (12%); the next step would be a redesign
 (decoding the weights once for several row tiles, scale application off the critical path), not tuning.
+
+## 34. Dense Qwen3.8-27B on strata-poly (2026-11-26)
+
+`strata-poly` refused the family on the card ("is a 'qwen35' model, which this engine does not run"): Qwen3.8-27B is architecture `qwen35`, the recurrent + attention stack of Qwen3.6-35B-A3B (`qwen35moe`) with a dense FFN in every layer
+(64 layers, 5,120 wide, FFN 17,408, full attention every 4th layer, 48 value / 16 key heads of 128).  The rest of UnbiasedStrata runs these models on its `strata` engine (31,700 lines of CUDA in `src/kernels`), which is not ported; the cheaper route was to teach the engine one more shape:
+- `Engine::load_shape`: a file without `expert_count` but with `feed_forward_length` is dense: `n_expert_ = n_used_ = n_ff_exp_ = 0`, `n_ff_ = n_ff_shexp_ = feed_forward_length`; the block that guesses ahead is turned off (it is built around a layer's experts).
+- `Qwen35::load_layer`: for `n_expert_ == 0` the FFN goes into the shared expert's places (`Layer::sh_gate/up/down`, no header change); `layer_head()` runs it (SwiGLU, no sigmoid gate) and adds it to the residual, as Gemma4 does for its dense layers.  `layer_tail()` is not reached (no layer is `moe`).
+- the engine factory takes `qwen35` as well; `tiles = true` for a dense model, so that `lin()`'s prompt batches take the XMX tiles (without it the dense matrices ran through the per-token kernel: **prefill 47 tok/s -> 350**).
+Result on the 24 GB B60, `Qwen3.8-27B-Uncensored-Q4_K_M` (16.8 GB, nothing offloaded): prefill 349-351 tok/s (2,710 tokens), decode 20.9 tok/s (the weights read once a token: ~350 GB/s of the card's 456).  `run_validation.sh` PASS
+(`docs/logs/validation-qwen38-27b-dense-2026-11-26.log`).  Against llama.cpp's SYCL server on the same file (ten greedy chat answers through the front end, `ab_greedy.py`): 6 identical, 2 diverging only in the last ~20 characters, 2 diverging early at a fluent near-tie
+("quick, comforting" / "quick, easy").  `Q5_K_M`, `UD-IQ4_XS` and the two Jack models load and answer "Paris" to the same one-line prompt.  Qwen3.6-35B-A3B afterwards: validation PASS, prefill 1,760-1,800, decode 72 / 96 with the draft head (`validation-qwen36-35b-after-dense-2026-11-26.log`).
+Not done for dense models: the draft head, vision (the VL file's `mmproj` goes through the front end's mtmd path, untried here), `--kv q8_0` (only `qwen35moe`: the engine's check), long contexts (only 2-4k tried), tuning (prefill is the same XMX tile as section 33: ~19 int8 TOPS).

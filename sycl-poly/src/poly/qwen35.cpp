@@ -116,6 +116,12 @@ void Qwen35::load_layer(int il) {
         B.wo = mat("attn_output.weight", (int64_t) n_head_ * head_dim_, n_embd_);
         ++n_attn_;
     }
+    if (n_expert_ == 0) {   // a dense model: the FFN goes in the shared expert's places and layer_head() runs it
+        L.sh_gate = mat("ffn_gate.weight", n_embd_, n_ff_shexp_);
+        L.sh_up = mat("ffn_up.weight", n_embd_, n_ff_shexp_);
+        L.sh_down = mat("ffn_down.weight", n_ff_shexp_, n_embd_);
+        return;
+    }
     load_moe(il);
     B.sh_gate_inp = f32("ffn_gate_inp_shexp.weight", n_embd_);
 }
@@ -536,6 +542,15 @@ void Qwen35::layer_head(Layer& L, int il, int n) {
     rms_norm(r_, fp(L.ffn_norm), xn_, n_embd_, n, rms_eps_, st_);
     kernels::native_quantize_q8_1(xn_, xq_, n_embd_ * n, 1, st_);
     dbg("ffn_in", il, xn_, n_embd_);
+    if (n_expert_ == 0) {   // dense: the whole FFN and its residual here (layer_tail() is for the MoE layers)
+        lin(L.sh_gate, xn_, g_, n, xq_);
+        lin(L.sh_up, xn_, u_, n, xq_);
+        swiglu_clamp(g_, u_, h_, n * n_ff_shexp_, clamp_shexp_[(size_t) il], st_);
+        lin(L.sh_down, h_, fo_, n);
+        dbg("ffn", il, fo_, n_embd_);
+        axpy(fo_, 1.f, r_, n * n_embd_, true, st_);
+        return;
+    }
     if (!batched(L, n)) moe_router(L, n);
 }
 
