@@ -1,0 +1,10 @@
+== start: build-frontend/bin/unbiased-strata --engine strata-poly-bmg-g21 -m Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf --mmproj mmproj-F16.gguf
+{"status":"ok","busy":false,"service":"strata","loaded":true,"model":"<path>,"max_context":8192}
+ok   chat: 'The capital of France is Paris.', 94.6 tok/s
+ok   streaming: 33 events, text '1, 2, 3, 4, 5, 6, 7, 8, 9, 10'
+ok   retrieval at 2.7k tokens is exact: prompt 2710 tokens, prefill 451 tok/s, decode 92.2 tok/s
+ok   long generation: 459 tokens, decode 57.2 tok/s
+ok   thinking mode splits reasoning from the answer: 2113 chars of reasoning, answer ''
+ok   tool call: {"name": "get_weather", "arguments": "{\"city\":\"Paris\"}"}
+ok   vision (green left, red right, white bar): the image you’ve described — a square divided vertically into two equal halves, with a horizontal wh
+front end checks: PASS

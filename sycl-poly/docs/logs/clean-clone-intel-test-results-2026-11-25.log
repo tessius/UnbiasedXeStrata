@@ -1,0 +1,28 @@
+  head  0: max err 7.153e-07 at col   5: out -2.93851 ref -2.93851 | col0 out -0.77290 ref -0.77289 | col1 out 0.00362 ref 0.00362
+  head  1: max err 5.960e-07 at col  48: out 1.56975 ref 1.56975 | col0 out -0.13742 ref -0.13742 | col1 out -0.10183 ref -0.10183
+  head 17: max err 7.153e-07 at col 118: out 3.04184 ref 3.04185 | col0 out 0.01897 ref 0.01897 | col1 out 0.05757 ref 0.05757
+  head 31: max err 1.341e-07 at col  40: out -0.21491 ref -0.21491 | col0 out 0.00074 ref 0.00074 | col1 out -0.00896 ref -0.00896
+0 of 700 positions wrong - ok
+    echo "== $t"; build-intel-ik2/$t || exit 1; done
+== ik2_flash_xmx_test
+H4 KV2 Tq100 q0 37  win 1073741824 ext 0  split 1 cap 0   : max|diff| 3.90e-05 (max|out| 0.56) NaN 0 | emulated 7.1 ms, xmx 0.5 ms  ok
+H4 KV2 Tq100 q0 37  win 64         ext 0  split 1 cap 0   : max|diff| 1.11e-04 (max|out| 0.54) NaN 0 | emulated 2.0 ms, xmx 0.1 ms  ok
+H4 KV2 Tq100 q0 37  win 1073741824 ext 48 split 1 cap 0   : max|diff| 2.05e-05 (max|out| 0.75) NaN 0 | emulated 3.1 ms, xmx 0.1 ms  ok
+H6 KV2 Tq70  q0 0   win 128        ext 40 split 2 cap 0   : max|diff| 8.74e-05 (max|out| 2.09) NaN 0 | emulated 1.7 ms, xmx 0.1 ms  ok
+H6 KV2 Tq33  q0 200 win 1073741824 ext 0  split 3 cap 0   : max|diff| 1.19e-05 (max|out| 0.28) NaN 0 | emulated 2.3 ms, xmx 0.1 ms  ok
+H2 KV2 Tq8   q0 0   win 1073741824 ext 0  split 1 cap 0   : max|diff| 1.19e-07 (max|out| 1.65) NaN 0 | emulated 0.8 ms, xmx 0.0 ms  ok
+H4 KV2 Tq150 q0 500 win 96         ext 64 split 2 cap 1024: max|diff| 8.86e-05 (max|out| 0.58) NaN 0 | emulated 1.7 ms, xmx 0.1 ms  ok
+== ik2_moe_xmx_test
+C 384 F 192 experts 5 tokens 270: gate/up+swiglu max err 1.56e-02 (max 35.00), down max err 5.91e-05 (max 294.03), NaN 0 | 0.99 ms (warm 0.09 ms)  ok
+C 2304 F 1152 experts 3 tokens 273: gate/up+swiglu max err 1.56e-02 (max 35.00), down max err 2.90e-04 (max 714.02), NaN 0 | 0.87 ms (warm 0.66 ms)  ok
+== ik2_small_bench
+mv_f16 128x2304: generic 11.2 us, wide 3.2 us, max diff 1.43e-06 (max |y| 5.81)  ok
+mv_f16 24x2304: generic 11.0 us, wide 3.1 us, max diff 8.34e-07 (max |y| 4.00)  ok
+mv_f16 96x2304: generic 11.1 us, wide 3.1 us, max diff 1.13e-06 (max |y| 7.18)  ok
+== ik2_rms_test
+aligned    input: f16 0 NaN 0 inf, max err 1.894e-03 | f32 0 NaN, max err 4.379e-07  ok
+misaligned input: f16 0 NaN 0 inf, max err 1.748e-03 | f32 0 NaN, max err 3.088e-07  ok
+== ik2_mma_emul_test
+mma16816: ok (20 random trials, max error < 1e-4)
+ldmatrix x4 (plain and .trans): ok
+== ik2_experts_down_test

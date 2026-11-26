@@ -1,0 +1,1382 @@
+cmake -S . -B build-frontend -DCMAKE_BUILD_TYPE=Release -DSTRATA_ENABLE_CUDA=OFF -DSTRATA_BUILD_TESTS=OFF \
+      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/mnt/ai_data/projects/unbiased-intel/cleanclone2/build-frontend/bin 
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test STRATA_HAVE_AVXVNNI_INTRINSICS
+-- Performing Test STRATA_HAVE_AVXVNNI_INTRINSICS - Success
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- The C compiler identification is GNU 16.2.1
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- The ASM compiler identification is GNU
+-- Found assembler: /usr/bin/cc
+-- Warning: ccache not found - consider installing it for faster compilation or disable this warning with GGML_CCACHE=OFF
+-- CMAKE_SYSTEM_PROCESSOR: x86_64
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: -march=native 
+-- ggml version: 0.24.0
+-- ggml commit:  unknown
+-- llama.cpp version: 0.4.1-dev
+CMAKE_BUILD_TYPE=Release
+-- Found Git: /usr/bin/git (found version "2.56.1")
+fatal: gitfile does not point to a valid repository: /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/.git
+fatal: gitfile does not point to a valid repository: /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/.git
+CMake Warning at third_party/llama.cpp/common/CMakeLists.txt:30 (message):
+  Git index not found in git repository.
+
+
+-- Configuring done (1.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /mnt/ai_data/projects/unbiased-intel/cleanclone2/build-frontend
+cmake --build build-frontend -j 16 --target unbiased-strata
+make[1]: Entering directory '/mnt/ai_data/projects/unbiased-intel/cleanclone2/build-frontend'
+make[1]: warning: -j16 forced in submake: resetting jobserver mode.
+[  1%] Building CXX object llama.cpp/vendor/hash/CMakeFiles/vendor-hash.dir/sha1/sha1.c.o
+[  2%] Building CXX object llama.cpp/common/CMakeFiles/llama-common-base.dir/build-info.cpp.o
+[  3%] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml-alloc.c.o
+[  6%] Building C object llama.cpp/vendor/hash/CMakeFiles/vendor-hash.dir/xxhash/xxhash.c.o
+[  6%] Building CXX object llama.cpp/vendor/cpp-httplib/CMakeFiles/cpp-httplib.dir/httplib.cpp.o
+[  6%] Building C object llama.cpp/vendor/hash/CMakeFiles/vendor-hash.dir/sha256/sha256.c.o
+[  6%] Building CXX object llama.cpp/vendor/hash/CMakeFiles/vendor-hash.dir/hash.cpp.o
+[  6%] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml.c.o
+[  6%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-backend.cpp.o
+[  6%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml.cpp.o
+[  6%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-backend-meta.cpp.o
+[  7%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-opt.cpp.o
+[  8%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-threading.cpp.o
+[  8%] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml-quants.c.o
+[  8%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/gguf.cpp.o
+[  8%] Linking CXX static library libllama-common-base.a
+[  8%] Built target llama-common-base
+[ 10%] Linking CXX static library libvendor-hash.a
+[ 10%] Built target vendor-hash
+[ 10%] Linking CXX static library libggml-base.a
+[ 10%] Built target ggml-base
+[ 11%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.cpp.o
+[ 11%] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.c.o
+[ 12%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/repack.cpp.o
+[ 13%] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/quants.c.o
+[ 15%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/binary-ops.cpp.o
+[ 15%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/amx.cpp.o
+[ 16%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/vec.cpp.o
+[ 16%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ops.cpp.o
+[ 16%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/arch/x86/repack.cpp.o
+[ 16%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/hbm.cpp.o
+[ 17%] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/arch/x86/quants.c.o
+[ 17%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/unary-ops.cpp.o
+[ 17%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/iqp.cpp.o
+[ 17%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/traits.cpp.o
+[ 17%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/mmq.cpp.o
+[ 18%] Linking CXX static library libggml-cpu.a
+[ 18%] Built target ggml-cpu
+[ 20%] Building CXX object ggml/src/CMakeFiles/ggml.dir/ggml-backend-reg.cpp.o
+[ 20%] Building CXX object ggml/src/CMakeFiles/ggml.dir/ggml-backend-dl.cpp.o
+[ 20%] Linking CXX static library libggml.a
+[ 20%] Built target ggml
+[ 22%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_6_cxx.cxx.o
+[ 22%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_7_cxx.cxx.o
+[ 22%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_8_cxx.cxx.o
+[ 22%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_5_cxx.cxx.o
+[ 23%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_4_cxx.cxx.o
+[ 23%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_3_cxx.cxx.o
+[ 25%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_9_cxx.cxx.o
+[ 25%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_1_cxx.cxx.o
+[ 25%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-arch.cpp.o
+[ 26%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama.cpp.o
+[ 26%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-adapter.cpp.o
+[ 27%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-batch.cpp.o
+[ 27%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_0_cxx.cxx.o
+[ 27%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/Unity/unity_2_cxx.cxx.o
+[ 27%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-chat.cpp.o
+[ 27%] Linking CXX static library libcpp-httplib.a
+[ 27%] Built target cpp-httplib
+[ 27%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-context.cpp.o
+[ 28%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-cparams.cpp.o
+[ 28%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-grammar.cpp.o
+[ 30%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-graph.cpp.o
+[ 30%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-hparams.cpp.o
+[ 30%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-impl.cpp.o
+[ 31%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-io.cpp.o
+[ 31%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-kv-cache.cpp.o
+[ 32%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-kv-cache-iswa.cpp.o
+[ 32%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-kv-cache-dsa.cpp.o
+[ 32%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-kv-cache-dsa-iswa.cpp.o
+[ 33%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-kv-cache-msa.cpp.o
+[ 33%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-kv-cache-dsv4.cpp.o
+[ 35%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-memory.cpp.o
+[ 35%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-memory-hybrid.cpp.o
+[ 35%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-memory-hybrid-iswa.cpp.o
+[ 36%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-memory-hybrid-idx.cpp.o
+[ 36%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-memory-recurrent.cpp.o
+[ 37%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-model-loader.cpp.o
+[ 37%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-mmap.cpp.o
+[ 37%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-model-saver.cpp.o
+[ 38%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-model.cpp.o
+[ 38%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-quant.cpp.o
+[ 40%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-sampler.cpp.o
+[ 40%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/llama-vocab.cpp.o
+[ 41%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/unicode-data.cpp.o
+[ 41%] Building CXX object llama.cpp/src/CMakeFiles/llama.dir/unicode.cpp.o
+[ 41%] Linking CXX static library libllama.a
+[ 41%] Built target llama
+[ 42%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/mtmd-helper-gen.cpp.o
+[ 42%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/mtmd-audio.cpp.o
+[ 42%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/mtmd.cpp.o
+[ 42%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/mtmd-image.cpp.o
+[ 43%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/deepseek4v.cpp.o
+[ 43%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/conformer.cpp.o
+[ 43%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/cogvlm.cpp.o
+[ 47%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/dots3note.cpp.o
+[ 47%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/clip.cpp.o
+[ 47%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/mtmd-helper.cpp.o
+[ 47%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/exaone4_5.cpp.o
+[ 47%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/gemma4a.cpp.o
+[ 47%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/dotsocr.cpp.o
+[ 48%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/gemma4v.cpp.o
+[ 48%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/gemma4ua.cpp.o
+[ 50%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/parsers.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/clip.cpp:4:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/conformer.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/deepseek4v.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/exaone4_5.cpp:2:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/cogvlm.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/gemma4a.cpp:8:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/dots3note.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/dotsocr.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/gemma4v.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/gemma4ua.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 51%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/gemma4uv.cpp.o
+[ 51%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/glm4v.cpp.o
+[ 51%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/granite-speech.cpp.o
+[ 52%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/granite4-vision.cpp.o
+[ 52%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/hunyuanvl.cpp.o
+[ 53%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/internvl.cpp.o
+[ 53%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/kimivl.cpp.o
+[ 53%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/kimik25.cpp.o
+[ 55%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/nemotron-v2-vl.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/gemma4uv.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/granite-speech.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/glm4v.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/granite4-vision.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/hunyuanvl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/kimivl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/internvl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/nemotron-v2-vl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/kimik25.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 55%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/cohere2moe.cpp.o
+[ 55%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/inkling2v.cpp.o
+[ 56%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/muse-glimmer.cpp.o
+[ 56%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/llama4.cpp.o
+[ 57%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/llava.cpp.o
+[ 57%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/minicpmv.cpp.o
+[ 57%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/paddleocr.cpp.o
+[ 58%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/pixtral.cpp.o
+[ 58%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/qwen2vl.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/inkling2v.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 60%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/minimax-m3.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/muse-glimmer.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/llama4.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/llava.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/minicpmv.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/pixtral.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/paddleocr.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/qwen2vl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 60%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/qwen3vl.cpp.o
+[ 60%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/mimovl.cpp.o
+[ 61%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/qwen3a.cpp.o
+[ 61%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/mimo-audio.cpp.o
+[ 62%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/qwen3tts-spkenc.cpp.o
+[ 62%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/qwen3tts-gen.cpp.o
+[ 62%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/pockettts-seanet.cpp.o
+[ 63%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/pockettts-spkenc.cpp.o
+[ 63%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/pockettts-gen.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/minimax-m3.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 65%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/step3vl.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/qwen3vl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/mimovl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/qwen3vl.cpp: In member function ‘virtual ggml_cgraph* clip_graph_qwen3vl::build()’:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/qwen3vl.cpp:40:90: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   40 |     ggml_tensor * learned_pos_embd = resize_position_embeddings(GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ALIGN_CORNERS);
+      |                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 65%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/siglip.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/qwen3a.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/qwen3tts-spkenc.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/mimo-audio.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/qwen3tts-gen.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/pockettts-seanet.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/pockettts-gen.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/pockettts-spkenc.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 65%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/whisper-enc.cpp.o
+[ 66%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/deepseekocr.cpp.o
+[ 66%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/deepseekocr2.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/step3vl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 67%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/mobilenetv5.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/siglip.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 67%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/youtuvl.cpp.o
+[ 67%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/yasa2.cpp.o
+[ 68%] Building CXX object llama.cpp/tools/mtmd/CMakeFiles/mtmd.dir/models/parakeet.cpp.o
+[ 70%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/deepseek.cpp.o
+[ 70%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/functionary-v3-2.cpp.o
+[ 70%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/gemma4.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/whisper-enc.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 71%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/gigachat-v3.cpp.o
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/deepseekocr.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/deepseekocr2.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/mobilenetv5.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/yasa2.cpp:4:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/youtuvl.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/models.h:3,
+                 from /mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/parakeet.cpp:1:
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:12:62: warning: bitwise operation between different enumeration types ‘ggml_scale_mode’ and ‘ggml_scale_flag’ is deprecated [-Wdeprecated-enum-enum-conversion]
+   12 | #define DEFAULT_INTERPOLATION_MODE (GGML_SCALE_MODE_BILINEAR | GGML_SCALE_FLAG_ANTIALIAS)
+      |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+/mnt/ai_data/projects/unbiased-intel/cleanclone2/third_party/llama.cpp/tools/mtmd/models/../clip-graph.h:84:76: note: in expansion of macro ‘DEFAULT_INTERPOLATION_MODE’
+   84 |     ggml_tensor * resize_position_embeddings(uint32_t interpolation_mode = DEFAULT_INTERPOLATION_MODE);
+      |                                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 71%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/gpt-oss.cpp.o
+[ 72%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/kimi-k2.cpp.o
+[ 72%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/kimi-k3.cpp.o
+[ 72%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/ling3.cpp.o
+[ 73%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/minicpm5.cpp.o
+[ 73%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/lfm2.cpp.o
+[ 75%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/minimax-m3.cpp.o
+[ 75%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/ministral3.cpp.o
+[ 75%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/muse-glimmer.cpp.o
+[ 76%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/parsers/qwen3-coder.cpp.o
+[ 76%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/arg.cpp.o
+[ 77%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/chat-auto-parser-generator.cpp.o
+[ 77%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/chat-auto-parser-helpers.cpp.o
+[ 77%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/chat-diff-analyzer.cpp.o
+[ 78%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/chat-peg-parser.cpp.o
+[ 78%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/chat.cpp.o
+[ 80%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/common.cpp.o
+[ 80%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/console.cpp.o
+[ 80%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/debug.cpp.o
+[ 81%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/download.cpp.o
+[ 81%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/fit.cpp.o
+[ 82%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/hf-cache.cpp.o
+[ 82%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/imatrix-loader.cpp.o
+[ 82%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/json-schema-to-grammar.cpp.o
+[ 83%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/json-schema.cpp.o
+[ 83%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/json.cpp.o
+[ 85%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/llguidance.cpp.o
+[ 85%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/log.cpp.o
+[ 85%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/ngram-cache.cpp.o
+[ 86%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/ngram-map.cpp.o
+[ 86%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/ngram-mod.cpp.o
+[ 87%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/peg-parser.cpp.o
+[ 87%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/preset.cpp.o
+[ 88%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/reasoning-budget.cpp.o
+[ 88%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/sampling.cpp.o
+[ 88%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/speculative.cpp.o
+[ 90%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/subproc.cpp.o
+[ 90%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/trie.cpp.o
+[ 91%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/unicode.cpp.o
+[ 91%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/jinja/lexer.cpp.o
+[ 91%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/jinja/parser.cpp.o
+[ 92%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/jinja/runtime.cpp.o
+[ 92%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/jinja/value.cpp.o
+[ 93%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/jinja/string.cpp.o
+[ 93%] Building CXX object llama.cpp/common/CMakeFiles/llama-common.dir/jinja/caps.cpp.o
+[ 93%] Linking CXX static library libmtmd.a
+[ 93%] Built target mtmd
+[ 93%] Linking CXX static library libllama-common.a
+[ 93%] Built target llama-common
+[ 93%] Building CXX object CMakeFiles/strata_llama_server.dir/third_party/llama.cpp/tools/server/server-http.cpp.o
+[ 96%] Building CXX object CMakeFiles/strata_llama_server.dir/third_party/llama.cpp/tools/server/server-chat.cpp.o
+[ 96%] Building CXX object CMakeFiles/strata_llama_server.dir/third_party/llama.cpp/tools/server/server-stream.cpp.o
+[ 96%] Building CXX object CMakeFiles/strata_llama_server.dir/third_party/llama.cpp/tools/server/server-common.cpp.o
+[ 97%] Building CXX object CMakeFiles/strata_llama_server.dir/third_party/llama.cpp/tools/server/server-queue.cpp.o
+[ 97%] Building CXX object CMakeFiles/strata_llama_server.dir/third_party/llama.cpp/tools/server/server-task.cpp.o
+[ 97%] Building CXX object CMakeFiles/strata_llama_server.dir/third_party/llama.cpp/tools/server/server-schema.cpp.o
+[ 97%] Building CXX object CMakeFiles/strata_llama_server.dir/frontend/ui_stub/ui.cpp.o
+[ 97%] Linking CXX static library libstrata_llama_server.a
+[ 97%] Built target strata_llama_server
+[ 97%] Building CXX object CMakeFiles/unbiased-strata.dir/src/artifact/strata_reader.cpp.o
+[100%] Building CXX object CMakeFiles/unbiased-strata.dir/frontend/main.cpp.o
+[100%] Building CXX object CMakeFiles/unbiased-strata.dir/frontend/hy4_vocab.cpp.o
+[100%] Building CXX object CMakeFiles/unbiased-strata.dir/frontend/strata_context.cpp.o
+[100%] Linking CXX executable bin/unbiased-strata
+[100%] Built target unbiased-strata
+make[1]: Leaving directory '/mnt/ai_data/projects/unbiased-intel/cleanclone2/build-frontend'
+make intel: card 'B60', GPU code: ahead of time for bmg-g21
+cmake -S sycl-poly -B build-intel -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=/opt/intel/oneapi/compiler/2026.0/bin/icpx -DCMAKE_C_COMPILER=/opt/intel/oneapi/compiler/2026.0/bin/icx \
+      "-DSTRATA_SYCL_AOT=bmg-g21"
+-- The C compiler identification is IntelLLVM 2026.0.0
+-- The CXX compiler identification is IntelLLVM 2026.0.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /opt/intel/oneapi/compiler/2026.0/bin/icx - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /opt/intel/oneapi/compiler/2026.0/bin/icpx - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- The ASM compiler identification is IntelLLVM
+-- Found assembler: /opt/intel/oneapi/compiler/2026.0/bin/icx
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Warning: ccache not found - consider installing it for faster compilation or disable this warning with GGML_CCACHE=OFF
+-- CMAKE_SYSTEM_PROCESSOR: x86_64
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: -march=native 
+-- ggml version: 0.24.0
+-- ggml commit:  unknown
+-- Configuring done (0.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: /mnt/ai_data/projects/unbiased-intel/cleanclone2/build-intel
+cmake --build build-intel -j 16 --target strata-poly
+make[1]: Entering directory '/mnt/ai_data/projects/unbiased-intel/cleanclone2/build-intel'
+make[1]: warning: -j16 forced in submake: resetting jobserver mode.
+[  4%] Building CXX object CMakeFiles/sp_kernels.dir/src/kernels/cuda/native_mmvq.dp.cpp.o
+[  4%] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml.c.o
+[  4%] Building CXX object CMakeFiles/sp_kernels.dir/src/kernels/cuda/iq_kernels.dp.cpp.o
+[ 10%] Building CXX object CMakeFiles/sp_mmq.dir/src/xe/matrix_report.cpp.o
+[ 10%] Building CXX object CMakeFiles/sp_mmq.dir/src/xe/iq_mmq.cpp.o
+[ 10%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml.cpp.o
+[ 10%] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml-alloc.c.o
+[ 12%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-backend.cpp.o
+[ 14%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-backend-meta.cpp.o
+[ 18%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-opt.cpp.o
+[ 18%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/ggml-threading.cpp.o
+[ 18%] Building C object ggml/src/CMakeFiles/ggml-base.dir/ggml-quants.c.o
+[ 20%] Building CXX object ggml/src/CMakeFiles/ggml-base.dir/gguf.cpp.o
+[ 21%] Building CXX object CMakeFiles/sp_spec.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/spec/suffix_drafter.cpp.o
+[ 23%] Building CXX object CMakeFiles/sp_spec.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/spec/controller.cpp.o
+[ 25%] Building CXX object CMakeFiles/sp_spec.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/spec/draft_policy.cpp.o
+[ 26%] Building CXX object CMakeFiles/sp_spec.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/spec/draft_source.cpp.o
+[ 28%] Linking CXX static library libsp_spec.a
+[ 28%] Built target sp_spec
+[ 29%] Linking CXX static library libggml-base.a
+[ 29%] Built target ggml-base
+[ 35%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/iqp.cpp.o
+[ 37%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/hbm.cpp.o
+[ 35%] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.c.o
+[ 37%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/repack.cpp.o
+[ 37%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ggml-cpu.cpp.o
+[ 39%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/traits.cpp.o
+[ 42%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/amx.cpp.o
+[ 42%] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/quants.c.o
+[ 45%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/amx/mmq.cpp.o
+[ 45%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/binary-ops.cpp.o
+[ 46%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/vec.cpp.o
+[ 48%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/unary-ops.cpp.o
+[ 50%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/ops.cpp.o
+[ 51%] Building C object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/arch/x86/quants.c.o
+[ 53%] Building CXX object ggml/src/CMakeFiles/ggml-cpu.dir/ggml-cpu/arch/x86/repack.cpp.o
+[ 54%] Linking CXX static library libggml-cpu.a
+[ 54%] Built target ggml-cpu
+[ 56%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/iq_avx512.cpp.o
+[ 60%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/native_expert.cpp.o
+[ 60%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/pool.cpp.o
+[ 60%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/q2_avx2.cpp.o
+[ 64%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/expert.cpp.o
+[ 64%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/iq_avx2.cpp.o
+[ 67%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/q2_avx1.cpp.o
+[ 67%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/kq_avx2.cpp.o
+[ 68%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/expert_layout.cpp.o
+[ 70%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/nvfp4_avx512.cpp.o
+[ 71%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/iq_avx1.cpp.o
+[ 73%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/nvfp4_avx2.cpp.o
+[ 75%] Building CXX object CMakeFiles/sp_cpu.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/kernels/cpu/kq_avx1.cpp.o
+[ 76%] Linking CXX static library libsp_mmq.a
+[ 76%] Built target sp_mmq
+[ 78%] Linking CXX static library libsp_cpu.a
+[ 78%] Built target sp_cpu
+[ 79%] Linking CXX static library libsp_kernels.a
+[ 79%] Built target sp_kernels
+[ 82%] Building CXX object CMakeFiles/strata-poly.dir/poly/cpu_experts.cpp.o
+[ 82%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/engine.cpp.o
+[ 84%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/kernels.dp.cpp.o
+[ 85%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/lfm2moe.cpp.o
+[ 87%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/kernels_dsv4.dp.cpp.o
+[ 89%] Building CXX object CMakeFiles/strata-poly.dir/poly/main.cpp.o
+[ 90%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/gemma4.cpp.o
+[ 92%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/qwen35.cpp.o
+[ 93%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/glm5next.cpp.o
+[ 96%] Building CXX object CMakeFiles/strata-poly.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/core/conversation_memory.cpp.o
+[ 96%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/deepseek4.cpp.o
+[ 98%] Building CXX object CMakeFiles/strata-poly.dir/src/poly/mmq_sycl.cpp.o
+[100%] Linking CXX executable strata-poly
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<12, 1, 1, false, true, 1>': [RetryManager] Start recompilation of the kernel
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<10, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 21
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<17, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 22
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<17, 2, 2, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<22, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 25
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<20, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<18, 2, 2, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 28
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<18, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<22, 2, 2, true, false, 0>': [RetryManager] Start recompilation of the kernel
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<29, 1, 1, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 2
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<20, 1, 1, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 6
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<1481834497, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 19
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<10, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 8
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<12, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<21, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 16
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<13, 1, 1, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 18
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<20, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 10
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<22, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<14, 2, 1, true, true, 0>': [RetryManager] Start recompilation of the kernel
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::poly::(anonymous namespace)::attn_score_reg_kernel_wrapper<4, 2, true>(float const*, sycl::_V1::detail::half_impl::half const*, float*, int, int, int, long long, int, int, float, int, int, long long, long long const*, signed char const*, unsigned short const*)::attn_score_reg_kernel_, dpct_kernel_scalar<4>, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<strata::poly::gemm_f32(void*, float const*, float const*, float*, int, int, int, int)::gemm_small_kernel_27e7e6>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::kernels::(anonymous namespace)::launch_il<strata::kernels::(anonymous namespace)::IlQ3K, 1>(void const*, void const*, float*, int, int, int, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::native_mmvq_il_kernel_e863e4, strata::kernels::(anonymous namespace)::IlQ3K, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::kernels::(anonymous namespace)::launch_il<strata::kernels::(anonymous namespace)::IlQ4K, 4>(void const*, void const*, float*, int, int, int, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::native_mmvq_il_kernel_e863e4, strata::kernels::(anonymous namespace)::IlQ4K, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 6
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::kernels::(anonymous namespace)::launch_il<strata::kernels::(anonymous namespace)::IlQ6K, 4>(void const*, void const*, float*, int, int, int, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::native_mmvq_il_kernel_e863e4, strata::kernels::(anonymous namespace)::IlQ6K, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 1
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<bool strata::kernels::(anonymous namespace)::b6_launch<strata::kernels::(anonymous namespace)::IQ4XSTraits, 2>(strata::kernels::(anonymous namespace)::IQ4XSTraits::Block const*, strata::kernels::(anonymous namespace)::Q81Block const*, float*, int, int, sycl::_V1::queue*)::b6_mmvq_rows_kernel_e078b5, strata::kernels::(anonymous namespace)::IQ4XSTraits, dpct_kernel_scalar<2>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 5
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target strata-poly
+make[1]: Leaving directory '/mnt/ai_data/projects/unbiased-intel/cleanclone2/build-intel'
+cmake -S sycl-ik2 -B build-intel-ik2 -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=/opt/intel/oneapi/compiler/2026.0/bin/icpx -DCMAKE_C_COMPILER=/opt/intel/oneapi/compiler/2026.0/bin/icx \
+      "-DSTRATA_SYCL_AOT=bmg-g21"
+-- The C compiler identification is IntelLLVM 2026.0.0
+-- The CXX compiler identification is IntelLLVM 2026.0.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /opt/intel/oneapi/compiler/2026.0/bin/icx - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /opt/intel/oneapi/compiler/2026.0/bin/icpx - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Configuring done (1.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /mnt/ai_data/projects/unbiased-intel/cleanclone2/build-intel-ik2
+cmake --build build-intel-ik2 -j 16 --target strata-ik2
+make[1]: Entering directory '/mnt/ai_data/projects/unbiased-intel/cleanclone2/build-intel-ik2'
+make[1]: warning: -j16 forced in submake: resetting jobserver mode.
+[ 14%] Building CXX object CMakeFiles/ik2_kernels.dir/src/ik2_kernels.dp.cpp.o
+[ 28%] Linking CXX static library libik2_kernels.a
+[ 28%] Built target ik2_kernels
+[ 42%] Building CXX object CMakeFiles/strata-ik2.dir/src/ik2_draft.dp.cpp.o
+[ 57%] Building CXX object CMakeFiles/strata-ik2.dir/src/ik2_main.dp.cpp.o
+[ 71%] Building CXX object CMakeFiles/strata-ik2.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/ik2/ik2_cpu.cpp.o
+[ 85%] Building CXX object CMakeFiles/strata-ik2.dir/mnt/ai_data/projects/unbiased-intel/cleanclone2/src/ik2/ik2_cpu_deep.cpp.o
+[100%] Linking CXX executable strata-ik2
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for ik2::k::nv_limb_rp_kernel_name<true, 8>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda4'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda3'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<8>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda2'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<6>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_down<8, 1>(unsigned char const* const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_down_kernel_dc23b5, dpct_kernel_scalar<8>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': Adding 64 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb1EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi1EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': compiled SIMD32 allocated 128 regs and spilled around 136
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned short>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned char>(unsigned short const*, int, unsigned char const*, unsigned char const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned char>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EhEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEhEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<4, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<2, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_d170b0, dpct_kernel_scalar<1>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE_clESC_E34argmax_gemv_f16_part_kernel_d170b018dpct_kernel_scalarILi1EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_9419a4, dpct_kernel_scalar<0>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE0_clESC_E34argmax_gemv_f16_part_kernel_9419a418dpct_kernel_scalarILi0EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::decode_f16(int, unsigned char const*, unsigned long, unsigned short*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::decode_f16_iq_kernel_e0c0cd>': compiled SIMD32 allocated 128 regs and spilled around 15
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 415
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 272
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 396
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 260
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_a169d8, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_760e49, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_block_down(unsigned char const* const*, int const*, int const*, int, unsigned long, int, int, unsigned short const*, float*, sycl::_V1::queue*)::experts_block_down_kernel_ddcd34, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 26
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_down_g(unsigned char const* const*, int const*, int const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::grouped_expert_mma_6ba10e, dpct_kernel_scalar<0>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 13
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::attn_probs_f16(float const*, unsigned short*, int, int, int, int, int, float, float const*, int, float const*, int, int, float const*, sycl::_V1::queue*)::attn_probs_f16_kernel_3cfced>': Adding 18 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZN3ik21k14attn_probs_f16EPKfPtiiiiifS3_iS3_iiS3_PN4sycl3_V15queueEE28attn_probs_f16_kernel_3cfcedEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target strata-ik2
+make[1]: Leaving directory '/mnt/ai_data/projects/unbiased-intel/cleanclone2/build-intel-ik2'
+mkdir -p build-intel/bin
+cp build-intel/strata-poly build-intel-ik2/strata-ik2 build-frontend/bin/unbiased-strata build-intel/bin/
+built:
+build-intel/bin/strata-ik2
+build-intel/bin/strata-poly
+build-intel/bin/unbiased-strata
