@@ -679,3 +679,11 @@ experts' XMX products 59% (1.28 s, 874 us a launch), the Gated-DeltaNet state ke
 3. **oneMKL for the small-output projections** instead of the hand-written `gemm_small` (written for cuBLAS's slow small shapes): 1,336 -> 1,404 (+5%).  `STRATA_GEMM_SMALL=1` brings the old kernel back.
 `run_validation.sh` PASS (`docs/logs/validation-xmx-round2-2026-11-26.log`): teacher-forced 10/10, retrieval exact at 334 and 2,710 tokens, counting exact; prompt 1,390-1,400 tok/s, decode 72 tok/s (96 with the draft head).
 Not done: the experts' XMX tile (59% of the time, ~4 int8 TOPS against ~200 peak): XeStrata's tiles are shaped for the B70; a retune for this card is the largest remaining item.  The state kernel is still 15% (one warp a column, two reductions a token).
+
+## 32. Qwen prefill, round 3: four state columns a warp (2026-11-26): 1,395 -> ~1,510 tok/s
+
+`gdn_state_reg_kernel` (one warp a state column, two reductions a token: a latency chain) now has `gdn_state_regn_kernel<PER, NC>`: NC consecutive columns a warp, their chains independent so the compiler overlaps them, and
+the token's query / key reads shared.  Per column the arithmetic and order are the 1-column kernel's.  Measured on the 2,710-token prompt, same session: NC=1 1,389-1,406, NC=2 1,510-1,512, **NC=4 1,521-1,529**, NC=8 1,376-1,383, NC=16 1,191-1,199
+(fewer warps than the card can hide latency with, and more registers).  4 is the default (`STRATA_GDN_NC=1` restores the old kernel; the 1,2,4,8,16 are built).  `run_validation.sh` PASS (`docs/logs/validation-xmx-round3-2026-11-26.log`):
+teacher-forced 10/10, retrieval exact, counting exact; prefill 1,493-1,520, decode 72 (96 with the draft head, unchanged).
+The 128-row XMX expert tile: `STRATA_MMQ_BIG_ROWS` (mean rows an expert above which it is taken; default 64, as before) at 16 / 32 / 64: 1,341 / 1,389 / 1,388 tok/s, 4,096-token batch no better: the tile shape is not the lever.

@@ -8,7 +8,7 @@ Unsloth `UD-Q4_K_XL`).  On it, with every expert in VRAM:
 
 | | |
 |---|---|
-| prefill | ~1,395 tok/s (2,700-token prompt; the experts' products run on the Intel matrix engine) |
+| prefill | ~1,510 tok/s (2,700-token prompt; the experts' products run on the Intel matrix engine) |
 | decode | ~72 tok/s without the draft head, ~95 with it on short answers (varies with the answer's length) |
 | correctness | exact on retrieval at 2.7k tokens and on counting 1..200; kernel unit tests against CPU references pass |
 

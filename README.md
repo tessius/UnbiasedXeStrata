@@ -11,7 +11,7 @@
 
 | Qwen3.6-35B-A3B on an Arc Pro B60, all experts in VRAM | |
 |---|---|
-| Prefill | ~1,395 tok/s (2,700-token prompt; 447 before the matrix engine was enabled) |
+| Prefill | ~1,510 tok/s (2,700-token prompt; 447 before the matrix engine was enabled) |
 | Decode | ~72 tok/s without the draft head, ~95 with it (short answers; varies with the answer's length) |
 | Correctness | exact on retrieval at 2.7k tokens and on counting 1..200; kernel unit tests against CPU references pass |
 
@@ -59,7 +59,7 @@ not available.  **Conclusion: not worth it.**  We dropped it (nothing from that 
 
 **What we did instead: migrate `strata-poly` from scratch.**  dpct over `src/poly` and the few Strata kernels it calls, then by-hand fixes to
 what dpct got wrong; a real SYCL implementation of the prompt-path matrix product (`Mmq`) built on XeStrata's tiles; an ahead-of-time
-build for Battlemage so it starts in seconds.  Prefill went from 178 tok/s (stub `Mmq`) to ~447 on dp4a, then to ~1,395 with the Intel matrix engine (XMX) enabled and tuned (2026-11-25, `sycl-poly/DEVLOG.md` sections 30-31).
+build for Battlemage so it starts in seconds.  Prefill went from 178 tok/s (stub `Mmq`) to ~447 on dp4a, then to ~1,395 with the Intel matrix engine (XMX) enabled and tuned (2026-11-25/26, `sycl-poly/DEVLOG.md` sections 30-32).
 
 **The bug that mattered.**  The first working build gave right answers to short prompts and garbage after about 90 tokens.
 It was not in the new `Mmq`.  CPU-reference unit tests for the attention, RoPE and gated-delta-rule kernels found it: dpct had

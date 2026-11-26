@@ -3238,6 +3238,86 @@ __dpct_inline__ void gdn_state_reg_kernel(
     for (int k = 0; k < PER; ++k) col[lane + k * WARP] = c[k];
 }
 
+// gdn_state_reg_kernel with NC consecutive columns a warp: a token's two sums are that kernel's dependency chain, so a warp holding several columns
+// overlaps their chains (and shares the token's query and key reads).  The sums are the same per column, bit for bit.
+template <int PER, int NC>
+__dpct_inline__ void gdn_state_regn_kernel(
+    const float *__restrict__ qkv, const float *__restrict__ decay,
+    const float *__restrict__ share, float *__restrict__ s,
+    float *__restrict__ out, int dim, int n_head, int k_heads, int rows,
+    float *__restrict__ snap, size_t stride, unsigned snaps) {
+    auto item_ct1 = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
+    const int warps = int(item_ct1.get_local_range(2) / WARP);
+    const int per_head = dim / (warps * NC);
+    const int h = item_ct1.get_group(2) / per_head, hk = h % k_heads;
+    const int j0 = ((item_ct1.get_group(2) % per_head) * warps + int(item_ct1.get_local_id(2) / WARP)) * NC;
+    const int lane = item_ct1.get_local_id(2) & (WARP - 1);
+    if (j0 >= dim) return;
+    const size_t keys = size_t(dim) * k_heads, d_inner = size_t(dim) * n_head, row_n = 2 * keys + d_inner;
+    float c[NC][PER];
+#pragma unroll
+    for (int n = 0; n < NC; ++n)
+#pragma unroll
+        for (int k = 0; k < PER; ++k) c[n][k] = s[(size_t(h) * dim + j0 + n) * dim + lane + k * WARP];
+    float qa[PER], ka[PER], va[NC], da = 0.0f, sa = 0.0f;
+    auto fetch = [&](int row, float* q, float* kk, float* v, float& dc, float& sh) {
+        const float* x = qkv + size_t(row) * row_n;
+#pragma unroll
+        for (int k = 0; k < PER; ++k) {
+            q[k] = x[size_t(hk) * dim + lane + k * WARP];
+            kk[k] = x[keys + size_t(hk) * dim + lane + k * WARP];
+        }
+#pragma unroll
+        for (int n = 0; n < NC; ++n) v[n] = x[2 * keys + size_t(h) * dim + j0 + n];
+        dc = decay[size_t(row) * n_head + h];
+        sh = share[size_t(row) * n_head + h];
+    };
+    if (rows > 0) fetch(0, qa, ka, va, da, sa);
+    for (int row = 0; row < rows; ++row) {
+        float qb[PER], kb[PER], vb[NC], db = 0.0f, sb = 0.0f;
+#pragma unroll
+        for (int n = 0; n < NC; ++n) vb[n] = 0.0f;
+        if (row + 1 < rows) fetch(row + 1, qb, kb, vb, db, sb);
+        float sk[NC];
+#pragma unroll
+        for (int n = 0; n < NC; ++n) {
+            sk[n] = 0.0f;
+#pragma unroll
+            for (int k = 0; k < PER; ++k) sk[n] = sycl::fma(da * c[n][k], ka[k], sk[n]);
+        }
+#pragma unroll
+        for (int n = 0; n < NC; ++n) sk[n] = warp_sum_hw(sk[n]);
+        float o[NC];
+        float* m = snap_of(snap, stride, snaps, row);
+#pragma unroll
+        for (int n = 0; n < NC; ++n) {
+            const float d = (va[n] - sk[n]) * sa;
+            o[n] = 0.0f;
+#pragma unroll
+            for (int k = 0; k < PER; ++k) {
+                const float nv = sycl::fma(da, c[n][k], ka[k] * d);
+                c[n][k] = nv;
+                if (m) m[(size_t(h) * dim + j0 + n) * dim + lane + k * WARP] = nv;
+                o[n] = sycl::fma(nv, qa[k], o[n]);
+            }
+        }
+#pragma unroll
+        for (int n = 0; n < NC; ++n) o[n] = warp_sum_hw(o[n]);
+        if (lane == 0)
+#pragma unroll
+            for (int n = 0; n < NC; ++n) out[size_t(row) * d_inner + size_t(h) * dim + j0 + n] = o[n];
+#pragma unroll
+        for (int k = 0; k < PER; ++k) qa[k] = qb[k], ka[k] = kb[k];
+#pragma unroll
+        for (int n = 0; n < NC; ++n) va[n] = vb[n];
+        da = db, sa = sb;
+    }
+#pragma unroll
+    for (int n = 0; n < NC; ++n)
+#pragma unroll
+        for (int k = 0; k < PER; ++k) s[(size_t(h) * dim + j0 + n) * dim + lane + k * WARP] = c[n][k];
+}
+
 // One block a token and value head: the output's norm, its weights and the gate.
 __dpct_inline__ void gdn_out_kernel(float *__restrict__ out,
                                     const float *__restrict__ z,
@@ -5067,6 +5147,25 @@ void gdn_step(float* qkv, float* alpha, float* beta, const float* dt, const floa
     Adjust the work-group size if needed.
     */
     case 4: {
+        static const int nc = [] { const char* v = std::getenv("STRATA_GDN_NC"); return v ? std::atoi(v) : 4; }();   // columns a warp: 4 is the best measured (1: gdn_state_reg_kernel)
+        if (nc > 1 && dim % nc == 0) {
+            const int wn = std::min(columns, dim / nc), th = wn * WARP, bl = n_head * (dim / (wn * nc));
+            auto exp_props = sycl::ext::oneapi::experimental::properties{sycl::ext::oneapi::experimental::use_root_sync};
+#define STRATA_GDN_NC_CASE(N)                                                                                                                   \
+            if (nc == N) {                                                                                                                      \
+                cs(stream)->parallel_for<dpct_kernel_name<class gdn_state_regn_kernel_name_##N, dpct_kernel_scalar<4>>>(                         \
+                    sycl::nd_range<3>(sycl::range(1, 1, bl) * sycl::range(1, 1, th), sycl::range(1, 1, th)), exp_props,                         \
+                    [=](sycl::nd_item<3> item_ct1) [[sycl::reqd_sub_group_size(32)]] {                                                           \
+                        gdn_state_regn_kernel<4, N>(qkv, alpha, beta, s, out, dim, n_head, k_heads, rows, snap, stride, sn);                    \
+                    });                                                                                                                         \
+                break;                                                                                                                          \
+            }
+            STRATA_GDN_NC_CASE(2)
+            STRATA_GDN_NC_CASE(4)
+            STRATA_GDN_NC_CASE(8)
+            STRATA_GDN_NC_CASE(16)
+#undef STRATA_GDN_NC_CASE
+        }
         auto exp_props = sycl::ext::oneapi::experimental::properties{
             sycl::ext::oneapi::experimental::use_root_sync};
 

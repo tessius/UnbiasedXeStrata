@@ -1154,6 +1154,8 @@ sycl::event by_rows(sycl::queue& q, const void* w, const uint8_t* const* wtab, s
     // then multiply mostly empty rows, and the extra tiles of the few larger experts cost less (Ornith GSQ-RCO 3bit's
     // 515-token prompt, 16 rows an expert: RX 9060 XT +8%; its 4K prompt, 111 rows, keeps the 64-row tile)
     const int64_t mean_rows = rows / std::max(n, 1);
+    // STRATA_MMQ_BIG_ROWS: the rows an expert averages above which the 128-row XMX tile is taken (default 64)
+    static const int64_t big_rows = [] { const char* v = std::getenv("STRATA_MMQ_BIG_ROWS"); return v ? (int64_t) std::atoll(v) : (int64_t) 64; }();
     // dp4a where the matrix form does not run (iq_mmq_grouped is called where one of the two does); the K-tail form
     // only for a K that is no multiple of the step, so that the others keep their loads unguarded
     const bool tail = w_cols % KC != 0;
@@ -1172,7 +1174,7 @@ sycl::event by_rows(sycl::queue& q, const void* w, const uint8_t* const* wtab, s
 #define STRATA_MMQ_ROWS_INTEL(TAIL, IS)                                                     \
     do {                                                                                    \
         if (max_rows <= 16) return STRATA_MMQ_LAUNCH(1, 1, false, TAIL, IS);                \
-        if ((IS) == 1 && mean_rows > 64 && takes_work_group<Kernel<TY, 2, 4, false, (TAIL), (IS)>>(q)) \
+        if ((IS) == 1 && mean_rows > big_rows && takes_work_group<Kernel<TY, 2, 4, false, (TAIL), (IS)>>(q)) \
             return STRATA_MMQ_LAUNCH(2, 4, false, TAIL, IS);                                \
         return STRATA_MMQ_LAUNCH(2, 2, false, TAIL, IS);                                    \
     } while (0)
