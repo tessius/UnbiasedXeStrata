@@ -748,3 +748,19 @@ which is a new kernel with a different numerical contract, to be validated as on
 Two more, same bench: the Q4_K / Q5_K minimum term of the epilogue (`acc -= wmn * xu`, 16 more operations a tile) costs ~7% (806 -> 753 us); with it gone the main scale epilogue costs nothing measurable (753 -> 756 with it removed too), so the epilogue is not the limit either.
 Trimming the local memory a group asks for from 44 KB to 36 KB (the Intel body never uses the 8 KB staging tile the other bodies share) to fit a third group per core: 0% (806 -> 805 / 808 us).  The tile is balanced across the decode, the local-memory traffic, the barriers, the products and the epilogue, each worth 5-25%, none
 more: a gain of a factor needs a different structure (and numerical contract), not a change to one of them.
+
+## 39. A half-precision XMX tile for Q4_K / Q5_K: built, correct, slower (2026-11-26)
+The remaining idea of sections 37-38, built and measured (`docs/experiments/iq_mmq_f16_tile.inc.cpp`, bench `f16bench.cpp`; the production tree is unchanged): the weights decoded to scaled FP16 (`q * d sc - dmin m`, in half2, by the magic-number conversion) into a double-buffered local tile,
+FP16 activations (rows with every four elements in the order 0 2 1 3, so that a source word's two masks give the matrix engine's VNNI pairs), 8 x 16 x 16 half products, **one accumulator per tile across all of K: no per-block scale epilogue and no int8 quantization of the activations** (it was ~60% of the int8 tile's instructions).
+Work-group as the int8 tile's (16 sub-groups, 64 rows x 128 outputs), K in steps of 64, one barrier a step.  Qwen3.6's shapes, 64 experts, 64 rows each, same session:
+
+| | gate/up Q4_K | down Q4_K | gate/up Q5_K | down Q5_K |
+|---|---:|---:|---:|---:|
+| int8 tile (production) | 716 us | 416 us | 845 us | 456 us |
+| half-precision tile, activations read from global by the matrix loads | 1,119 | 583 | 1,295 | 626 |
+| the same, activations staged in local memory once a step (register-prefetched) | 1,044 | 582 | 1,355 | 617 |
+
+Numerically right: against the int8 tile's output the largest difference is 4e-3 of the largest value (the int8 path's own activation quantization), no NaN.  Ablations of the staged kernel (gate/up 1,045 us): without the decode 616 (-41%), without the products 617 (-41%), without the activations' local loads 807 (-23%), without the barrier 861 (-18%),
+without the global load of the activations 938 (-10%), without the B loads 986 (-6%).  The decode (a conversion, a subtraction and a scaled fma for every half2 of weights: ~4 vector operations a pair, 16 pairs and 16 local-memory stores a thread a step) costs more than the int8 epilogue it replaces, and the FP16 products need twice the matrix instructions a K
+(K = 16 against 32); the tile lands at 1.46x the int8 tile's time.  To win it needs a decode at a third of that cost, and the ISA offers no cheaper exact int4 -> half path (the one-fma form `(1024 + q) * s - (1024 s + m)` loses the low bits of `q * s` to the cancellation: errors up to the size of the value).
+**Result:** the production tile stays the int8 one; this one is kept as a documented experiment, not built.  Sections 32-39 together: Qwen3.6-35B prefill 460 -> ~1,800 tok/s, with the last step (section 37's register mode) the only one this tile work added.
