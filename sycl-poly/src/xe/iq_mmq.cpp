@@ -638,6 +638,12 @@ struct Kernel {
         const int sgid = (int) sg.get_group_linear_id(), lid = (int) it.get_local_id(0);
         const int lane = (int) sg.get_local_linear_id();
         constexpr int lanes = NSG * SG;
+        // The step's tiles in local memory, tile-major: an 8-row x 32-byte tile of the activations is 256 contiguous bytes, a VNNI tile of the weights (8 rows of 16 outputs' words)
+        // 512 contiguous bytes, so that a matrix load is a few block messages and not one a row and a repack of the registers (the ISA of the row-strided form: 8 messages and 8 moves a tile).
+        auto a_at = [&](int h, int rr, int kc) { return static_cast<ptrdiff_t>((((h * NB + kc / 32) * (WM / 8) + rr / 8) * 8 + rr % 8) * 32 + kc % 32); };
+        auto a_tile = [&](int h, int b, int row) { return static_cast<int>(((h * NB + b) * (WM / 8) + row / 8) * 256); };
+        auto b_at = [&](int b, int nn, int j) { return ((b * (WN / 16) + nn / 16) * 8 + j) * 16 + nn % 16; };
+        auto b_tile = [&](int b, int col) { return static_cast<int>((b * (WN / 16) + col / 16) * 512); };
         const int rs = sgid / NT * TPS * IM, cs = sgid % NT * IN;   // the sub-group's first row and column in the tile
         const uint8_t* wx = wtab != nullptr ? wtab[e] + woff : w + (size_t) e * expert_bytes;
         const auto base = lm.template get_multi_ptr<sycl::access::decorated::no>();
@@ -667,10 +673,10 @@ struct Kernel {
                 if constexpr (HALF) {   // copy h keeps the half h of each block, zeros in the other
                     const u32x4 z = {0u, 0u, 0u, 0u};
                     const bool hi = c % 32 >= 16;
-                    *reinterpret_cast<u32x4*>(al + static_cast<ptrdiff_t>(rr) * LDA + c) = hi ? z : val;
-                    *reinterpret_cast<u32x4*>(al + static_cast<ptrdiff_t>(WM + rr) * LDA + c) = hi ? val : z;
+                    *reinterpret_cast<u32x4*>(al + a_at(0, rr, c)) = hi ? z : val;
+                    *reinterpret_cast<u32x4*>(al + a_at(1, rr, c)) = hi ? val : z;
                 } else {
-                    *reinterpret_cast<u32x4*>(al + static_cast<ptrdiff_t>(rr) * LDA + c) = val;
+                    *reinterpret_cast<u32x4*>(al + a_at(0, rr, c)) = val;
                 }
             }
             for (int v = lid; v < WM * NB; v += lanes) {
@@ -689,7 +695,7 @@ struct Kernel {
                 const int nn = by_block ? v / NB : v % WN, b = by_block ? v % NB : v / WN;
                 const Sub d = !last || k0 / 32 + b < kb ? Dec<TY>::get(wx + (size_t) (n0 + nn) * row_bytes, (int) (k0 / 32) + b, row_bytes)
                                                 : Sub{{}, 0.0f, 0.0f, 0.0f};   // past K: zeros
-                for (int j = 0; j < 8; ++j) bw[(b * 8 + j) * WN + nn] = d.v[j];
+                for (int j = 0; j < 8; ++j) bw[b_at(b, nn, j)] = d.v[j];
                 wsl[(2 * b) * WN + nn] = d.s0;
                 wsl[(2 * b + 1) * WN + nn] = d.s1;
                 if constexpr (MIN) wml[b * WN + nn] = d.m;
@@ -697,12 +703,12 @@ struct Kernel {
             sycl::group_barrier(it.get_group());
             for (int b = 0; b < NB; ++b) {
                 mx::joint_matrix<sycl::sub_group, int8_t, mx::use::b, IK, IN, mx::layout::ext_intel_packed> bm;
-                mx::joint_matrix_load(sg, bm, bp + static_cast<int>(b * 8 * LDBV + cs * 4), LDBV);
+                mx::joint_matrix_load(sg, bm, bp + b_tile(b, cs), 64);
                 for (int h = 0; h < (HALF ? 2 : 1); ++h) {
                     const float ws = wsl[(2 * b + h) * WN + cs + lane];   // this lane's column's
                     for (int t = 0; t < TPS; ++t) {
                         mx::joint_matrix<sycl::sub_group, int8_t, mx::use::a, IM, IK, mx::layout::row_major> a;
-                        mx::joint_matrix_load(sg, a, ap + static_cast<int>((h * WM + rs + t * IM) * LDA + b * 32), LDA);
+                        mx::joint_matrix_load(sg, a, ap + a_tile(h, b, rs + t * IM), 32);
                         mx::joint_matrix_fill(sg, ci, 0);
                         mx::joint_matrix_mad(sg, ci, a, bm, ci);
                         const float* xr = xsl + static_cast<ptrdiff_t>(b * WM + rs + t * IM);
