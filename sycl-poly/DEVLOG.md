@@ -642,3 +642,10 @@ One run under `SYCL_UR_TRACE=2` completed normally.  Not fixed; the hang is the 
 Throughput numbers taken in this state should be repeated after a reboot.
 
 **After a reboot (same day, 0 engine resets at boot, no other GPU process running):** 6 of 6 direct starts hung the same way (3 clean-clone binary, 3 old binary; 5 engine resets logged).  So the hang is **not** left-over driver state: it reproduces from a fresh boot with both binaries.  Cause still open (the standalone repros in this section do not hang); next step is bisecting the engine's start-up (what runs before the XMX layout probe) against the passing standalone programs.
+
+**Root cause and fix (2026-11-25).**  The kernel log's fault record named the same two non-present GPU-side read addresses every run (copy engine, `bcs`).  `Engine::upload` converts weights into
+temporary vectors (`q`, `f`, `h`) and calls `Engine::h2d`, which dpct had made an asynchronous `memcpy` (DPCT1124/1114) with no wait: the vector was freed on return while the copy engine had not yet read it.
+Whether it faulted depended on whether the freed pages were already unmapped (large vectors are `munmap`ed at once), so it came and went with memory layout and timing, then reproduced every time.
+It surfaced at the first synchronisation (the int8 layout probe: `DEVICE_LOST`), then waited forever in `Engine::alloc()`.  Same class of bug as sycl-ik2's early hang (section 10).  Fix: `.wait()` in `h2d`.
+After the fix (rebuilt in the clean clone): 4 of 4 direct starts, 0 engine resets, prompt 459.7-461.5 tok/s, decode 71.5-71.8 tok/s (the 2,710-token facts prompt; earlier "no regression" runs read 442-446).
+The standalone repros (pinned memory, mmap, VA reservation, copy volume) did not reproduce it because they never freed a source buffer before the copy ran.

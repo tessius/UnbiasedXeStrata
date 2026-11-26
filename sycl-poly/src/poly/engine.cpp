@@ -500,7 +500,8 @@ void Engine::h2d(void* dst, const void* src, size_t bytes) {
     memory, so you may need to call wait() on event return by memcpy API to
     ensure synchronization behavior.
     */
-    ck(DPCT_CHECK_ERROR(cs(st_)->memcpy(dst, src, bytes)), "a copy into VRAM");
+    // .wait(): src is often a temporary (upload()'s converted weights) freed on return, and dpct made cudaMemcpy asynchronous
+    ck(DPCT_CHECK_ERROR(cs(st_)->memcpy(dst, src, bytes).wait()), "a copy into VRAM");
 }
 
 void Engine::zero_vram(void* dst, size_t bytes) {
