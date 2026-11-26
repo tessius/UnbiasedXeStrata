@@ -982,6 +982,10 @@ struct Kernel {
     void operator()(sycl::nd_item<1> it) const requires(!DP4A && IS == 0) { body(it); }
     // no sub-group operations: the device's own size
     [[sycl::reqd_work_group_size(NSG * SG)]] void operator()(sycl::nd_item<1> it) const requires(DP4A) { body(it); }
+    // The sub-group size as an attribute too: icpx 2026.0 with -fsycl-default-sub-group-size=32 ignores the property below and
+    // compiles these kernels at 32 lanes, whose accumulators lie otherwise (every product but the first 16 columns wrong).
+    // Intel's device compile takes both, with grf_size as the property.
+    [[sycl::reqd_sub_group_size(STRATA_SUB_GROUP(ISG))]]
     void operator()(sycl::nd_item<1> it) const requires(!DP4A && IS != 0) { body(it); }
     auto get(syclex::properties_tag) const requires(!DP4A && IS != 0) {
         // Intel's XMX bodies in the large register file: in the default one their sums and tiles spilled, 3.1x slower
@@ -1017,7 +1021,9 @@ struct IntelLayoutCheck {
     static constexpr int N = IS == 1 ? 16 : 8;
     sycl::local_accessor<int32_t, 1> pi;
     int* out;
-    void operator()(sycl::nd_item<1> it) const {
+    // the attribute, not only get(): with -fsycl-default-sub-group-size=32 the property alone left this kernel at 32 lanes, whose
+    // accumulator elements lie otherwise, and the check rejected the XMX products on a card that has them
+    [[sycl::reqd_sub_group_size(STRATA_SUB_GROUP(N))]] void operator()(sycl::nd_item<1> it) const {
 #if STRATA_IQ_MMQ_INTEL
         const auto sg = it.get_sub_group();
         const int lid = (int) it.get_local_id(0);

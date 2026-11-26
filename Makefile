@@ -127,8 +127,8 @@ intel: frontend
 
 # The Intel kernels' unit tests against CPU references (strata-poly's and strata-ik2's; needs the GPU; no model).
 intel-test: intel
-	cmake --build $(INTEL_BUILD) -j $(JOBS) --target poly_gdn_q_test poly_attend_q_test poly_rope_q_test
-	$(INTEL_BUILD)/poly_gdn_q_test && $(INTEL_BUILD)/poly_attend_q_test && $(INTEL_BUILD)/poly_rope_q_test
+	cmake --build $(INTEL_BUILD) -j $(JOBS) --target poly_gdn_q_test poly_attend_q_test poly_rope_q_test poly_mmq_xmx_test
+	$(INTEL_BUILD)/poly_gdn_q_test && $(INTEL_BUILD)/poly_attend_q_test && $(INTEL_BUILD)/poly_rope_q_test && $(INTEL_BUILD)/poly_mmq_xmx_test
 	cmake --build $(INTEL_BUILD)-ik2 -j $(JOBS) --target ik2_flash_xmx_test ik2_moe_xmx_test ik2_small_bench ik2_rms_test ik2_mma_emul_test ik2_experts_down_test
 	for t in ik2_flash_xmx_test ik2_moe_xmx_test ik2_small_bench ik2_rms_test ik2_mma_emul_test ik2_experts_down_test; do \
 	    echo "== $$t"; $(INTEL_BUILD)-ik2/$$t || exit 1; done

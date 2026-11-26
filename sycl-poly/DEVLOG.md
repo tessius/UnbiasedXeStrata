@@ -651,3 +651,19 @@ After the fix (rebuilt in the clean clone): 4 of 4 direct starts, 0 engine reset
 The standalone repros (pinned memory, mmap, VA reservation, copy volume) did not reproduce it because they never freed a source buffer before the copy ran.
 Front end re-check after the fix (server mode, `--engine strata-poly`, same 2,754-token prompt, three requests with 30 new tokens): 6.54 / 6.19 / 6.21 s each, i.e. ~5.7 s of prefill = ~480 tok/s.  The earlier ~380 through the front end was measured while the start-up bug was
 intermittently resetting the copy engine; there is no front-end-specific slowdown.
+
+## 30. Qwen prefill: the matrix engine was never on (2026-11-25), Arc Pro B60: 460 -> ~1,175 tok/s
+
+**Profile first.**  VTune does not support this CPU, so a scratch copy of the tree (never committed) had every `queue.submit` and oneMKL `gemm` wrapped by a script that records the events (queues with `DPCT_PROFILING_ENABLED`),
+and `STRATA_PROF=1` printed GPU time a launch site at exit.  For the 2,710-token prompt: **98% of the GPU time (4.9 of 5.0 s) is the experts' products** (`iq_mmq`, 1,470 launches of ~3.3 ms), about 1.1 int8 TOPS on a card
+with ~200; attention GEMMs 0.7%, everything else under 1%.  So: the prefill is the experts' tiles, and they were on dp4a (the engine had always printed "the GPU's int8 XMX accumulators are laid out otherwise ...", sections 6.3 and NOTES).
+
+**Cause.**  icpx 2026.0 ignores a kernel's `sub_group_size` *property* (a `get(properties_tag)` member) when the build passes `-fsycl-default-sub-group-size=32`: the kernel is compiled at 32 lanes.  A 8x16 int32 joint_matrix
+then hands each lane 4 elements (rows 0, 2, 4, 6) instead of 8 (column = lane, element i = row i), so the layout probe failed and rejected XMX.  (A standalone copy built without that flag passed, which is why the first
+look found nothing.)  The same property-only declaration was on the XMX tile kernels themselves (`IS != 0`): enabling them by fixing only the probe gave 1,520 tok/s and **wrong answers** (retrieval and counting wrong; every
+product but the first 16 columns).  Fix: `[[sycl::reqd_sub_group_size(...)]]` as an attribute on the probe and on the XMX kernels' `operator()`, `grf_size<256>` stays a property (both are accepted together by Intel's device compile).
+
+**Verification.**  New `poly_mmq_xmx_test` (in `make intel-test`): the same grouped expert products for Q4_K, Q5_K, Q6_K, Q8_0 and IQ4_XS on synthetic weights, XMX against dp4a in two processes, relative difference 0 - 4.5e-7;
+it fails unless the path is "XMX".  `run_validation.sh` PASS (log `docs/logs/validation-xmx-2026-11-25.log`): teacher-forced counting 10/10, numbered-facts retrieval exact at 334 and 2,710 tokens, counting 1..200 exact, 0 engine resets.
+**Result (2,710-token prompt, `--no-draft`):** prompt 1,175-1,182 tok/s (460 before), decode 71.5 tok/s unchanged; with the draft head 94.8-95.2 tok/s on the 27-token answer.
+The profile showed the matrix-engine kernels are far from the card's int8 peak still; further tile tuning (XeStrata's tiles are shaped for B70) is untried.

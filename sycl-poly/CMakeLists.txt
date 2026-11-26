@@ -88,6 +88,9 @@ target_link_options(strata-poly PRIVATE -qmkl=sequential)
 target_link_libraries(strata-poly PRIVATE sp_mmq sp_kernels sp_spec sp_cpu ggml-cpu ggml-base Threads::Threads)
 
 # attend() against a CPU reference (Qwen3.6's head shape); run by hand: poly_attend_q_test
+# the experts' prompt products on the matrix engine against dp4a (runs itself twice); run by hand: poly_mmq_xmx_test
+add_executable(poly_mmq_xmx_test src/poly/mmq_xmx_test.cpp)
+target_link_libraries(poly_mmq_xmx_test PRIVATE sp_mmq)
 add_executable(poly_attend_q_test src/poly/attend_q_test.cpp src/poly/kernels.dp.cpp)
 target_include_directories(poly_attend_q_test PRIVATE ${INC})
 target_compile_options(poly_attend_q_test PRIVATE -qmkl=sequential)

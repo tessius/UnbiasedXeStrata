@@ -11,8 +11,8 @@
 
 | Qwen3.6-35B-A3B on an Arc Pro B60, all experts in VRAM | |
 |---|---|
-| Prefill | ~447 tok/s (2,700-token prompt) |
-| Decode | 49-93 tok/s depending on the answer's length and whether the draft head is on |
+| Prefill | ~1,175 tok/s (2,700-token prompt; 447 before the matrix engine was enabled) |
+| Decode | ~72 tok/s without the draft head, ~95 with it (short answers; varies with the answer's length) |
 | Correctness | exact on retrieval at 2.7k tokens and on counting 1..200; kernel unit tests against CPU references pass |
 
 | Inkling-2-Mini on an Arc Pro B60, all experts in VRAM (`strata-ik2`) | |
@@ -59,7 +59,7 @@ not available.  **Conclusion: not worth it.**  We dropped it (nothing from that 
 
 **What we did instead: migrate `strata-poly` from scratch.**  dpct over `src/poly` and the few Strata kernels it calls, then by-hand fixes to
 what dpct got wrong; a real SYCL implementation of the prompt-path matrix product (`Mmq`) built on XeStrata's tiles; an ahead-of-time
-build for Battlemage so it starts in seconds.  Prefill went from 178 tok/s (stub `Mmq`) to ~447.
+build for Battlemage so it starts in seconds.  Prefill went from 178 tok/s (stub `Mmq`) to ~447 on dp4a, then to ~1,175 with the Intel matrix engine (XMX) enabled (2026-11-25, `sycl-poly/DEVLOG.md` section 30).
 
 **The bug that mattered.**  The first working build gave right answers to short prompts and garbage after about 90 tokens.
 It was not in the new `Mmq`.  CPU-reference unit tests for the attention, RoPE and gated-delta-rule kernels found it: dpct had
@@ -81,8 +81,7 @@ This is meant to be usable that way.  Everything is additive, in one directory, 
   are the reference.
 - The old `sycl/` port is still stale against this tree and still unbuilt; this work does not depend on it except for its vendored dpct
   helper headers and `strata/sycl_queue.hpp`.  Whether to keep, refresh or remove it is your call.
-- Not done, in priority order: Intel XMX for `Mmq` (the layout probe rejects it with icpx 2026.0, so the tiles run on dp4a),
-  CUDA graphs, the other models, other GPUs, an intermittent device-lost at start.  Details: [`sycl-poly/NOTES.md`](sycl-poly/NOTES.md).
+- Not done, in priority order: CUDA graphs, the other models, other GPUs, an intermittent device-lost at start.  Details: [`sycl-poly/NOTES.md`](sycl-poly/NOTES.md).
 - To check any change: `sycl-poly/docs/validate/run_validation.sh` (prints PASS/FAIL; our PASS log is in `sycl-poly/docs/logs/`).
 
 ## Documents

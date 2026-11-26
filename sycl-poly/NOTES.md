@@ -17,7 +17,7 @@ Builds `strata-poly` (the Qwen3.5/3.6, GLM, Gemma, DeepSeek, LFM2 engine) for SY
 Qwen3.6-35B-A3B UD-Q4_K_XL (Unsloth), all 10,240 experts in VRAM (18.3 GiB), `--no-graphs`:
 - **Correct** (checked token for token): a teacher-forced counting sequence at 10 positions from 50 to 190; "capital of France";
   numbered-facts retrieval at 333 and 2,709 tokens ("What is Fact 42?" gives Fact 42 exactly); "count from 1 to 200" gives 1..200 and stops.
-- **Prefill 447 tok/s** (2,710-token prompt; 178 with the stub `Mmq` before, dp4a tiles now).
+- **Prefill ~1,175 tok/s** (2,710-token prompt; 178 with the stub `Mmq`, 447-460 on dp4a, XMX tiles since 2026-11-25, DEVLOG 30).
 - **Decode** 82 tok/s on short answers; 49 tok/s on a 472-token story (`--no-draft`), 69 with the draft head, ~100 on counting.
 - Only Qwen3.6 was run. GLM / Gemma / DeepSeek / LFM2 compile, are untested.
 
@@ -43,9 +43,9 @@ Qwen3.6-35B-A3B UD-Q4_K_XL (Unsloth), all 10,240 experts in VRAM (18.3 GiB), `--
 
 ## `Mmq` (prefill)
 `src/poly/mmq_sycl.cpp` on XeStrata's SYCL port of llama.cpp's quantized matrix tiles (`src/xe/`, LGPL-3.0-or-later AND MIT, see
-src/xe/README.md): dp4a today.  The Intel XMX path is built but rejected at start ("the GPU's int8 XMX accumulators are laid out
-otherwise"): the accumulator layout probe fails with icpx 2026.0 on the B60; XeStrata builds with intel/llvm 7.2 and may
-differ.  XMX is the next prefill gain.  The AOT build drops the Xe-HPG and generic matrix variants (`STRATA_MMQ_NO_XE_HPG_SHAPE`).
+src/xe/README.md): the Intel matrix engine (XMX) since 2026-11-25.  Until then the start printed "the GPU's int8 XMX accumulators are laid out
+otherwise" and the tiles ran on dp4a: icpx 2026.0 ignores the `sub_group_size` property of a kernel when the build says `-fsycl-default-sub-group-size=32`,
+so the probe and the XMX tile kernels ran at 32 lanes (DEVLOG 30).  `poly_mmq_xmx_test` compares XMX with dp4a.  The AOT build drops the Xe-HPG and generic matrix variants (`STRATA_MMQ_NO_XE_HPG_SHAPE`).
 
 ## What is not there
 1. XMX for `Mmq` (above); `tensor_cores()` is false (the NVIDIA mma/ldmatrix/cp.async kernels are not ported).
