@@ -1839,6 +1839,12 @@ catch (sycl::exception const &exc) {
 void Engine::load(const Options& o) {
     opt_ = o;
     asked_reserve_mib_ = o.vram_reserve_mib;
+    // Intel (sycl-poly): the stock 1,024-token prompt batch leaves the expert tiles half empty (~32 rows an expert, 64-row tiles): 2,048 is 7-10% faster
+    // prefill on the Arc Pro B60 (2.7k and 7.9k tokens; no gain past it) for ~1.4 GiB more scratch, so only on a card with 20 GiB or more; the experts
+    // still all fit at 8k context.  `--prompt-batch 1024` is the stock value and reads as "not given" (pass 1000 for a smaller batch).
+    if (opt_.prompt_batch == 1024 && opt_.max_context >= 2048 &&
+        dpct::get_current_device().get_device_info().get_global_mem_size() >= ((size_t) 20 << 30))
+        opt_.prompt_batch = 2048;
     if (opt_.max_context < 16) throw std::runtime_error("the context must be at least 16 tokens");
     if (opt_.prompt_batch < 1 || opt_.prompt_batch > 4096)
         throw std::runtime_error("a prompt batch is 1 to 4096 tokens");

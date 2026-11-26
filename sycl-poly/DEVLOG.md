@@ -667,3 +667,15 @@ product but the first 16 columns).  Fix: `[[sycl::reqd_sub_group_size(...)]]` as
 it fails unless the path is "XMX".  `run_validation.sh` PASS (log `docs/logs/validation-xmx-2026-11-25.log`): teacher-forced counting 10/10, numbered-facts retrieval exact at 334 and 2,710 tokens, counting 1..200 exact, 0 engine resets.
 **Result (2,710-token prompt, `--no-draft`):** prompt 1,175-1,182 tok/s (460 before), decode 71.5 tok/s unchanged; with the draft head 94.8-95.2 tok/s on the 27-token answer.
 The profile showed the matrix-engine kernels are far from the card's int8 peak still; further tile tuning (XeStrata's tiles are shaped for B70) is untried.
+
+## 31. Qwen prefill, round 2 (2026-11-25/26): 1,175 -> ~1,395 tok/s
+
+With the matrix engine on, the per-launch profile (same scratch instrumentation, now also wrapping `queue->parallel_for`) of the 2,710-token prompt, GPU time 2.18 s of 2.31 s wall:
+experts' XMX products 59% (1.28 s, 874 us a launch), the Gated-DeltaNet state kernel 18% (0.39 s, 3.3 ms a launch), `gemm_small` 6.8%, attention batched GEMMs 5%, everything else under 2% each.  Three changes, each measured against a same-session baseline:
+1. **Prompt batch 2,048** (stock 1,024; engine.hpp is shared, so the SYCL engine applies it when the option is the stock value, the card has >= 20 GiB and the context >= 2,048): 1,175 -> 1,253 tok/s at 2.7k tokens, 1,247 -> 1,377 at 7.9k;
+   nothing more at 3,072.  A 1,024-token batch gives ~32 rows an expert, so the 64-row XMX tiles ran half empty.  All 10,240 experts still fit in VRAM at 8k context.  `--prompt-batch 1000` gives a smaller batch.
+2. **Hardware sub-group reduction in `gdn_state_reg_kernel`** (`sycl::reduce_over_group` for its two per-token sums instead of the xor-shuffle tree: the sums are that kernel's dependency chain): 1,253 -> 1,327 (+5.8%).
+   The summation order differs, so the results differ in the last bits (the kernel's old comment claimed bit-equality with the CUDA kernel); the validation below is exact on retrieval and counting.
+3. **oneMKL for the small-output projections** instead of the hand-written `gemm_small` (written for cuBLAS's slow small shapes): 1,336 -> 1,404 (+5%).  `STRATA_GEMM_SMALL=1` brings the old kernel back.
+`run_validation.sh` PASS (`docs/logs/validation-xmx-round2-2026-11-26.log`): teacher-forced 10/10, retrieval exact at 334 and 2,710 tokens, counting exact; prompt 1,390-1,400 tok/s, decode 72 tok/s (96 with the draft head).
+Not done: the experts' XMX tile (59% of the time, ~4 int8 TOPS against ~200 peak): XeStrata's tiles are shaped for the B70; a retune for this card is the largest remaining item.  The state kernel is still 15% (one warp a column, two reductions a token).

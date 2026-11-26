@@ -46,6 +46,12 @@ __dpct_inline__ float warp_sum(float x) {
     return x;
 }
 
+// the sub-group's sum by the hardware reduction (IGC lowers it to register-region adds: no cross-lane shuffles): gdn_state_reg_kernel's two sums a token
+// are its dependency chain.  The order differs from warp_sum's xor tree, so its results differ in the last bits.
+__dpct_inline__ float warp_sum_hw(float x) {
+    return sycl::reduce_over_group(sycl::ext::oneapi::this_work_item::get_sub_group(), x, sycl::plus<float>());
+}
+
 // One value per thread summed over the block.  blockDim.x is a multiple of 32, and `part` has a float a warp: 8
 // where a block is 256 threads at most, 32 where it can be 1024.
 __dpct_inline__ float block_sum(float x, float *part) {
@@ -3191,7 +3197,7 @@ __dpct_inline__ void gdn_state_reg_kernel(
         aligned with OpenCL C 1.2 standard.
         */
         for (int k = 0; k < PER; ++k) sk = sycl::fma(da * c[k], ka[k], sk);
-        sk = warp_sum(sk);
+        sk = warp_sum_hw(sk);
         /*
         DPCT1013: The rounding mode could not be specified and the
         generated code may have different accuracy than the original code.
@@ -3222,7 +3228,7 @@ __dpct_inline__ void gdn_state_reg_kernel(
             */
             o = sycl::fma(n, qa[k], o);
         }
-        o = warp_sum(o);
+        o = warp_sum_hw(o);
         if (lane == 0) out[size_t(row) * d_inner + size_t(h) * dim + j] = o;
 #pragma unroll
         for (int k = 0; k < PER; ++k) qa[k] = qb[k], ka[k] = kb[k];
@@ -3325,7 +3331,9 @@ void gemm_f32(void* blas, const float* w, const float* x, float* y, int n_in, in
     const dpct::blas::descriptor_ptr h = (dpct::blas::descriptor_ptr)blas;
     const float one = 1.0f, zero = 0.0f;
     const int groups = n_out / rows_per_x;
-    if (groups == 1 && n_out <= 8 * SMALL_OUT) {
+    // the hand-written small-output kernel (for cuBLAS's slow small shapes) is 5% slower on Intel than oneMKL here: opt-in (STRATA_GEMM_SMALL=1)
+    static const bool small_ok = [] { const char* v = std::getenv("STRATA_GEMM_SMALL"); return v != nullptr && std::atoi(v) != 0; }();
+    if (small_ok && groups == 1 && n_out <= 8 * SMALL_OUT) {
         dpct::queue_ptr stream = &dpct::get_in_order_queue();
         blas_ck(DPCT_CHECK_ERROR(stream = &(h->get_queue())),
                 "cublasGetStream");

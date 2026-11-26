@@ -1,0 +1,34 @@
+== environment
+2026-11-26T05:09:41Z
+Linux 7.3.5-2-cachyos x86_64
+[level_zero:gpu] Intel(R) oneAPI Unified Runtime over Level-Zero V2, Intel(R) Arc(TM) Pro B60 Graphics 20.1.0 [1.18.40196]
+usage: strata-poly --model FILE.gguf (--serve | --tokens ID,ID,... [--max-new N])
+== kernel unit tests against CPU references
+== teacher-forced counting (positions 50..190)
+k= 20 position= 50 want= 198 got=  198 ok
+k= 33 position= 63 want=  16 got=   16 ok
+k= 60 position= 90 want=  17 got=   17 ok
+k= 63 position= 93 want=  17 got=   17 ok
+k= 64 position= 94 want=  20 got=   20 ok
+k= 65 position= 95 want= 198 got=  198 ok
+k= 70 position=100 want=  22 got=   22 ok
+k=100 position=130 want=  22 got=   22 ok
+k=130 position=160 want=  22 got=   22 ok
+k=160 position=190 want=  22 got=   22 ok
+teacher-forced: 10/10 correct
+== numbered-facts retrieval (answer must be the exact fact)
+facts=12 prompt_tokens=334: prompt 334 tokens 618.3 tok/s, generated 25 tokens 87.55 tok/s (stop); experts from VRAM 100.0%, CPU experts 0.0 ms/toke
+  exact: ok
+facts=100 prompt_tokens=2710: prompt 2710 tokens 1404.3 tok/s, generated 27 tokens 71.93 tok/s (stop); experts from VRAM 100.0%, CPU experts 0.0 ms/to
+  exact: ok
+== counting 1..200
+prompt 30 tokens 100.2 tok/s, generated 692 tokens 103.52 tok/s (stop); experts from VRAM 100.0%, CPU experts 0.0 ms/tok
+counting exact: ok
+== speed (3 runs each; prompt = 100 numbered facts)
+[--no-draft] prompt 2710 tokens 1391.6 tok/s, generated 27 tokens 72.19 tok/s (stop); experts from VRAM 100.0%, CPU experts
+[--no-draft] prompt 2710 tokens 1399.9 tok/s, generated 27 tokens 72.06 tok/s (stop); experts from VRAM 100.0%, CPU experts
+[--no-draft] prompt 2710 tokens 1397.5 tok/s, generated 27 tokens 72.18 tok/s (stop); experts from VRAM 100.0%, CPU experts
+[] prompt 2710 tokens 1390.8 tok/s, generated 27 tokens 95.68 tok/s (stop); experts from VRAM 100.0%, CPU experts
+[] prompt 2710 tokens 1390.3 tok/s, generated 27 tokens 96.04 tok/s (stop); experts from VRAM 100.0%, CPU experts
+[] prompt 2710 tokens 1390.2 tok/s, generated 27 tokens 95.85 tok/s (stop); experts from VRAM 100.0%, CPU experts
+== result: PASS
