@@ -697,3 +697,6 @@ for a 64- or 128-row tile each work-item decoded the block of a different output
 The model's experts are Q4_K (gate, up), Q5_K (down; Q6_K in 3 layers).  Tried and dropped: staging step k+1's activations and decoded weights in registers while step k multiplies, with the local tiles double-buffered (no gain, down slower: 657 -> 800 us);
 a 256-wide K step (1,000 -> 1,800 us).  Engine: 1,510 -> 1,730-1,770 tok/s; `poly_mmq_xmx_test` unchanged (relative difference <= 4.5e-7); `run_validation.sh` PASS (`docs/logs/validation-xmx-round4-2026-11-26.log`): teacher-forced 10/10,
 retrieval exact, counting exact, decode 71-72 (96-100 with the draft head).  XeStrata's note for the B70 (the 64-row tile 3% slower by block) did not hold on the B60.
+Also tried on the bench and not kept: Q4_K / Q5_K block decode with vector loads (two 16-byte loads for the nibbles, the scale bytes as three words, d / dmin as one word): Q4_K gate/up 1,110-1,150 -> 983-1,001 us, down and Q5_K unchanged within the card's
+clock noise (+-5%): not worth the changed decode.  What is left in the tile (bench, Q4_K gate/up, 64 rows an expert: ~17 int8 TOPS of ~200 peak): decode ALU, the products (22%) and the scale epilogue (12%); the next step would be a redesign
+(decoding the weights once for several row tiles, scale application off the critical path), not tuning.
