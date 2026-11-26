@@ -17,7 +17,7 @@ Builds `strata-poly` (the Qwen3.5/3.6, GLM, Gemma, DeepSeek, LFM2 engine) for SY
 Qwen3.6-35B-A3B UD-Q4_K_XL (Unsloth), all 10,240 experts in VRAM (18.3 GiB), `--no-graphs`:
 - **Correct** (checked token for token): a teacher-forced counting sequence at 10 positions from 50 to 190; "capital of France";
   numbered-facts retrieval at 333 and 2,709 tokens ("What is Fact 42?" gives Fact 42 exactly); "count from 1 to 200" gives 1..200 and stops.
-- **Prefill ~1,510 tok/s** (2,710-token prompt; 178 with the stub `Mmq`, 447-460 on dp4a, XMX tiles since 2026-11-25, DEVLOG 30).
+- **Prefill ~1,765 tok/s** (2,710-token prompt; 178 with the stub `Mmq`, 447-460 on dp4a, XMX tiles since 2026-11-25, DEVLOG 30).
 - **Decode** 82 tok/s on short answers; 49 tok/s on a 472-token story (`--no-draft`), 69 with the draft head, ~100 on counting.
 - Only Qwen3.6 was run. GLM / Gemma / DeepSeek / LFM2 compile, are untested.
 

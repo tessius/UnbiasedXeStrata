@@ -682,7 +682,7 @@ struct Kernel {
                 // blocks of one output (their reads of the weights side by side) on Xe2's 16-lane tiles: B70, 16 rows
                 // an expert, Ornith Q4_K_M 228 -> 190 us; the 64-row tile was 3% slower that way, and the A380's
                 // 8-lane 16-row tile 6-23% slower
-                constexpr bool by_block = IS == 1 && WN * NB >= 4 * lanes;
+                constexpr bool by_block = IS == 1;   // Arc Pro B60 (Xe2): for every tile, not only the 16-row one: the lanes' weight reads fall on 4 rows instead of 16 (gate/up Q4_K -33%, down Q5_K -37%; the B70's 3% loss for the 64-row tile did not show here)
                 const int nn = by_block ? v / NB : v % WN, b = by_block ? v % NB : v / WN;
                 const Sub d = !last || k0 / 32 + b < kb ? Dec<TY>::get(wx + (size_t) (n0 + nn) * row_bytes, (int) (k0 / 32) + b, row_bytes)
                                                 : Sub{{}, 0.0f, 0.0f, 0.0f};   // past K: zeros

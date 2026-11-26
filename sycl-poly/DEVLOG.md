@@ -687,3 +687,13 @@ the token's query / key reads shared.  Per column the arithmetic and order are t
 (fewer warps than the card can hide latency with, and more registers).  4 is the default (`STRATA_GDN_NC=1` restores the old kernel; the 1,2,4,8,16 are built).  `run_validation.sh` PASS (`docs/logs/validation-xmx-round3-2026-11-26.log`):
 teacher-forced 10/10, retrieval exact, counting exact; prefill 1,493-1,520, decode 72 (96 with the draft head, unchanged).
 The 128-row XMX expert tile: `STRATA_MMQ_BIG_ROWS` (mean rows an expert above which it is taken; default 64, as before) at 16 / 32 / 64: 1,341 / 1,389 / 1,388 tok/s, 4,096-token batch no better: the tile shape is not the lever.
+
+## 33. Qwen prefill, round 4: the weights' loads were scattered (2026-11-26): 1,510 -> ~1,765 tok/s
+
+Ablations of the XMX expert tile on a bench at Qwen's shapes (gate/up R=1024 K=2048, down R=2048 K=512; 64 experts, 64 rows each; real `iq_mmq_grouped`, scratch copy with the parts compiled out): Q4_K gate/up 1,492 us (11.5 int8 TOPS),
+**without the weights' decode 789 us** (-47%), without the products (`joint_matrix_mad`) 1,171 us (-22%), without the scale epilogue 1,312 us (-12%).  The weights are only ~50 GB/s of 456: not bandwidth, the decode's *loads*:
+for a 64- or 128-row tile each work-item decoded the block of a different output row (neighbouring lanes = neighbouring rows, `by_block` false: that mapping was only for the 16-row tile), so every load instruction of the decode
+(a Q4_K block is ~10 small loads) touched 16 cache lines.  `by_block` for every tile (neighbouring lanes = the four blocks of one output, then the next output: 4 rows an instruction): gate/up 1,489 -> 995 us, down (Q5_K) 657 -> 489 / 973 -> 614 us.
+The model's experts are Q4_K (gate, up), Q5_K (down; Q6_K in 3 layers).  Tried and dropped: staging step k+1's activations and decoded weights in registers while step k multiplies, with the local tiles double-buffered (no gain, down slower: 657 -> 800 us);
+a 256-wide K step (1,000 -> 1,800 us).  Engine: 1,510 -> 1,730-1,770 tok/s; `poly_mmq_xmx_test` unchanged (relative difference <= 4.5e-7); `run_validation.sh` PASS (`docs/logs/validation-xmx-round4-2026-11-26.log`): teacher-forced 10/10,
+retrieval exact, counting exact, decode 71-72 (96-100 with the draft head).  XeStrata's note for the B70 (the 64-row tile 3% slower by block) did not hold on the B60.
