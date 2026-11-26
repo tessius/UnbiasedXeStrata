@@ -649,3 +649,5 @@ Whether it faulted depended on whether the freed pages were already unmapped (la
 It surfaced at the first synchronisation (the int8 layout probe: `DEVICE_LOST`), then waited forever in `Engine::alloc()`.  Same class of bug as sycl-ik2's early hang (section 10).  Fix: `.wait()` in `h2d`.
 After the fix (rebuilt in the clean clone): 4 of 4 direct starts, 0 engine resets, prompt 459.7-461.5 tok/s, decode 71.5-71.8 tok/s (the 2,710-token facts prompt; earlier "no regression" runs read 442-446).
 The standalone repros (pinned memory, mmap, VA reservation, copy volume) did not reproduce it because they never freed a source buffer before the copy ran.
+Front end re-check after the fix (server mode, `--engine strata-poly`, same 2,754-token prompt, three requests with 30 new tokens): 6.54 / 6.19 / 6.21 s each, i.e. ~5.7 s of prefill = ~480 tok/s.  The earlier ~380 through the front end was measured while the start-up bug was
+intermittently resetting the copy engine; there is no front-end-specific slowdown.
