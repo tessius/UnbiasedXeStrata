@@ -593,6 +593,7 @@ void Qwen35::moe_shared(const Layer& L, int il, int n) {
     lin(L.sh_up, xn_, u_, n, xq_);
     swiglu_clamp(g_, u_, h_, n * n_ff_shexp_, clamp_shexp_[(size_t) il], st_);
     lin(L.sh_down, h_, fo_, n);
+    if (n_expert_ == 0) return;   // a dense model's FFN (the draft block's): no gate of its own
     lin(blocks_[(size_t) il].sh_gate_inp, xn_, sg_, n);
     mul_sigmoid(fo_, sg_, n_embd_, n, 1, true, st_);
 }

@@ -718,3 +718,9 @@ Not done for dense models: the draft head (see below for later sections), tuning
 the decode rate falls with the context (the attention reads the whole cache a token).  `--kv q8_0` was refused for `qwen35` by an architecture check only (the Qwen35 class's q8_0 cache is the same for both shapes): allowed; 8.5k and 17k exact with it (1,088 bytes a KV row).
 Vision: `Jack-3.8-27B-V2-VL-16GB-VRAM.gguf` with `mmproj-Qwen3.8-27B-BF16.gguf` through the front end (`run_frontend_validation.sh`, log `docs/logs/frontend-validation-jack-vl-dense-2026-11-26.log`): chat, streaming, retrieval (4.2k tokens, prefill 393 tok/s,
 decode 13 tok/s), long generation, thinking mode, tool call and the image check (green left, red right, white bar) all pass.  That fine-tune answers in a `<workspace_state>` style: its own behaviour.  0 engine resets throughout.
+
+## 36. Dense Qwen3.8-27B: the draft head (2026-11-26): decode 20.9 -> 30 tok/s
+The dense files carry the model's next-token block (`blk.64`: one attention layer, a dense FFN and the `nextn.*` projection).  Section 34 switched it off for dense models because `draft_step()` ran that block's router and routed experts.
+Now `draft_step()` runs the router and the experts only when the model has experts (`n_expert_ > 0`) and otherwise just the block's FFN (`moe_shared()`, which skips the shared expert's sigmoid gate for a dense model); the switch-off is gone.
+`Qwen3.8-27B-Uncensored-Q4_K_M`, 2,710-token prompt, 27-token answer: decode **20.9 -> 30.0 tok/s** (+43%; 19 of 23 guesses right), prefill unchanged (349).  Output: the ten greedy chat answers through the front end are identical with and without the draft head (10 of 10),
+`run_validation.sh` PASS with it on (teacher-forced 10/10, retrieval exact, counting 1..200 exact; `docs/logs/validation-qwen38-27b-dense-draft-2026-11-26.log`).  Qwen3.6-35B-A3B afterwards: PASS, decode 72 / 96 with the draft head, prefill 1,650-1,770 (the same session's spread).

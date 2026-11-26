@@ -1017,8 +1017,6 @@ float Engine::shape_f(const char* key) const {
 void Engine::load_shape() {
     const MetaValue* nextn = meta_in(*gg_, "nextn_predict_layers");
     n_layer_ = shape_i("block_count") - (nextn ? (int) nextn->u : 0);
-    // a dense model (no experts) runs without the block that guesses ahead: that block is built around a layer's experts
-    if (!meta_in(*gg_, "expert_count") && meta_in(*gg_, "feed_forward_length")) opt_.draft = false;
     if (opt_.draft && opt_.window != 1) {
         const std::string probe = blk(n_layer_, "nextn.eh_proj.weight");
         if (nextn && nextn->u == 1 && gg_->find(probe)) block_ = gg_.get();
@@ -4176,17 +4174,14 @@ void Engine::draft_step(int32_t token, int i) {
     axpy(ao_, 1.f, x, n_embd_, true, st_);
     rms_norm(x, fp(L.ffn_norm), xn_, n_embd_, 1, rms_eps_, st_);
     kernels::native_quantize_q8_1(xn_, xq_, n_embd_, 1, st_);
-    moe_router(L, 1);
-    /*
-    DPCT1024: The original code returned the error code that was further
-    consumed by the program logic. This original code was replaced with 0. You
-    may need to rewrite the program logic consuming the error code.
-    */
-    ck(DPCT_CHECK_ERROR(dpct::sync_barrier((dpct::event_ptr)ev_, cs(st_))),
-       "router");
+    if (n_expert_ > 0) {   // a dense block (no experts) has its FFN alone: moe_shared()
+        moe_router(L, 1);
+        ck(DPCT_CHECK_ERROR(dpct::sync_barrier((dpct::event_ptr)ev_, cs(st_))),
+           "router");
+    }
     moe_shared(L, n_layer_, 1);
     tok_ = nullptr;   // a guess's row has no token of the sequence
-    if (moe(L, n_layer_, 1)) moe_add(1);
+    if (n_expert_ > 0 && moe(L, n_layer_, 1)) moe_add(1);
     axpy(fo_, 1.f, x, n_embd_, true, st_);
     rms_norm(x, fp(d_head_), own, n_embd_, 1, rms_eps_, st_);
     Dev head = output_;   // the matrix's first rows are the common tokens'

@@ -18,9 +18,9 @@
 | Qwen3.8-27B (dense) `Q4_K_M`, 16.8 GB, on the same card | |
 |---|---|
 | Prefill | ~350 tok/s (2,700-token prompt) |
-| Decode | ~21 tok/s (the card's memory bandwidth reads the 16.8 GB once a token) |
+| Decode | ~21 tok/s (the 16.8 GB are read once a token), ~30 tok/s with the draft head |
 | Correctness | teacher-forced counting 10/10, retrieval exact at 334 and 2,710 tokens, counting 1..200 exact; 6 of 10 greedy answers identical to llama.cpp's SYCL server on the same file, the others fluent near-ties |
-| Also checked | retrieval exact at 8.5k, 17k and 30k tokens (also with `--kv q8_0`); `Jack-3.8-27B-V2-VL` with its mmproj passes the front-end checks including an image; `Q5_K_M`, `UD-IQ4_XS` and the Coder load and answer; no draft head on dense models yet |
+| Also checked | retrieval exact at 8.5k, 17k and 30k tokens (also with `--kv q8_0`); `Jack-3.8-27B-V2-VL` with its mmproj passes the front-end checks including an image; `Q5_K_M`, `UD-IQ4_XS` and the Coder load and answer; draft head works (decode 21 -> 30 tok/s, identical answers) |
 
 | Inkling-2-Mini on an Arc Pro B60, all experts in VRAM (`strata-ik2`) | |
 |---|---|
