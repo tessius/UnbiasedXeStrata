@@ -11,7 +11,7 @@
 
 | Qwen3.6-35B-A3B on an Arc Pro B60, all experts in VRAM | |
 |---|---|
-| Prefill | ~1,765 tok/s (2,700-token prompt; 447 before the matrix engine was enabled) |
+| Prefill | ~1,800 tok/s (2,700-token prompt; 447 before the matrix engine was enabled) |
 | Decode | ~72 tok/s without the draft head, ~95 with it (short answers; varies with the answer's length) |
 | Correctness | exact on retrieval at 2.7k tokens and on counting 1..200; kernel unit tests against CPU references pass |
 

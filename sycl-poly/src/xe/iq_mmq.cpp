@@ -42,6 +42,9 @@
 #include <cstdio>
 #include <cstdlib>
 
+#ifndef STRATA_MMQ_GRF
+#define STRATA_MMQ_GRF 128
+#endif
 namespace strata::kernels {
 namespace {
 
@@ -990,8 +993,10 @@ struct Kernel {
     auto get(syclex::properties_tag) const requires(!DP4A && IS != 0) {
         // Intel's XMX bodies in the large register file: in the default one their sums and tiles spilled, 3.1x slower
         // (B70, llm-jp-4.1's experts, 256 rows an expert: 6,464 against 2,070 us)
+        // STRATA_MMQ_GRF (default 128) for the 64-row tile: on the Arc Pro B60 the 128-register mode (8 threads a vector engine) is ~11% faster than 256
+        // (4 threads) (bench, Q4_K gate/up and down; Qwen3.6-35B prefill +6%); on the B70 the 256 one was 3.1x faster (the sums spilled): -DSTRATA_MMQ_GRF=256 there
         return syclex::properties{syclex::sub_group_size<STRATA_SUB_GROUP(ISG)>,
-                                  sycl::ext::intel::experimental::grf_size<256>};
+                                  sycl::ext::intel::experimental::grf_size<(NSGM >= 4 ? 256 : STRATA_MMQ_GRF)>};   // the 128-row tile keeps 256: its accumulators need them (dense 27B: 350 -> 309 tok/s at 128)
     }
 };
 
