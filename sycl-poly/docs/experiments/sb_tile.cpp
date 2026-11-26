@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later AND MIT  (a derivative of src/xe/iq_mmq.cpp, XeStrata's tiles: see ../../src/xe/README.md)
 // EXPERIMENT, NOT BUILT, NOT USED (2026-11-26, DEVLOG section 41): a Q4_K XMX tile with the epilogue once per 256 of K (the block scale split into two 3-bit halves folded into the weights, the activations with a scale per 256 as ggml's Q8_K,
 // the minimum term as one half-precision product of the block sums).  Correct (rel. 5e-3 against the int8 tile) but 0.75-0.8x its speed.  Self-contained: it includes iq_mmq.cpp for its internals; build as the int8 bench in DEVLOG 33.
+#include "iq_mmq.cpp"
 #include <chrono>
 #include <cmath>
 #include <random>
