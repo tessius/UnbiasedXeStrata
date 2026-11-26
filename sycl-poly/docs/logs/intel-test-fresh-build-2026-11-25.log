@@ -1,0 +1,3299 @@
+cmake -S . -B build-frontend -DCMAKE_BUILD_TYPE=Release -DSTRATA_ENABLE_CUDA=OFF -DSTRATA_BUILD_TESTS=OFF \
+      -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-frontend/bin 
+-- Warning: ccache not found - consider installing it for faster compilation or disable this warning with GGML_CCACHE=OFF
+-- CMAKE_SYSTEM_PROCESSOR: x86_64
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: -march=native 
+-- ggml version: 0.24.0
+-- ggml commit:  db1f382
+-- llama.cpp version: 0.4.1-dev
+CMAKE_BUILD_TYPE=Release
+-- Configuring done (0.3s)
+-- Generating done (0.4s)
+-- Build files have been written to: /mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-frontend
+cmake --build build-frontend -j 16 --target unbiased-strata
+make[1]: Entering directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-frontend'
+make[1]: warning: -j16 forced in submake: resetting jobserver mode.
+[  1%] Built target llama-common-base
+[  6%] Built target ggml-base
+[ 10%] Built target vendor-hash
+[ 10%] Built target cpp-httplib
+[ 18%] Built target ggml-cpu
+[ 20%] Built target ggml
+[ 41%] Built target llama
+[ 67%] Built target llama-common
+[ 93%] Built target mtmd
+[ 97%] Built target strata_llama_server
+[100%] Built target unbiased-strata
+make[1]: Leaving directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-frontend'
+make intel: card 'B60', GPU code: ahead of time for bmg-g21
+cmake -S sycl-poly -B build-intel -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=/opt/intel/oneapi/compiler/2026.0/bin/icpx -DCMAKE_C_COMPILER=/opt/intel/oneapi/compiler/2026.0/bin/icx \
+      "-DSTRATA_SYCL_AOT=bmg-g21"
+-- Warning: ccache not found - consider installing it for faster compilation or disable this warning with GGML_CCACHE=OFF
+-- CMAKE_SYSTEM_PROCESSOR: x86_64
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: -march=native 
+-- ggml version: 0.24.0
+-- ggml commit:  db1f382
+-- Configuring done (0.1s)
+-- Generating done (0.2s)
+-- Build files have been written to: /mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel
+cmake --build build-intel -j 16 --target strata-poly
+make[1]: Entering directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel'
+make[1]: warning: -j16 forced in submake: resetting jobserver mode.
+[  7%] Built target sp_spec
+[ 12%] Built target sp_mmq
+[ 28%] Built target ggml-base
+[ 32%] Built target sp_kernels
+[ 57%] Built target ggml-cpu
+[ 79%] Built target sp_cpu
+[ 81%] Linking CXX executable strata-poly
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<12, 1, 1, false, true, 1>': [RetryManager] Start recompilation of the kernel
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<10, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 21
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<17, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 22
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<17, 2, 2, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<22, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 25
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<20, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<18, 2, 2, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 28
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<18, 2, 2, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<22, 2, 2, true, false, 0>': [RetryManager] Start recompilation of the kernel
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<29, 1, 1, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 2
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<20, 1, 1, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 6
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<1481834497, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 19
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<10, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 8
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<12, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<21, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 16
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<13, 1, 1, true, true, 0>': compiled SIMD32 allocated 128 regs and spilled around 18
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<20, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 10
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<22, 1, 1, true, false, 0>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+[bmg-g21] warning: in kernel 'typeinfo name for strata::kernels::(anonymous namespace)::Kernel<14, 2, 1, true, true, 0>': [RetryManager] Start recompilation of the kernel
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::poly::(anonymous namespace)::attn_score_reg_kernel_wrapper<4, 2, true>(float const*, sycl::_V1::detail::half_impl::half const*, float*, int, int, int, long long, int, int, float, int, int, long long, long long const*, signed char const*, unsigned short const*)::attn_score_reg_kernel_, dpct_kernel_scalar<4>, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<strata::poly::gemm_f32(void*, float const*, float const*, float*, int, int, int, int)::gemm_small_kernel_27e7e6>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::kernels::(anonymous namespace)::launch_il<strata::kernels::(anonymous namespace)::IlQ3K, 1>(void const*, void const*, float*, int, int, int, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::native_mmvq_il_kernel_e863e4, strata::kernels::(anonymous namespace)::IlQ3K, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::kernels::(anonymous namespace)::launch_il<strata::kernels::(anonymous namespace)::IlQ4K, 4>(void const*, void const*, float*, int, int, int, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::native_mmvq_il_kernel_e863e4, strata::kernels::(anonymous namespace)::IlQ4K, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 6
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::kernels::(anonymous namespace)::launch_il<strata::kernels::(anonymous namespace)::IlQ6K, 4>(void const*, void const*, float*, int, int, int, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::native_mmvq_il_kernel_e863e4, strata::kernels::(anonymous namespace)::IlQ6K, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 1
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<bool strata::kernels::(anonymous namespace)::b6_launch<strata::kernels::(anonymous namespace)::IQ4XSTraits, 2>(strata::kernels::(anonymous namespace)::IQ4XSTraits::Block const*, strata::kernels::(anonymous namespace)::Q81Block const*, float*, int, int, sycl::_V1::queue*)::b6_mmvq_rows_kernel_e078b5, strata::kernels::(anonymous namespace)::IQ4XSTraits, dpct_kernel_scalar<2>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 5
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target strata-poly
+make[1]: Leaving directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel'
+cmake -S sycl-ik2 -B build-intel-ik2 -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=/opt/intel/oneapi/compiler/2026.0/bin/icpx -DCMAKE_C_COMPILER=/opt/intel/oneapi/compiler/2026.0/bin/icx \
+      "-DSTRATA_SYCL_AOT=bmg-g21"
+-- Configuring done (0.0s)
+-- Generating done (0.2s)
+-- Build files have been written to: /mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel-ik2
+cmake --build build-intel-ik2 -j 16 --target strata-ik2
+make[1]: Entering directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel-ik2'
+make[1]: warning: -j16 forced in submake: resetting jobserver mode.
+[ 28%] Built target ik2_kernels
+[ 42%] Linking CXX executable strata-ik2
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for ik2::k::nv_limb_rp_kernel_name<true, 8>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda4'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda3'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<8>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda2'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<6>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_down<8, 1>(unsigned char const* const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_down_kernel_dc23b5, dpct_kernel_scalar<8>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': Adding 64 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb1EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi1EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': compiled SIMD32 allocated 128 regs and spilled around 136
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned short>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned char>(unsigned short const*, int, unsigned char const*, unsigned char const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned char>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EhEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEhEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<4, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<2, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_d170b0, dpct_kernel_scalar<1>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE_clESC_E34argmax_gemv_f16_part_kernel_d170b018dpct_kernel_scalarILi1EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_9419a4, dpct_kernel_scalar<0>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE0_clESC_E34argmax_gemv_f16_part_kernel_9419a418dpct_kernel_scalarILi0EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::decode_f16(int, unsigned char const*, unsigned long, unsigned short*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::decode_f16_iq_kernel_e0c0cd>': compiled SIMD32 allocated 128 regs and spilled around 15
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 415
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 272
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 396
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 260
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_a169d8, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_760e49, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_block_down(unsigned char const* const*, int const*, int const*, int, unsigned long, int, int, unsigned short const*, float*, sycl::_V1::queue*)::experts_block_down_kernel_ddcd34, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 26
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_down_g(unsigned char const* const*, int const*, int const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::grouped_expert_mma_6ba10e, dpct_kernel_scalar<0>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 13
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::attn_probs_f16(float const*, unsigned short*, int, int, int, int, int, float, float const*, int, float const*, int, int, float const*, sycl::_V1::queue*)::attn_probs_f16_kernel_3cfced>': Adding 18 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZN3ik21k14attn_probs_f16EPKfPtiiiiifS3_iS3_iiS3_PN4sycl3_V15queueEE28attn_probs_f16_kernel_3cfcedEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target strata-ik2
+make[1]: Leaving directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel-ik2'
+mkdir -p build-intel/bin
+cp build-intel/strata-poly build-intel-ik2/strata-ik2 build-frontend/bin/unbiased-strata build-intel/bin/
+built:
+build-intel/bin/strata-ik2
+build-intel/bin/strata-poly
+build-intel/bin/unbiased-strata
+cmake --build build-intel -j 16 --target poly_gdn_q_test poly_attend_q_test poly_rope_q_test
+make[1]: Entering directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel'
+make[1]: warning: -j16 forced in submake: resetting jobserver mode.
+[ 50%] Built target sp_kernels
+[ 66%] Building CXX object CMakeFiles/poly_gdn_q_test.dir/src/poly/gdn_q_test.cpp.o
+[ 83%] Building CXX object CMakeFiles/poly_gdn_q_test.dir/src/poly/kernels.dp.cpp.o
+[100%] Linking CXX executable poly_gdn_q_test
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::poly::(anonymous namespace)::attn_score_reg_kernel_wrapper<4, 2, false>(float const*, sycl::_V1::detail::half_impl::half const*, float*, int, int, int, long long, int, int, float, int, int, long long, long long const*, signed char const*, unsigned short const*)::attn_score_reg_kernel_, dpct_kernel_scalar<4>, dpct_kernel_scalar<2>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<strata::poly::gemm_f32(void*, float const*, float const*, float*, int, int, int, int)::gemm_small_kernel_27e7e6>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target poly_gdn_q_test
+[ 50%] Built target sp_kernels
+[ 66%] Building CXX object CMakeFiles/poly_attend_q_test.dir/src/poly/attend_q_test.cpp.o
+[ 83%] Building CXX object CMakeFiles/poly_attend_q_test.dir/src/poly/kernels.dp.cpp.o
+[100%] Linking CXX executable poly_attend_q_test
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::poly::(anonymous namespace)::attn_score_reg_kernel_wrapper<4, 2, false>(float const*, sycl::_V1::detail::half_impl::half const*, float*, int, int, int, long long, int, int, float, int, int, long long, long long const*, signed char const*, unsigned short const*)::attn_score_reg_kernel_, dpct_kernel_scalar<4>, dpct_kernel_scalar<2>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<strata::poly::gemm_f32(void*, float const*, float const*, float*, int, int, int, int)::gemm_small_kernel_27e7e6>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target poly_attend_q_test
+[ 50%] Built target sp_kernels
+[ 66%] Building CXX object CMakeFiles/poly_rope_q_test.dir/src/poly/rope_q_test.cpp.o
+[ 83%] Building CXX object CMakeFiles/poly_rope_q_test.dir/src/poly/kernels.dp.cpp.o
+[100%] Linking CXX executable poly_rope_q_test
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void strata::poly::(anonymous namespace)::attn_score_reg_kernel_wrapper<4, 2, false>(float const*, sycl::_V1::detail::half_impl::half const*, float*, int, int, int, long long, int, int, float, int, int, long long, long long const*, signed char const*, unsigned short const*)::attn_score_reg_kernel_, dpct_kernel_scalar<4>, dpct_kernel_scalar<2>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<strata::poly::gemm_f32(void*, float const*, float const*, float*, int, int, int, int)::gemm_small_kernel_27e7e6>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+[100%] Built target poly_rope_q_test
+make[1]: Leaving directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel'
+build-intel/poly_gdn_q_test && build-intel/poly_attend_q_test && build-intel/poly_rope_q_test
+  head  0: sum o^2 ref 0.0001, implied by kernel 0.0001 | first 32 0.0000, 64 0.0001, 96 0.0001 of 128 (per-warp: 0.0000 0.0000 0.0001 0.0000 )
+  head  0: out/ref ratio over columns: min 1.0000 max 1.0000; 0 of 128 columns off
+  head 31: sum o^2 ref 0.0000, implied by kernel 0.0000 | first 32 0.0000, 64 0.0000, 96 0.0000 of 128 (per-warp: 0.0000 0.0000 0.0000 0.0000 )
+  head 31: out/ref ratio over columns: min 1.0000 max 1.0000; 0 of 128 columns off
+  head  0: max err 7.153e-07 at col   5: out -2.93851 ref -2.93851 | col0 out -0.77290 ref -0.77289 | col1 out 0.00362 ref 0.00362
+  head  1: max err 5.960e-07 at col  48: out 1.56975 ref 1.56975 | col0 out -0.13742 ref -0.13742 | col1 out -0.10183 ref -0.10183
+  head 17: max err 7.153e-07 at col 118: out 3.04184 ref 3.04185 | col0 out 0.01897 ref 0.01897 | col1 out 0.05757 ref 0.05757
+  head 31: max err 1.341e-07 at col  40: out -0.21491 ref -0.21491 | col0 out 0.00074 ref 0.00074 | col1 out -0.00896 ref -0.00896
+  intermediates: q,k err 2.98e-08  v err 0.00e+00  decay err 5.96e-08  share err 5.96e-08
+step   0 max|err|=3.070e-06
+step  25 max|err|=2.921e-06
+step  50 max|err|=1.431e-06
+step  75 max|err|=1.669e-06
+step 100 max|err|=2.474e-06
+step 125 max|err|=1.431e-06
+step 150 max|err|=1.550e-06
+step 175 max|err|=2.546e-06
+step 200 max|err|=1.442e-06
+step 225 max|err|=1.967e-06
+step 250 max|err|=5.603e-06
+step 275 max|err|=4.530e-06
+ok (worst 5.60e-06)
+L=  16 max|err|=3.576e-07 (max|ref|=1.628)
+L=  33 max|err|=2.384e-07 (max|ref|=0.905)
+L=  64 max|err|=1.788e-07 (max|ref|=0.714)
+L=  90 max|err|=1.788e-07 (max|ref|=0.764)
+L=  93 max|err|=1.192e-07 (max|ref|=0.746)
+L=  94 max|err|=1.490e-07 (max|ref|=0.891)
+L= 100 max|err|=3.576e-07 (max|ref|=1.109)
+L= 128 max|err|=1.490e-07 (max|ref|=0.572)
+L= 200 max|err|=1.788e-07 (max|ref|=0.552)
+L= 300 max|err|=8.941e-08 (max|ref|=0.419)
+L= 600 max|err|=5.960e-08 (max|ref|=0.304)
+ok (worst at L=16)
+pos=  0 max|err|=2.760e-07
+pos= 50 max|err|=6.151e-06
+pos= 93 max|err|=7.733e-06
+pos= 94 max|err|=1.248e-05
+pos=100 max|err|=1.344e-05
+pos=150 max|err|=1.612e-05
+pos=200 max|err|=2.653e-05
+pos=250 max|err|=2.322e-05
+pos=300 max|err|=3.326e-05
+pos=350 max|err|=3.840e-05
+pos=400 max|err|=4.589e-05
+pos=450 max|err|=6.438e-05
+pos=500 max|err|=4.884e-05
+pos=550 max|err|=5.195e-05
+pos=600 max|err|=7.987e-05
+pos=650 max|err|=9.049e-05
+0 of 700 positions wrong - ok
+cmake --build build-intel-ik2 -j 16 --target ik2_flash_xmx_test ik2_moe_xmx_test ik2_small_bench ik2_rms_test ik2_mma_emul_test ik2_experts_down_test
+make[1]: Entering directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel-ik2'
+make[1]: warning: -j16 forced in submake: resetting jobserver mode.
+[ 50%] Built target ik2_kernels
+[ 75%] Building CXX object CMakeFiles/ik2_flash_xmx_test.dir/tests/flash_xmx_test.cpp.o
+[100%] Linking CXX executable ik2_flash_xmx_test
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for ik2::k::nv_limb_rp_kernel_name<true, 8>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda4'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda3'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<8>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda2'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<6>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_down<8, 1>(unsigned char const* const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_down_kernel_dc23b5, dpct_kernel_scalar<8>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': Adding 64 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb1EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi1EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': compiled SIMD32 allocated 128 regs and spilled around 136
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned short>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned char>(unsigned short const*, int, unsigned char const*, unsigned char const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned char>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EhEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEhEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<4, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<2, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_d170b0, dpct_kernel_scalar<1>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE_clESC_E34argmax_gemv_f16_part_kernel_d170b018dpct_kernel_scalarILi1EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_9419a4, dpct_kernel_scalar<0>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE0_clESC_E34argmax_gemv_f16_part_kernel_9419a418dpct_kernel_scalarILi0EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::decode_f16(int, unsigned char const*, unsigned long, unsigned short*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::decode_f16_iq_kernel_e0c0cd>': compiled SIMD32 allocated 128 regs and spilled around 15
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 415
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 272
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 396
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 260
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_a169d8, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_760e49, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_block_down(unsigned char const* const*, int const*, int const*, int, unsigned long, int, int, unsigned short const*, float*, sycl::_V1::queue*)::experts_block_down_kernel_ddcd34, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 26
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_down_g(unsigned char const* const*, int const*, int const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::grouped_expert_mma_6ba10e, dpct_kernel_scalar<0>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 13
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::attn_probs_f16(float const*, unsigned short*, int, int, int, int, int, float, float const*, int, float const*, int, int, float const*, sycl::_V1::queue*)::attn_probs_f16_kernel_3cfced>': Adding 18 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZN3ik21k14attn_probs_f16EPKfPtiiiiifS3_iS3_iiS3_PN4sycl3_V15queueEE28attn_probs_f16_kernel_3cfcedEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target ik2_flash_xmx_test
+[ 50%] Built target ik2_kernels
+[ 75%] Building CXX object CMakeFiles/ik2_moe_xmx_test.dir/tests/moe_xmx_test.cpp.o
+[100%] Linking CXX executable ik2_moe_xmx_test
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for ik2::k::nv_limb_rp_kernel_name<true, 8>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda4'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda3'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<8>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda2'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<6>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_down<8, 1>(unsigned char const* const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_down_kernel_dc23b5, dpct_kernel_scalar<8>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': Adding 64 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb1EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi1EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': compiled SIMD32 allocated 128 regs and spilled around 136
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned short>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned char>(unsigned short const*, int, unsigned char const*, unsigned char const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned char>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EhEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEhEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<4, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<2, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_d170b0, dpct_kernel_scalar<1>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE_clESC_E34argmax_gemv_f16_part_kernel_d170b018dpct_kernel_scalarILi1EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_9419a4, dpct_kernel_scalar<0>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE0_clESC_E34argmax_gemv_f16_part_kernel_9419a418dpct_kernel_scalarILi0EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::decode_f16(int, unsigned char const*, unsigned long, unsigned short*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::decode_f16_iq_kernel_e0c0cd>': compiled SIMD32 allocated 128 regs and spilled around 15
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 415
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 272
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 396
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 260
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_a169d8, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_760e49, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_block_down(unsigned char const* const*, int const*, int const*, int, unsigned long, int, int, unsigned short const*, float*, sycl::_V1::queue*)::experts_block_down_kernel_ddcd34, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 26
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_down_g(unsigned char const* const*, int const*, int const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::grouped_expert_mma_6ba10e, dpct_kernel_scalar<0>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 13
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::attn_probs_f16(float const*, unsigned short*, int, int, int, int, int, float, float const*, int, float const*, int, int, float const*, sycl::_V1::queue*)::attn_probs_f16_kernel_3cfced>': Adding 18 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZN3ik21k14attn_probs_f16EPKfPtiiiiifS3_iS3_iiS3_PN4sycl3_V15queueEE28attn_probs_f16_kernel_3cfcedEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target ik2_moe_xmx_test
+[ 50%] Built target ik2_kernels
+[ 75%] Building CXX object CMakeFiles/ik2_small_bench.dir/tests/small_bench.cpp.o
+[100%] Linking CXX executable ik2_small_bench
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for ik2::k::nv_limb_rp_kernel_name<true, 8>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda4'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda3'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<8>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda2'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<6>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_down<8, 1>(unsigned char const* const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_down_kernel_dc23b5, dpct_kernel_scalar<8>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': Adding 64 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb1EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi1EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': compiled SIMD32 allocated 128 regs and spilled around 136
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned short>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned char>(unsigned short const*, int, unsigned char const*, unsigned char const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned char>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EhEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEhEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<4, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<2, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_d170b0, dpct_kernel_scalar<1>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE_clESC_E34argmax_gemv_f16_part_kernel_d170b018dpct_kernel_scalarILi1EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_9419a4, dpct_kernel_scalar<0>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE0_clESC_E34argmax_gemv_f16_part_kernel_9419a418dpct_kernel_scalarILi0EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::decode_f16(int, unsigned char const*, unsigned long, unsigned short*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::decode_f16_iq_kernel_e0c0cd>': compiled SIMD32 allocated 128 regs and spilled around 15
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 415
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 272
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 396
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 260
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_a169d8, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_760e49, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_block_down(unsigned char const* const*, int const*, int const*, int, unsigned long, int, int, unsigned short const*, float*, sycl::_V1::queue*)::experts_block_down_kernel_ddcd34, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 26
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_down_g(unsigned char const* const*, int const*, int const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::grouped_expert_mma_6ba10e, dpct_kernel_scalar<0>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 13
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::attn_probs_f16(float const*, unsigned short*, int, int, int, int, int, float, float const*, int, float const*, int, int, float const*, sycl::_V1::queue*)::attn_probs_f16_kernel_3cfced>': Adding 18 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZN3ik21k14attn_probs_f16EPKfPtiiiiifS3_iS3_iiS3_PN4sycl3_V15queueEE28attn_probs_f16_kernel_3cfcedEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target ik2_small_bench
+[ 50%] Built target ik2_kernels
+[ 75%] Building CXX object CMakeFiles/ik2_rms_test.dir/tests/rms_test.cpp.o
+[100%] Linking CXX executable ik2_rms_test
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for ik2::k::nv_limb_rp_kernel_name<true, 8>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda4'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda3'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<8>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda2'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<6>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_down<8, 1>(unsigned char const* const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_down_kernel_dc23b5, dpct_kernel_scalar<8>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': Adding 64 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb1EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi1EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': compiled SIMD32 allocated 128 regs and spilled around 136
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned short>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned char>(unsigned short const*, int, unsigned char const*, unsigned char const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned char>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EhEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEhEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<4, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<2, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_d170b0, dpct_kernel_scalar<1>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE_clESC_E34argmax_gemv_f16_part_kernel_d170b018dpct_kernel_scalarILi1EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_9419a4, dpct_kernel_scalar<0>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE0_clESC_E34argmax_gemv_f16_part_kernel_9419a418dpct_kernel_scalarILi0EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::decode_f16(int, unsigned char const*, unsigned long, unsigned short*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::decode_f16_iq_kernel_e0c0cd>': compiled SIMD32 allocated 128 regs and spilled around 15
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 415
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 272
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 396
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 260
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_a169d8, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_760e49, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_block_down(unsigned char const* const*, int const*, int const*, int, unsigned long, int, int, unsigned short const*, float*, sycl::_V1::queue*)::experts_block_down_kernel_ddcd34, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 26
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_down_g(unsigned char const* const*, int const*, int const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::grouped_expert_mma_6ba10e, dpct_kernel_scalar<0>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 13
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::attn_probs_f16(float const*, unsigned short*, int, int, int, int, int, float, float const*, int, float const*, int, int, float const*, sycl::_V1::queue*)::attn_probs_f16_kernel_3cfced>': Adding 18 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZN3ik21k14attn_probs_f16EPKfPtiiiiifS3_iS3_iiS3_PN4sycl3_V15queueEE28attn_probs_f16_kernel_3cfcedEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target ik2_rms_test
+[ 50%] Building CXX object CMakeFiles/ik2_mma_emul_test.dir/tests/mma_emul_test.cpp.o
+[100%] Linking CXX executable ik2_mma_emul_test
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target ik2_mma_emul_test
+[ 50%] Built target ik2_kernels
+[ 75%] Building CXX object CMakeFiles/ik2_experts_down_test.dir/tests/experts_down_test.cpp.o
+[100%] Linking CXX executable ik2_experts_down_test
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for ik2::k::nv_limb_rp_kernel_name<true, 8>': compiled SIMD32 allocated 128 regs and spilled around 20
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda4'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda3'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<8>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda2'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<6>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_mma<true>(unsigned char const* const*, int, unsigned long, unsigned short const*, int, int, int, float const*, float const*, float, float, unsigned short*, float*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_mma_kernel_aac73a, dpct_kernel_scalar<1>, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 24
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_experts_down<8, 1>(unsigned char const* const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::experts_down_kernel_dc23b5, dpct_kernel_scalar<8>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': Adding 64 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb1EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi1EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, true, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>, unsigned short>': compiled SIMD32 allocated 128 regs and spilled around 136
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned short>(unsigned short const*, int, unsigned short const*, unsigned short const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned short>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EtEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEtEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_flash_launch<4, false, unsigned char>(unsigned short const*, int, unsigned char const*, unsigned char const*, int, int, int, int, int, float, float const*, int, int, int, float*, sycl::_V1::vec<float, 2>*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::attn_flash_f16_kernel_9649ed, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>, unsigned char>': Adding 160 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k17attn_flash_launchILi4ELb0EhEEvPKtiPKT1_S7_iiiiifPKfiiiPfPN4sycl3_V13vecIfLi2EEEPNSC_5queueEENKUlRNSC_7handlerEE_clESJ_E28attn_flash_f16_kernel_9649ed18dpct_kernel_scalarILi4EESM_ILi0EEhEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<4, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::launch_mv_blocks<2, 1>(int, unsigned char const*, int, int, float const*, float*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::mv_blocks_kernel_8410ea, dpct_kernel_scalar<2>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 12
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_d170b0, dpct_kernel_scalar<1>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE_clESC_E34argmax_gemv_f16_part_kernel_d170b018dpct_kernel_scalarILi1EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::argmax_gemv_f16(unsigned short const*, int, float const*, float const*, unsigned short const*, int, int, int*, sycl::_V1::queue*)::'lambda0'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::argmax_gemv_f16_part_kernel_9419a4, dpct_kernel_scalar<0>>': Adding 19 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZZN3ik21k15argmax_gemv_f16EPKtiPKfS5_S3_iiPiPN4sycl3_V15queueEENKUlRNS8_7handlerEE0_clESC_E34argmax_gemv_f16_part_kernel_9419a418dpct_kernel_scalarILi0EEEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::decode_f16(int, unsigned char const*, unsigned long, unsigned short*, sycl::_V1::queue*)::'lambda1'(sycl::_V1::handler&)::operator()(sycl::_V1::handler&) const::decode_f16_iq_kernel_e0c0cd>': compiled SIMD32 allocated 128 regs and spilled around 15
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 3>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 415
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned short, 2>(unsigned short const*, float const*, int, float const*, unsigned short const*, unsigned short const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned short, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 272
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 3>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<3>>': compiled SIMD32 allocated 128 regs and spilled around 396
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': [RetryManager] Start recompilation of the kernel
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<void ik2::k::attn_block_launch<unsigned char, 2>(unsigned short const*, float const*, int, float const*, unsigned char const*, unsigned char const*, int, int, int, int const*, int, int, float, float, float const*, int, int, int, float*, float*, float const*, int, unsigned short*, sycl::_V1::queue*)::attn_block_mma_kernel_89084d, unsigned char, dpct_kernel_scalar<2>>': compiled SIMD32 allocated 128 regs and spilled around 260
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_a169d8, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 17
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_gate_up_swiglu_g(unsigned char const* const*, int const*, int const*, int const*, int, int, int, unsigned long, float const*, int, int, float const*, float const*, float, float, unsigned short*, sycl::_V1::queue*, unsigned short const*)::grouped_expert_mma_760e49, dpct_kernel_scalar<1>, dpct_kernel_scalar<4>, dpct_kernel_scalar<1>>': compiled SIMD32 allocated 128 regs and spilled around 4
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_block_down(unsigned char const* const*, int const*, int const*, int, unsigned long, int, int, unsigned short const*, float*, sycl::_V1::queue*)::experts_block_down_kernel_ddcd34, dpct_kernel_scalar<4>>': compiled SIMD32 allocated 128 regs and spilled around 26
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::experts_down_g(unsigned char const* const*, int const*, int const*, int, int, unsigned long, unsigned short const*, int, int, float*, sycl::_V1::queue*)::grouped_expert_mma_6ba10e, dpct_kernel_scalar<0>, dpct_kernel_scalar<4>, dpct_kernel_scalar<0>>': compiled SIMD32 allocated 128 regs and spilled around 13
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+
+[bmg-g21] warning: in kernel 'typeinfo name for dpct_kernel_name<ik2::k::attn_probs_f16(float const*, unsigned short*, int, int, int, int, int, float, float const*, int, float const*, int, int, float const*, sycl::_V1::queue*)::attn_probs_f16_kernel_3cfced>': Adding 18 occurrences of additional control flow due to presence of generic address space operations
+[bmg-g21] in function _ZTS16dpct_kernel_nameIJZN3ik21k14attn_probs_f16EPKfPtiiiiifS3_iS3_iiS3_PN4sycl3_V15queueEE28attn_probs_f16_kernel_3cfcedEE (Enable PrintVerboseGenericControlFlowLog flag to acquire detailed log. Requires debuginfo!)
+
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+Compilation from IR - skipping loading of FCL
+Build succeeded.
+[100%] Built target ik2_experts_down_test
+make[1]: Leaving directory '/mnt/ai_data/projects/unbiased-intel/UnbiasedStrata/build-intel-ik2'
+for t in ik2_flash_xmx_test ik2_moe_xmx_test ik2_small_bench ik2_rms_test ik2_mma_emul_test ik2_experts_down_test; do \
+    echo "== $t"; build-intel-ik2/$t || exit 1; done
+== ik2_flash_xmx_test
+H4 KV2 Tq100 q0 37  win 1073741824 ext 0  split 1 cap 0   : max|diff| 3.90e-05 (max|out| 0.56) NaN 0 | emulated 6.9 ms, xmx 0.5 ms  ok
+H4 KV2 Tq100 q0 37  win 64         ext 0  split 1 cap 0   : max|diff| 1.11e-04 (max|out| 0.54) NaN 0 | emulated 2.0 ms, xmx 0.1 ms  ok
+H4 KV2 Tq100 q0 37  win 1073741824 ext 48 split 1 cap 0   : max|diff| 2.05e-05 (max|out| 0.75) NaN 0 | emulated 2.9 ms, xmx 0.1 ms  ok
+H6 KV2 Tq70  q0 0   win 128        ext 40 split 2 cap 0   : max|diff| 8.74e-05 (max|out| 2.09) NaN 0 | emulated 1.7 ms, xmx 0.1 ms  ok
+H6 KV2 Tq33  q0 200 win 1073741824 ext 0  split 3 cap 0   : max|diff| 1.19e-05 (max|out| 0.28) NaN 0 | emulated 1.7 ms, xmx 0.1 ms  ok
+H2 KV2 Tq8   q0 0   win 1073741824 ext 0  split 1 cap 0   : max|diff| 1.19e-07 (max|out| 1.65) NaN 0 | emulated 0.8 ms, xmx 0.0 ms  ok
+H4 KV2 Tq150 q0 500 win 96         ext 64 split 2 cap 1024: max|diff| 8.86e-05 (max|out| 0.58) NaN 0 | emulated 1.6 ms, xmx 0.1 ms  ok
+== ik2_moe_xmx_test
+C 384 F 192 experts 5 tokens 270: gate/up+swiglu max err 1.56e-02 (max 35.00), down max err 5.91e-05 (max 294.03), NaN 0 | 0.99 ms (warm 0.10 ms)  ok
+C 2304 F 1152 experts 3 tokens 273: gate/up+swiglu max err 1.56e-02 (max 35.00), down max err 2.90e-04 (max 714.02), NaN 0 | 1.02 ms (warm 0.84 ms)  ok
+layer visit (128 experts x 64 tokens): gate/up+swiglu 9.33 ms, down 4.07 ms
+== ik2_small_bench
+mv_f16 128x2304: generic 11.2 us, wide 3.3 us, max diff 1.43e-06 (max |y| 5.81)  ok
+mv_f16 24x2304: generic 11.0 us, wide 3.3 us, max diff 8.34e-07 (max |y| 4.00)  ok
+mv_f16 96x2304: generic 11.2 us, wide 3.2 us, max diff 1.13e-06 (max |y| 7.18)  ok
+== ik2_rms_test
+aligned    input: f16 0 NaN 0 inf, max err 1.894e-03 | f32 0 NaN, max err 4.379e-07  ok
+misaligned input: f16 0 NaN 0 inf, max err 1.748e-03 | f32 0 NaN, max err 3.088e-07  ok
+== ik2_mma_emul_test
+mma16816: ok (20 random trials, max error < 1e-4)
+ldmatrix x4 (plain and .trans): ok
+== ik2_experts_down_test
+type 40, 1 groups of 1..1 tokens: 1 launches finished in 2.11 ms
+type 40, 1 groups of 1..2 tokens: 1 launches finished in 0.03 ms
+type 40, 1 groups of 1..4 tokens: 1 launches finished in 0.02 ms
+type 40, 1 groups of 1..8 tokens: 1 launches finished in 0.02 ms
+type  8, 1 groups of 1..1 tokens: 1 launches finished in 0.03 ms
+type  8, 1 groups of 1..2 tokens: 1 launches finished in 0.02 ms
+type  8, 1 groups of 1..4 tokens: 1 launches finished in 0.02 ms
+type  8, 1 groups of 1..8 tokens: 1 launches finished in 0.02 ms
+exit 0
+new engine resets: 0
